@@ -7,6 +7,7 @@ const char* const TOKEN_DESCRIPTION[] =
 {
 	"IDENTIFIER",
 	"RESERVED_WORD",
+	"HEX_CONST",
 	"INT_CONST",
 	"REAL_CONST",
 	"STR_CONST",
@@ -335,8 +336,7 @@ void Scanner::EatStrConst(istream& in, char& curr_char)
                 --bp;
             }
         int count = 0;
-        c = in.get();
-        ++pos;
+        c = ExtractChar();
         while (c == '\'' && !in.eof())
         {
             ++count;
@@ -351,6 +351,22 @@ void Scanner::EatStrConst(istream& in, char& curr_char)
         c = ExtractChar();
     }
     MakeToken(STR_CONST);
+}
+
+void Scanner::EatHex(istream& in, char& curr_char)
+{
+	char& c = curr_char;
+	bool read = false;
+	while (isdigit(c) || ('a' <= tolower(c)  && tolower(c) <= 'f'))
+	{
+		read = true;
+		AddToBuffer(c);
+		c = ExtractChar();
+	}
+	if (!read)
+		Error("invalid integer expression");
+	else
+		MakeToken(HEX_CONST);
 }
 
 char Scanner::ExtractChar()
@@ -390,6 +406,10 @@ bool Scanner::ProcessNextCharacter()
                     MakeToken(INT_CONST);
                     matched = true;
                 }
+        break;
+        case HEX_ST:
+            EatHex(in, c);
+            matched = true;
         break;
         case REAL_FRACT_PART_ST:
             EatRealFractPart(in, c);
@@ -458,10 +478,14 @@ bool Scanner::ProcessNextCharacter()
                 {
                     state = INTEGER_ST;
                 }
-                else
-                {
-                    state = OPERATION_ST;
-                }
+                else if (c == '$') //hex
+				{
+					state = HEX_ST;
+				}
+				else
+					{
+						state = OPERATION_ST;
+					}
                 AddToBuffer(c);
             }
         }
