@@ -1,8 +1,5 @@
 #include "scanner.h"
 
-#include <iostream> //---Ñì. Scanner::
-#include <string>
-
 const char* const TOKEN_DESCRIPTION[] =
 {
 	"IDENTIFIER",
@@ -240,10 +237,11 @@ void Scanner::Error(const char* msg) const
 
 Scanner::Scanner(istream& input):
     in(input),
-    pos(0),
-    line(1),
     bp(0),
-    state(NONE_ST)
+    line(1),
+    pos(0),
+    state(NONE_ST),
+    c(0)
 {
 }
 
@@ -252,26 +250,19 @@ Token Scanner::GetToken()
 	return token;
 }
 
-Token Scanner::NextToken()
+void Scanner::EatLineComment()
 {
-    while (ProcessNextCharacter());
-    return token;
-}
-
-void Scanner::EatLineComment(istream& in, char& curr_char)
-{
-    char& c = curr_char;
     if (c =='/' && (char)in.peek() == '/')
     {
         do {
-            c = ExtractChar();
+            c = in.get();
+            ++pos;
         } while (c != '\n' && !in.eof());
     }
 }
 
-void Scanner::EatBlockComment(istream& in, char& curr_char)
+void Scanner::EatBlockComment()
 {
-    char& c = curr_char;
     if (c == '{')
     {
         do {
@@ -284,13 +275,13 @@ void Scanner::EatBlockComment(istream& in, char& curr_char)
             }
             if (in.eof()) Error("end of file in comment");
         } while (c != '}');
-        c = ExtractChar();
+        c = in.get();
+        ++pos;
     }
 }
 
-void Scanner::EatRealFractPart(istream& in, char& curr_char)
+void Scanner::EatRealFractPart()
 {
-    char& c = curr_char;
     while (isdigit(c))
     {
         AddToBuffer(c);
@@ -317,9 +308,8 @@ void Scanner::EatRealFractPart(istream& in, char& curr_char)
     MakeToken(REAL_CONST);
 }
 
-void Scanner::EatStrConst(istream& in, char& curr_char)
+void Scanner::EatStrConst()
 {
-    char& c = curr_char;
     --bp;
     while (c != '\'')
     {
@@ -353,9 +343,8 @@ void Scanner::EatStrConst(istream& in, char& curr_char)
     MakeToken(STR_CONST);
 }
 
-void Scanner::EatHex(istream& in, char& curr_char)
+void Scanner::EatHex()
 {
-	char& c = curr_char;
 	bool read = false;
 	while (isdigit(c) || ('a' <= tolower(c)  && tolower(c) <= 'f'))
 	{
@@ -369,127 +358,141 @@ void Scanner::EatHex(istream& in, char& curr_char)
 		MakeToken(HEX_CONST);
 }
 
+void Scanner::EatInteger()
+{
+    while (isdigit(c))
+    {
+        AddToBuffer(c);
+        c = ExtractChar();
+    }
+    if (c == '.')
+    {
+        AddToBuffer(c);
+        c = ExtractChar();
+        EatRealFractPart();
+    }
+    else
+        {
+            MakeToken(INT_CONST);
+        }
+}
+
+void Scanner::EatIdentifier()
+{
+    while (isalnum(c) || c == '_')
+    {
+        AddToBuffer(c);
+        c = ExtractChar();
+    }
+    IdentifyAndMake();
+}
+
+void Scanner::EatOperation()
+{
+    bool matched = false;
+    if (!in.eof() && !isalnum(c) && c != '_' && !isspace(c))
+    {
+        AddToBuffer(c);
+        if (TryToIdentify())
+        {
+            matched = true;
+            c = ExtractChar();
+        }
+        else
+            --bp;
+    }
+    if (!matched)
+    {
+        if (TryToIdentify())
+            matched = true;
+        else
+            Error("illegal expression");
+    }
+}
+
 char Scanner::ExtractChar()
 {
     ++pos;
-    return in.get();
+    char c = in.get();
+    return c;
 }
 
-bool Scanner::ProcessNextCharacter()
+Token Scanner::NextToken()
 {
-    bool matched = false;
-    char c;
-    if (!in.eof())
+    bool matched;
+    do
     {
-        c = ExtractChar();
-        EatLineComment(in, c);
-        EatBlockComment(in, c);
-    }
-    switch (state)
-    {
-        case EOF_ST:
-            MakeToken(END_OF_FILE);
-            matched = true;
-        break;
-        case INTEGER_ST:
-            if (isdigit(c))
-            {
-                AddToBuffer(c);
-            }
-            else if (c == '.')
-            {
-                AddToBuffer(c);
-                state = REAL_FRACT_PART_ST;
-            }
-            else
+        if (!in.eof())
+        {
+            c = ExtractChar();
+        }
+        if (state != NONE_ST) matched = true;
+        switch (state)
+        {
+            case NONE_ST:
+            break;
+            case EOF_ST:
+                MakeToken(END_OF_FILE);
+            break;
+            case INTEGER_ST:
+                EatInteger();
+            break;
+            case HEX_ST:
+                EatHex();
+            break;
+            case IDENTIFIER_ST:
+                EatIdentifier();
+            break;
+            case OPERATION_ST:
+                if (buffer[0] == '\'')
                 {
-                    MakeToken(INT_CONST);
-                    matched = true;
+                    EatStrConst();
                 }
-        break;
-        case HEX_ST:
-            EatHex(in, c);
-            matched = true;
-        break;
-        case REAL_FRACT_PART_ST:
-            EatRealFractPart(in, c);
-            matched = true;
-        break;
-        case IDENTIFIER_ST:
-            if (isalnum(c) || c == '_')
-            {
-                AddToBuffer(c);
-            }
-            else
-                {
-                    IdentifyAndMake();
-                    matched = true;
-                }
-        break;
-        case OPERATION_ST:
-            if (buffer[0] == '\'')
-            {
-                EatStrConst(in, c);
-                matched = true;
-            }
-            else
-            {
-                if (!in.eof() && !isalnum(c) & c != '_' && !isspace(c))
-                {
-                    AddToBuffer(c);
-                    if (TryToIdentify())
+                else
                     {
-                        matched = true;
-                        c = ExtractChar();
+                        EatOperation();
+                    };
+        }
+        if (state == NONE_ST)
+        {
+            EatLineComment();
+            EatBlockComment();
+            if (c == '\n')
+            {
+                ++line;
+                pos = 0;
+            }
+            else
+            {
+                first_pos = pos;
+                first_line = line;
+                if (in.eof())
+                {
+                    state = EOF_ST;
+                }
+                else if (!isspace(c))
+                {
+                    if (isalpha(c) || c == '_')
+                    {
+                        state = IDENTIFIER_ST;
+                    }
+                    else if (isdigit(c))
+                    {
+                        state = INTEGER_ST;
+                    }
+                    else if (c == '$')
+                    {
+                        state = HEX_ST;
                     }
                     else
-                        --bp;
+                        {
+                            state = OPERATION_ST;
+                        }
+                    AddToBuffer(c);
                 }
-                if (!matched)
-                    if (TryToIdentify())
-                        matched = true;
-                    else
-                        Error("illegal expression");
-            }
-        break;
-    }
-    if (state == NONE_ST)
-    {
-        if (c == '\n')
-        {
-            ++line;
-            pos = 0;
-        }
-        else
-        {
-            first_pos = pos;
-            first_line = line;
-            if (in.eof())
-            {
-                state = EOF_ST;
-            }
-            else if (!isspace(c))
-            {
-                if (isalpha(c) || c == '_')
-                {
-                    state = IDENTIFIER_ST;
-                }
-                else if (isdigit(c))
-                {
-                    state = INTEGER_ST;
-                }
-                else if (c == '$') //hex
-				{
-					state = HEX_ST;
-				}
-				else
-					{
-						state = OPERATION_ST;
-					}
-                AddToBuffer(c);
             }
         }
-    }
-    return !matched;
+    } while (!matched);
+    return token;
 }
 

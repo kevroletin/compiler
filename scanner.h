@@ -57,7 +57,6 @@ public:
         IDENTIFIER_ST,
 		HEX_ST,
         INTEGER_ST,
-        REAL_FRACT_PART_ST,
         OPERATION_ST,
         EOF_ST,
         NONE_ST
@@ -82,6 +81,7 @@ private:
 	Token token;
 	int line;
 	int pos;
+	char c;
 	State state;
 	void AddToBuffer(char c);
     void MakeToken(TokenType type);
@@ -90,11 +90,14 @@ private:
     void Error(const char* msg) const;
     char ExtractChar();
     bool ProcessNextCharacter();
-    void EatLineComment(istream& in,char& curr_char);
-    void EatBlockComment(istream& in, char& curr_char);
-    void EatRealFractPart(istream& in, char& curr_char);
-    void EatStrConst(istream& in, char& curr_char);
-	void EatHex(istream& in, char& curr_char);
+    void EatLineComment();
+    void EatBlockComment();
+    void EatRealFractPart();
+    void EatStrConst();
+	void EatHex();
+	void EatInteger();
+	void EatIdentifier();
+	void EatOperation();
 public:
 	Scanner(istream& input);
 	Token GetToken();
