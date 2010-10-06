@@ -1,10 +1,11 @@
+#ifndef SCANNER
+#define SCANNER
+
 #include <istream>
 #include <map>
-#include <string>
 #include <string.h>
 #include <sstream>
-#include <ctype.h>
-#include <cstdio>
+#include <exception>
 
 using namespace std;
 
@@ -15,7 +16,6 @@ enum TokenType{
 	INT_CONST,
 	REAL_CONST,
 	STR_CONST,
-	STRING_CONST,
 	OPERATION,
 	DELIMITER,
 	END_OF_FILE
@@ -67,6 +67,7 @@ public:
     public:
         exception();
         exception(const char* const msg);
+        virtual ~exception() throw();
         virtual const char* what() const throw();
     };
 private:
@@ -89,7 +90,6 @@ private:
     bool TryToIdentify();
     void Error(const char* msg) const;
     char ExtractChar();
-    bool ProcessNextCharacter();
     void EatLineComment();
     void EatBlockComment();
     void EatRealFractPart();
@@ -103,3 +103,5 @@ public:
 	Token GetToken();
 	Token NextToken();
 };
+
+#endif

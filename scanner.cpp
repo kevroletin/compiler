@@ -8,7 +8,6 @@ const char* const TOKEN_DESCRIPTION[] =
 	"INT_CONST",
 	"REAL_CONST",
 	"STR_CONST",
-	"STRING_CONST",
 	"OPERATION",
 	"DELIMITER",
 	"END_OF_FILE"
@@ -151,7 +150,7 @@ Token& Token::operator=(const Token& token)
 
 Token::~Token()
 {
-	delete(value);
+	if (value != NULL) delete(value);
 }
 
 TokenType Token::GetType() const
@@ -184,6 +183,12 @@ Scanner::exception::exception():
 Scanner::exception::exception(const char* const msg):
     msg(strcpy(new char[strlen(msg) + 1], msg))
 {
+}
+
+
+Scanner::exception::~exception() throw()
+{
+    if (msg != NULL) delete msg;
 }
 
 const char* Scanner::exception::what() const throw()
