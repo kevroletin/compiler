@@ -3,7 +3,7 @@
 
 #include "scanner.h"
 #include <string.h>
-#include <exception>
+#include "exception.h"
 
 #include <ostream>
 
@@ -47,7 +47,6 @@ struct Constant: public Expression{
 };
 
 class Parser{
-public:
 private:
     Scanner& scan;
     Token token;
@@ -58,8 +57,8 @@ private:
     bool IsExprOp(const Token& token) const;
     bool IsTermOp(const Token& token) const;
     bool IsConst(const Token& token) const;
-    void Error(char* msg);
-    void PrintNode(ostream& o, Expression* e, int margin = 1);
+    void Error(char* msgn);
+    void PrintNode(ostream& o, Expression* e, int margin = 0);
 public:
     Parser(Scanner& scanner);
     ostream& operator<<(ostream& o);

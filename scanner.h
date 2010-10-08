@@ -2,10 +2,11 @@
 #define SCANNER
 
 #include <istream>
+#include <stdio.h>
 #include <map>
 #include <string.h>
 #include <sstream>
-#include <exception>
+#include "exception.h"
 
 using namespace std;
 
@@ -27,7 +28,7 @@ private:
     void Add(char* value, TokenType type);
 public:
     ReservedWords();
-    bool Identify(char *value, TokenType& returned_type);
+    bool Identify(string& str, TokenType& returned_type);
 };
 
 class Token{
@@ -38,7 +39,7 @@ private:
 	char* value;
 public:
     Token();
-	Token(char* value, TokenType type, int line, int pos);
+	Token(const char* value, TokenType type, int line, int pos);
 	Token(const Token& token);
 	Token& operator=(const Token& token);
 	~Token();
@@ -61,22 +62,12 @@ public:
         EOF_ST,
         NONE_ST
     };
-    class exception: std::exception{
-    private:
-        char *msg;
-    public:
-        exception();
-        exception(const char* const msg);
-        virtual ~exception() throw();
-        virtual const char* what() const throw();
-    };
 private:
     ReservedWords reserved_words;
 	Token* currentToken;
 	istream& in;
-	char buffer[MAX_TOKEN_LENGTH];
-	char buffer_low[MAX_TOKEN_LENGTH];
-	int bp;
+	string buffer;
+	string buffer_low;
 	int first_pos;
 	int first_line;
 	Token token;
@@ -85,14 +76,16 @@ private:
 	char c;
 	State state;
 	void AddToBuffer(char c);
+	void ReduceBuffer();
     void MakeToken(TokenType type);
     void IdentifyAndMake();
     bool TryToIdentify();
     void Error(const char* msg) const;
-    char ExtractChar();
+    void ExtractChar();
     void EatLineComment();
     void EatBlockComment();
     void EatRealFractPart();
+    void EatStrNum();
     void EatStrConst();
 	void EatHex();
 	void EatInteger();

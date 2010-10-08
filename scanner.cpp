@@ -1,5 +1,10 @@
 #include "scanner.h"
 
+bool ishexnum(char c)
+{
+    return isdigit(c) || ('a' <= tolower(c)  && tolower(c) <= 'f');
+}
+
 const char* const TOKEN_DESCRIPTION[] =
 {
 	"IDENTIFIER",
@@ -100,9 +105,9 @@ ReservedWords::ReservedWords()
     Add("<>", OPERATION);
 }
 
-bool ReservedWords::Identify(char *value, TokenType& returned_type)
+bool ReservedWords::Identify(string& str, TokenType& returned_type)
 {
-    map<string, TokenType>::iterator i  = words.find(value);
+    map<string, TokenType>::iterator i  = words.find(str);
     if (i == words.end()) return false;
     returned_type = i->second;
     return true;
@@ -122,20 +127,20 @@ Token::Token():
 {
 }
 
-Token::Token(char* value, TokenType type, int line, int pos)
+Token::Token(const char* value_, TokenType type_, int line_, int pos_):
+    value(strcpy(new char[strlen(value_)+1], value_)),
+    type(type_),
+    line(line_),
+    pos(pos_)
 {
-    this->value = strcpy(new char[strlen(value)+1], value);
-	this->type = type;
-	this->line = line;
-	this->pos = pos;
 }
 
-Token::Token(const Token& token)
+Token::Token(const Token& token):
+    value(strcpy(new char[strlen(token.value)+1], token.value)),
+	type(token.type),
+	line(token.line),
+	pos(token.pos)
 {
-    value = strcpy(new char[strlen(token.value)+1], token.value);
-	type = token.type;
-	line = token.line;
-	pos = token.pos;
 }
 
 Token& Token::operator=(const Token& token)
@@ -175,46 +180,28 @@ int Token::GetLine() const
 
 //---Scanner---
 
-Scanner::exception::exception():
-    msg(NULL)
-{
-}
-
-Scanner::exception::exception(const char* const msg):
-    msg(strcpy(new char[strlen(msg) + 1], msg))
-{
-}
-
-
-Scanner::exception::~exception() throw()
-{
-    if (msg != NULL) delete msg;
-}
-
-const char* Scanner::exception::what() const throw()
-{
-    return msg;
-}
-
-//---Scanner---
-
 void Scanner::AddToBuffer(char c)
 {
-    buffer[bp] = c;
-    buffer_low[bp++] = tolower(c);
+    buffer.push_back(c);
+    buffer_low.push_back(tolower(c));
+}
+
+void Scanner::ReduceBuffer()
+{
+    buffer.resize(buffer.size() - 1);
+    buffer_low.resize(buffer.size());
 }
 
 void Scanner::MakeToken(TokenType type)
 {
-    buffer[bp] = '\0';
-    token = Token(buffer, type, first_line, first_pos);
-    bp = 0;
+    token = Token(buffer.c_str(), type, first_line, first_pos);
+    buffer.clear();
+    buffer_low.clear();
     state = NONE_ST;
 }
 
 void Scanner::IdentifyAndMake()
 {
-    buffer_low[bp]  = '\0';
     TokenType t;
     if (!reserved_words.Identify(buffer_low, t)) t = IDENTIFIER;
     MakeToken(t);
@@ -222,27 +209,24 @@ void Scanner::IdentifyAndMake()
 
 bool Scanner::TryToIdentify()
 {
-    buffer_low[bp]  = '\0';
     TokenType t;
     if (reserved_words.Identify(buffer_low, t))
     {
         MakeToken(t);
         return true;
     }
-    else
-        return false;
+    return false;
 }
 
 void Scanner::Error(const char* msg) const
 {
     stringstream s;
     s << line << ':' << pos << " ERROR " << msg;
-    throw( Scanner::exception( s.str().c_str() ) ) ;
+    throw( CompilerException( s.str().c_str() ) ) ;
 }
 
 Scanner::Scanner(istream& input):
     in(input),
-    bp(0),
     line(1),
     pos(0),
     state(NONE_ST),
@@ -257,11 +241,10 @@ Token Scanner::GetToken()
 
 void Scanner::EatLineComment()
 {
-    if (c =='/' && (char)in.peek() == '/')
+    if (c =='/' && in.peek() == '/')
     {
         do {
-            c = in.get();
-            ++pos;
+            ExtractChar();
         } while (c != '\n' && !in.eof());
     }
 }
@@ -271,8 +254,7 @@ void Scanner::EatBlockComment()
     if (c == '{')
     {
         do {
-            c = in.get();
-            ++pos;
+            ExtractChar();
             if (c == '\n')
             {
                 ++line;
@@ -280,8 +262,7 @@ void Scanner::EatBlockComment()
             }
             if (in.eof()) Error("end of file in comment");
         } while (c != '}');
-        c = in.get();
-        ++pos;
+        ExtractChar();
     }
 }
 
@@ -290,60 +271,98 @@ void Scanner::EatRealFractPart()
     while (isdigit(c))
     {
         AddToBuffer(c);
-        c = ExtractChar();
+        ExtractChar();
     }
     if (c == 'e' || c == 'E')
     {
         AddToBuffer(c);
-        c = ExtractChar();
+        ExtractChar();
         if (c == '+' || c == '-')
         {
             AddToBuffer(c);
-            c = ExtractChar();
+            ExtractChar();
         }
         if (!isdigit(c))
             Error("illegal character, should be number");
-        else
-            do
-            {
-                AddToBuffer(c);
-                c = ExtractChar();
-            } while (isdigit(c));
+        do
+        {
+            AddToBuffer(c);
+            ExtractChar();
+        } while (isdigit(c));
     }
     MakeToken(REAL_CONST);
 }
 
+void Scanner::EatStrNum()
+{
+    int res = 0;
+    while (isdigit(c))
+    {
+        res = res*10 + c - '0';
+        ExtractChar();
+    }
+    AddToBuffer(res);
+    res = 0;
+    while (c == '#')
+    {
+        ExtractChar();
+        while (isdigit(c))
+        {
+            res = res*10 + c - '0';
+            ExtractChar();
+        }
+        AddToBuffer(res);
+    }
+}
+
 void Scanner::EatStrConst()
 {
-    --bp;
-    while (c != '\'')
+    bool isNum = (buffer[0] =='#');
+    buffer.clear();
+    buffer_low.clear();
+    if (isNum)
     {
-        if (in.eof())
-            Error("end of file in string");
-        if (c != '\n')
-            AddToBuffer(c);
-        else if (buffer[bp - 1] != '\\')
-            Error("end of line in string");
+        EatStrNum();
+        if (c == '\'')
+            ExtractChar();
         else
             {
-                ++line;
-                pos = 0;
-                --bp;
+                MakeToken(STR_CONST);
+                return;
             }
-        int count = 0;
-        c = ExtractChar();
-        while (c == '\'' && !in.eof())
-        {
-            ++count;
-            if (count % 2 == 0) AddToBuffer(c);
-            c = in.get();
-            ++pos;
-        }
-        if (count % 2) break;
     }
-    if (!in.eof())
+    bool end_of_str = false;
+    while (!end_of_str)
     {
-        c = ExtractChar();
+        while (!end_of_str)
+        {
+            if (in.eof())
+                Error("end of file in string");
+            if (c == '\n') Error("end of line in string");
+            if (c != '\'')
+            {
+                AddToBuffer(c);
+                ExtractChar();
+            }
+            while (c == '\'' && !end_of_str)
+            {
+                int count;
+                for (count = 0; c == '\'' && !in.eof(); ++count, ExtractChar())
+                    if (count % 2) AddToBuffer(c);
+                if (count % 2) end_of_str = true;
+            }
+        }
+        if (c == '#')
+        {
+            ExtractChar();
+            EatStrNum();
+            if (c == '\'')
+            {
+                ExtractChar();
+                end_of_str = false;
+            }
+
+        }
     }
     MakeToken(STR_CONST);
 }
@@ -351,11 +370,11 @@ void Scanner::EatStrConst()
 void Scanner::EatHex()
 {
 	bool read = false;
-	while (isdigit(c) || ('a' <= tolower(c)  && tolower(c) <= 'f'))
+	while (ishexnum(c))
 	{
 		read = true;
 		AddToBuffer(c);
-		c = ExtractChar();
+		ExtractChar();
 	}
 	if (!read)
 		Error("invalid integer expression");
@@ -368,12 +387,12 @@ void Scanner::EatInteger()
     while (isdigit(c))
     {
         AddToBuffer(c);
-        c = ExtractChar();
+        ExtractChar();
     }
     if (c == '.')
     {
         AddToBuffer(c);
-        c = ExtractChar();
+        ExtractChar();
         EatRealFractPart();
     }
     else
@@ -387,7 +406,7 @@ void Scanner::EatIdentifier()
     while (isalnum(c) || c == '_')
     {
         AddToBuffer(c);
-        c = ExtractChar();
+        ExtractChar();
     }
     IdentifyAndMake();
 }
@@ -401,25 +420,21 @@ void Scanner::EatOperation()
         if (TryToIdentify())
         {
             matched = true;
-            c = ExtractChar();
+            ExtractChar();
         }
         else
-            --bp;
+            {
+                ReduceBuffer();
+            }
     }
-    if (!matched)
-    {
-        if (TryToIdentify())
-            matched = true;
-        else
-            Error("illegal expression");
-    }
+    if (!matched && !TryToIdentify())
+        Error("illegal expression");
 }
 
-char Scanner::ExtractChar()
+void Scanner::ExtractChar()
 {
     ++pos;
-    char c = in.get();
-    return c;
+    c = in.get();
 }
 
 Token Scanner::NextToken()
@@ -427,10 +442,7 @@ Token Scanner::NextToken()
     bool matched;
     do
     {
-        if (!in.eof())
-        {
-            c = ExtractChar();
-        }
+        ExtractChar();
         if (state != NONE_ST) matched = true;
         switch (state)
         {
@@ -449,7 +461,7 @@ Token Scanner::NextToken()
                 EatIdentifier();
             break;
             case OPERATION_ST:
-                if (buffer[0] == '\'')
+                if (buffer[0] == '\'' || buffer[0] == '#')
                 {
                     EatStrConst();
                 }

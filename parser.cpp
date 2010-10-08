@@ -3,13 +3,11 @@
 
 #include <vector>
 
+/*
 vector<bool> margins;
-
-void Parser::PrintNode(ostream& o, Expression* e, int margin)
+void Parser::PrintNode(ostream& o, Expression* e, int margin = 1)
 {
     if (e == NULL) return;
-    //for (int i = 0; i < margin - 1; ++i) o<< ": ";
-    //if (margin) o << ":.";
     if (margins.size())
     {
         bool tmp = margins.back();
@@ -33,7 +31,11 @@ void Parser::PrintNode(ostream& o, Expression* e, int margin)
         case VARIBLE:
         break;
         case UN_OPER:
+            margins.pop_back();
+            margins.push_back( margin == 1);
+            margins.push_back(false);
             PrintNode(o, ((UnOper*)e) -> child, 0);
+            margins.pop_back();
         break;
         case BIN_OPER:
             margins.push_back(true);
@@ -44,14 +46,13 @@ void Parser::PrintNode(ostream& o, Expression* e, int margin)
                 margins.pop_back();
                 margins.push_back(false);
             }
-            PrintNode(o, ((BinOper*)e) -> right, 1);
+            PrintNode(o, ((BinOper*)e) -> right, 0);
             margins.pop_back();
         break;
     }
-
 }
+*/
 
-/*
 void Parser::PrintNode(ostream& o, Expression* e, int margin)
 {
     if (e == NULL) return;
@@ -73,11 +74,12 @@ void Parser::PrintNode(ostream& o, Expression* e, int margin)
     }
 
 }
-*/
 
 ostream& Parser::operator<<(ostream& o)
 {
     Expression* root = GetExpression();
+    if (scan.GetToken().GetType() != END_OF_FILE)
+        Error("end of file expected");
     PrintNode(o, root);
 }
 
@@ -174,15 +176,18 @@ Expression* Parser::GetTermToken()
         res = new Constant(token);
         scan.NextToken();
     }
-    else
+    else if (!strcmp(token.GetValue(), "("))
     {
         scan.NextToken();
         res = GetExpression();
+        if (res == NULL) Error("illegal expression");
         token = scan.GetToken();
-        if (token.GetType() != DELIMITER || strcmp(token.GetValue(), ")"))
+        if (strcmp(token.GetValue(), ")"))
             Error("expected )");
         scan.NextToken();
     }
+    else
+        Error("Illegal expression");
     return res;
 }
 
@@ -231,5 +236,8 @@ bool Parser::IsTermOp(const Token& token) const
 
 void Parser::Error(char* msg)
 {
-
+    stringstream s;
+    Token token = scan.GetToken();
+    s << token.GetLine() << ':' << token.GetPos() << " ERROR at '" << token.GetValue() << "': " << msg;
+    throw( CompilerException( s.str().c_str() ) ) ;
 }

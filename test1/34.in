@@ -1,0 +1,7 @@
+function Fact(n: Integer): Integer;
+begin
+	if n = 1 then 
+		Result := 1
+	else 
+		Result := n * Fact(n - 1);
+end;
