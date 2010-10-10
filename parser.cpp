@@ -53,24 +53,51 @@ void Parser::PrintNode(ostream& o, Expression* e, int margin = 1)
 }
 */
 
+void PrintSpaces(ostream& o, int count)
+{
+    for (int i = 0; i < count; ++i) o << ' ';
+}
+
 void Parser::PrintNode(ostream& o, Expression* e, int margin)
 {
     if (e == NULL) return;
-    for (int i = 0; i < margin; ++i) o<< ' ';
-    o <<  e -> token.GetValue() << "\n"  ;
+    PrintSpaces(o, margin);
     switch (e -> GetType())
     {
         case CONSTANT:
+            o << e -> token.GetValue() << "\n";
         break;
         case VARIBLE:
+            o << e -> token.GetValue() << "\n";
         break;
         case UN_OPER:
+            o << e -> token.GetValue() << "\n";
             PrintNode(o, ((UnOper*)e) -> child, margin + 2);
         break;
         case BIN_OPER:
+            o << e -> token.GetValue() << "\n";
             PrintNode(o, ((BinOper*)e) -> left, margin + 2);
             PrintNode(o, ((BinOper*)e) -> right, margin + 2);
         break;
+        case FUNCTION_CALL:
+        {
+            o << e -> token.GetValue() << "()" << "\n";
+            FunctionCall* f = (FunctionCall*)e;
+            for(vector<Expression*>::iterator it = f->args.begin(); it != f->args.end(); ++it)
+                PrintNode(o, *it, margin + 2);
+        }
+        break;
+        case RECORD_ACCESS:
+            o << ".\n";
+            PrintNode(o, ((RecordAccess*)e) -> record, margin + 2);
+            PrintSpaces(o, margin);
+            o << "  " << e -> token.GetValue() << "\n";
+        break;
+        case ARRAY_ACCESS:
+            o << "[]\n";
+            PrintSpaces(o, margin + 2);
+            o << e -> token.GetValue() << "\n";
+            PrintNode(o, ((ArrayAccess*)e) -> index, margin + 2);
     }
 
 }
@@ -128,12 +155,36 @@ Constant::Constant(Token token_, Expression* pred_):
 {
 }
 
-//---Expression---
+//---RecordAccess
 
-void Parser::NextToken()
+RecordAccess::RecordAccess(Token field, Expression* record_, Expression* pred_):
+    Expression(field, pred_),
+    record(record_)
 {
-    token = scan.NextToken();
 }
+
+//---ArrayAccess
+
+ArrayAccess::ArrayAccess(Token& name, Expression* index_, Expression* pred_):
+    Expression(name, pred_),
+    index(index_)
+{
+    index -> pred = this;
+}
+
+//---FunctionCall---
+
+FunctionCall::FunctionCall(Token name, Expression* pred_):
+    Expression(name, pred_)
+{
+}
+
+void FunctionCall::AddArgument(Expression* arg)
+{
+    args.push_back(arg);
+}
+
+//---Parser---
 
 Parser::Parser(Scanner& scanner):
     scan(scanner)
@@ -144,6 +195,7 @@ Parser::Parser(Scanner& scanner):
 Expression* Parser::GetExpression()
 {
     Expression* left = GetTerm();
+    if (left == NULL) return NULL;
     Token op = scan.GetToken();
     while (IsExprOp(op))
     {
@@ -168,8 +220,57 @@ Expression* Parser::GetTermToken()
     Token token = scan.GetToken();
     if (token.GetType() == IDENTIFIER)
     {
-        res = new Varible(token);
         scan.NextToken();
+        if (!strcmp(scan.GetToken().GetValue(), "("))
+        {
+            scan.NextToken();
+            FunctionCall* funct = new FunctionCall(token);
+            while (strcmp(scan.GetToken().GetValue(), ")"))
+            {
+                Expression* arg = GetExpression();
+                if (!strcmp(scan.GetToken().GetValue(), ","))
+                {
+                    scan.NextToken();
+                }
+                else if (strcmp(scan.GetToken().GetValue(), ")"))
+                {
+                    Error(", expected");
+                }
+                if (arg == NULL) Error(") expected");
+                funct->AddArgument(arg);
+            }
+            scan.NextToken();
+            res = funct;
+        }
+        else if (!strcmp(scan.GetToken().GetValue(), "."))
+        {
+            Expression* record = new Varible(token);
+            while (!strcmp(scan.GetToken().GetValue(), "."))
+            {
+                Expression* newrec = new RecordAccess(token, record); //token - to tmp put smth value
+                record -> pred = newrec;
+                record = newrec;
+                token = scan.NextToken();
+                if (token.GetType() != IDENTIFIER) Error("identifier after . expected");
+                record -> token = token;
+                scan.NextToken();
+            }
+            res = record;
+        }
+        else if (!strcmp(scan.GetToken().GetValue(), "["))
+        {
+            scan.NextToken();
+            Expression* index = GetExpression();
+            if (index == NULL) Error("illegal expression");
+            ArrayAccess* acc = new ArrayAccess(token, index);
+            //BinOper* acc = new BinOper(token, NULL, index, NULL);
+            res = acc;
+            scan.NextToken();
+        }
+        else
+            {
+                res = new Varible(token);
+            }
     }
     else if (IsConst(token))
     {
@@ -187,7 +288,9 @@ Expression* Parser::GetTermToken()
         scan.NextToken();
     }
     else
-        Error("Illegal expression");
+        {
+            return NULL;
+        }
     return res;
 }
 
@@ -204,13 +307,13 @@ Expression* Parser::GetTerm()
         token = scan.NextToken();
     }
     left = GetTermToken();
+    if (left == NULL) return NULL;
     token = scan.GetToken();
     while (IsTermOp(token))
     {
-        if (!IsTermOp(token))
-            break;
-        NextToken();
+        scan.NextToken();
         Expression* right = GetTermToken();
+        if (right == NULL) Error("illegal expression");
         left = new BinOper(token, NULL, left, right);
         token = scan.GetToken();
     }
