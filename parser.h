@@ -76,14 +76,18 @@ class Parser{
 private:
     Scanner& scan;
     void NextToken();
-    Expression* GetExpression();
-    Expression* GetFactor();
     Expression* GetTerm();
-    Expression* GetTermToken();
-    bool IsExprOp(const Token& token) const;
-    bool IsFactorOp(const Token& token) const;
+    Expression* GetAddingExpr();
+    Expression* GetMultiplyingExpr();
+    Expression* GetUnaryExpr();
+    Expression* GetRelationalExpr();
+    bool IsRelationalOp(const Token& token) const;
+    bool IsAddingOp(const Token& token) const;
+    bool IsMultOp(const Token& token) const;
+    bool IsUnaryOp(const Token& token) const;
     bool IsTermOp(const Token& token) const;
     bool IsConst(const Token& token) const;
+    bool IsConstVar(const Token& token) const;
     void Error(char* msgn);
     void PrintNode(ostream& o, Expression* e, int margin = 0);
 public:

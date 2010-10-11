@@ -104,7 +104,7 @@ void Parser::PrintNode(ostream& o, Expression* e, int margin)
 
 ostream& Parser::operator<<(ostream& o)
 {
-    Expression* root = GetExpression();
+    Expression* root = GetRelationalExpr();
     if (scan.GetToken().GetType() != END_OF_FILE)
         Error("end of file expected");
     PrintNode(o, root);
@@ -195,69 +195,40 @@ Parser::Parser(Scanner& scanner):
     scan.NextToken();
 }
 
-Expression* Parser::GetExpression()
+Expression* Parser::GetTerm()
 {
-    Expression* left = GetFactor();
-    if (left == NULL) return NULL;
-    Token op = scan.GetToken();
-    while (IsExprOp(op))
-    {
-        scan.NextToken();
-        Expression* right = GetFactor();
-        if (right == NULL) Error("expression expected");
-        left = new BinOper(op, NULL, left, right);
-        op = scan.GetToken();
-    }
-    return left;
-}
-
-bool Parser::IsConst(const Token& token) const
-{
-    TokenType type = token.GetType();
-    return type == HEX_CONST || type == INT_CONST || type == REAL_CONST || type == STR_CONST;
-}
-
-Expression* Parser::GetTermToken()
-{
-    Token token = scan.GetToken();
+    Expression* left = NULL;
     if (!strcmp(scan.GetToken().GetValue(), "("))
     {
         scan.NextToken();
-        Expression* res = GetExpression();
-        if (res == NULL) Error("illegal expression");
+        left = GetRelationalExpr();
+        if (left == NULL) Error("illegal expression");
         if (strcmp(scan.GetToken().GetValue(), ")"))
             Error("expected )");
         scan.NextToken();
-        return res;
     }
-    if (token.GetType() == IDENTIFIER)
-    {
-        scan.NextToken();
-        return  new Varible(token);
-    }
-    return NULL;
-}
-
-Expression* Parser::GetTerm()
-{
     if (IsConst(scan.GetToken()))
     {
         Token token = scan.GetToken();
         scan.NextToken();
         return new Constant(token);
     }
-    Expression* left = GetTermToken();
-    if (left == NULL) return NULL;
+    if (left == NULL)
+    {
+        if (scan.GetToken().GetType() != IDENTIFIER) return NULL;
+        left = new Varible(scan.GetToken());
+        scan.NextToken();
+    }
     Token op = scan.GetToken();
     while (IsTermOp(op))
     {
-        scan.NextToken();
         if (!strcmp(op.GetValue(), "("))
         {
+            scan.NextToken();
             FunctionCall* funct = new FunctionCall(op, left);
             while (strcmp(scan.GetToken().GetValue(), ")"))
             {
-                Expression* arg = GetExpression();
+                Expression* arg = GetRelationalExpr();
                 if (arg == NULL) Error("illegal expression");
                 if (!strcmp(scan.GetToken().GetValue(), ","))
                     scan.NextToken();
@@ -272,16 +243,17 @@ Expression* Parser::GetTerm()
         {
             while (!strcmp(op.GetValue(), "."))
             {
-                Token field = scan.GetToken();
+                Token field = scan.NextToken();
                 if (scan.GetToken().GetType() != IDENTIFIER) Error("identifier after . expected");
                 left = new RecordAccess(op, field, left);
-                op = scan.GetToken();
+                op = scan.NextToken();
             }
         }
         else if (!strcmp(op.GetValue(), "["))
         {
+            scan.NextToken();
             do {
-                Expression* index = GetExpression();
+                Expression* index = GetRelationalExpr();
                 if (index == NULL) Error("illegal expression");
                 if (!strcmp(scan.GetToken().GetValue(), ","))
                     scan.NextToken();
@@ -291,31 +263,56 @@ Expression* Parser::GetTerm()
             } while (strcmp(scan.GetToken().GetValue(), "]"));
             scan.NextToken();
         }
-        return left;
-        op = scan.NextToken();
+        op = scan.GetToken();
     }
     return left;
 }
 
-Expression* Parser::GetFactor()
+Expression* Parser::GetUnaryExpr()
+{
+    Token token = scan.GetToken();
+    UnOper* un = NULL;
+    UnOper* firstun = NULL;
+    while (IsUnaryOp(token))
+    {
+        un = new UnOper(token, un);
+        if (firstun == NULL) firstun = un;
+        token = scan.NextToken();
+    }
+    Expression* res = GetTerm();
+    if (un != NULL && res == NULL) Error("illegal expression");
+    if (res != NULL)
+    {
+        if (un != NULL)
+        {
+            firstun -> child = res;
+            res -> pred = firstun;
+            return un;
+        }
+        return res;
+    }
+    return NULL;
+}
+
+Expression* Parser::GetMultiplyingExpr()
 {
     Expression* left = NULL;
     UnOper* root = NULL;
     UnOper* first_root = NULL;
     Token token = scan.GetToken();
-    while (IsExprOp(token))
+    while (IsAddingOp(token))
     {
         root = new UnOper(token, NULL, root);
         if (first_root == NULL) first_root = root;
         token = scan.NextToken();
     }
-    left = GetTerm();
+    left = GetUnaryExpr();
     if (left == NULL) return NULL;
     token = scan.GetToken();
-    while (IsFactorOp(token))
+    while (IsMultOp(token))
     {
         scan.NextToken();
-        Expression* right = GetTerm();
+        Expression* right = GetUnaryExpr();
         if (right == NULL) Error("illegal expression");
         left = new BinOper(token, NULL, left, right);
         token = scan.GetToken();
@@ -329,15 +326,63 @@ Expression* Parser::GetFactor()
     return left;
 }
 
-bool Parser::IsExprOp(const Token& token) const
+Expression* Parser::GetAddingExpr()
 {
-    return !strcmp(token.GetValue(), "+") || !strcmp(token.GetValue(), "-");
+    Expression* left = GetMultiplyingExpr();
+    if (left == NULL) return NULL;
+    Token op = scan.GetToken();
+    while (IsAddingOp(op))
+    {
+        scan.NextToken();
+        Expression* right = GetMultiplyingExpr();
+        if (right == NULL) Error("expression expected");
+        left = new BinOper(op, NULL, left, right);
+        op = scan.GetToken();
+    }
+    return left;
 }
 
-bool Parser::IsFactorOp(const Token& token) const
+Expression* Parser::GetRelationalExpr()
+{
+    Expression* left = GetAddingExpr();
+    if (left == NULL) return NULL;
+    Token op = scan.GetToken();
+    while (IsRelationalOp(op))
+    {
+        scan.NextToken();
+        Expression* right = GetAddingExpr();
+        if (right == NULL) Error("expression expected");
+        left = new BinOper(op, NULL, left, right);
+        op = scan.GetToken();
+    }
+    return left;
+}
+
+bool Parser::IsRelationalOp(const Token& token) const
+{
+    return !strcmp(token.GetValue(), ">") || !strcmp(token.GetValue(), ">=") ||
+           !strcmp(token.GetValue(), "<") || !strcmp(token.GetValue(), "<=") ||
+           !strcmp(token.GetValue(), "<>");
+}
+
+bool Parser::IsAddingOp(const Token& token) const
+{
+    return !strcmp(token.GetValue(), "+") || !strcmp(token.GetValue(), "-") ||
+           !strcmp(token.GetValue(), "or") || !strcmp(token.GetValue(), "xor");
+}
+
+bool Parser::IsMultOp(const Token& token) const
 {
     return !strcmp(token.GetValue(), "*") || !strcmp(token.GetValue(), "/") ||
-           !strcmp(token.GetValue(), "div") || !strcmp(token.GetValue(), "mod");
+           !strcmp(token.GetValue(), "div") || !strcmp(token.GetValue(), "mod") ||
+           !strcmp(token.GetValue(), "and") || !strcmp(token.GetValue(), "shl") ||
+           !strcmp(token.GetValue(), "shr");
+}
+
+bool Parser::IsUnaryOp(const Token& token) const
+{
+    return !strcmp(token.GetValue(), "not") || !strcmp(token.GetValue(), "@") ||
+           !strcmp(token.GetValue(), "+") || !strcmp(token.GetValue(), "-");
 }
 
 bool Parser::IsTermOp(const Token& token) const
@@ -351,4 +396,15 @@ void Parser::Error(char* msg)
     Token token = scan.GetToken();
     s << token.GetLine() << ':' << token.GetPos() << " ERROR at '" << token.GetValue() << "': " << msg;
     throw( CompilerException( s.str().c_str() ) ) ;
+}
+
+bool Parser::IsConst(const Token& token) const
+{
+    TokenType type = token.GetType();
+    return type == HEX_CONST || type == INT_CONST || type == REAL_CONST || type == STR_CONST;
+}
+
+bool Parser::IsConstVar(const Token& token) const
+{
+    return IsConst(token) || token.GetType() == VARIBLE;
 }
