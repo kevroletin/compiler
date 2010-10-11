@@ -296,6 +296,7 @@ void Scanner::EatRealFractPart()
 void Scanner::EatStrNum()
 {
     int res = 0;
+    if (!isdigit(c)) Error("illegal char constant");
     while (isdigit(c))
     {
         res = res*10 + c - '0';
@@ -306,6 +307,7 @@ void Scanner::EatStrNum()
     while (c == '#')
     {
         ExtractChar();
+        res = 0;
         while (isdigit(c))
         {
             res = res*10 + c - '0';
@@ -389,7 +391,7 @@ void Scanner::EatInteger()
         AddToBuffer(c);
         ExtractChar();
     }
-    if (c == '.')
+    if (c == '.' && in.peek() != '.')
     {
         AddToBuffer(c);
         ExtractChar();
@@ -433,13 +435,13 @@ void Scanner::EatOperation()
 
 void Scanner::ExtractChar()
 {
-    ++pos;
     c = in.get();
+    if (in.eof()) ++pos;
 }
 
 Token Scanner::NextToken()
 {
-    bool matched;
+    bool matched = false;
     do
     {
         ExtractChar();

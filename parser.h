@@ -51,20 +51,23 @@ struct Constant: public Expression{
 };
 
 struct RecordAccess: public Expression{
+    Token field;
     Expression* record;
-    RecordAccess(Token field, Expression* record_, Expression* pred_ = NULL);
+    RecordAccess(Token token, Token field_, Expression* record_, Expression* pred_ = NULL);
     virtual ExpressionClass GetType() { return RECORD_ACCESS; }
 };
 
 struct ArrayAccess: public Expression{
     Expression* index;
-    ArrayAccess(Token& name, Expression* index_, Expression* pred_ = NULL);
+    Expression* arr;
+    ArrayAccess(Token token, Expression* arr_, Expression* index_, Expression* pred_ = NULL);
     virtual ExpressionClass GetType() { return ARRAY_ACCESS; }
 };
 
 struct FunctionCall: public Expression{
     vector<Expression*> args;
-    FunctionCall(Token name, Expression* pred_ = NULL);
+    Expression* funct;
+    FunctionCall(Token token, Expression* funct_, Expression* pred_ = NULL);
     void AddArgument(Expression* arg);
     virtual ExpressionClass GetType() { return FUNCTION_CALL; }
 };
@@ -74,9 +77,11 @@ private:
     Scanner& scan;
     void NextToken();
     Expression* GetExpression();
+    Expression* GetFactor();
     Expression* GetTerm();
     Expression* GetTermToken();
     bool IsExprOp(const Token& token) const;
+    bool IsFactorOp(const Token& token) const;
     bool IsTermOp(const Token& token) const;
     bool IsConst(const Token& token) const;
     void Error(char* msgn);
