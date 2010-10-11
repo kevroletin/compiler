@@ -391,7 +391,7 @@ void Scanner::EatInteger()
         AddToBuffer(c);
         ExtractChar();
     }
-    if (c == '.' && in.peek() != '.')
+    if (tolower(c) == 'e' || (c == '.' && in.peek() != '.'))
     {
         AddToBuffer(c);
         ExtractChar();
@@ -436,7 +436,7 @@ void Scanner::EatOperation()
 void Scanner::ExtractChar()
 {
     c = in.get();
-    if (in.eof()) ++pos;
+    ++pos;
 }
 
 Token Scanner::NextToken()
