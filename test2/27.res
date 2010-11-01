@@ -1,1 +1,1 @@
-1:2 ERROR at ')': Illegal expression
+1:2 ERROR at ')': illegal expression

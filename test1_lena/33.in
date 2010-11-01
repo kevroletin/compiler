@@ -1,0 +1,28 @@
+program Concatenation;
+uses
+  SysUtils;
+
+var
+  n, m, l, r: integer;
+  p, q: array[1..1000] of integer;
+  ans: string;
+begin
+  assign(input, 'input.txt');
+  assign(output, 'output.txt');
+  reset(input);
+  rewrite(output);
+  readln(n, m, l, r);
+  for i := 1 to n do
+  begin
+    readln(a[i]);
+    len[i] := length(a[i]);
+  end;
+  for i := n + 1 to m + n do
+  begin
+    read(p[i - n], q[i - n]);
+    len[i] := len[p[i - n]] + len[q[i - n]];
+  end;
+  writeln(ans);
+  close(input);
+  close(output);
+end.

@@ -1,0 +1,6 @@
+var
+	i: integer;
+begin
+	readln(m);
+	write(i);
+end.

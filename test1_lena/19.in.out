@@ -1,0 +1,19 @@
+var Key Word 1 1
+i Identifier 5 2
+: Separator 6 2
+integer Key Word 8 2
+; Separator 15 2
+begin Key Word 1 3
+readln Key Word 5 4
+( Separator 11 4
+m Identifier 12 4
+) Separator 13 4
+; Separator 14 4
+write Key Word 5 5
+( Separator 10 5
+i Identifier 11 5
+) Separator 12 5
+; Separator 13 5
+end Key Word 1 6
+. Separator 4 6
+EOF End Of File 5 6

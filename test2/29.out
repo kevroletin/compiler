@@ -1,1 +1,1 @@
-1:3 ERROR at '*': Illegal expression
+1:3 ERROR at '*': illegal expression

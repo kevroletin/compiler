@@ -1,0 +1,5 @@
+10e-5 Real Literal 1 1
+12e+10 Real Literal 7 1
+12.e1 Real Literal 14 1
+13.5e2 Real Literal 20 1
+Incorrect Real Literal Incorrect Token 27 1

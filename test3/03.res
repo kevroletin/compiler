@@ -1,0 +1,10 @@
+()
+  Funct1
+  1
+  str
+  varible
+  10.e33
+  $1
+  +
+    1
+    expression

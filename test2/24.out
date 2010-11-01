@@ -1,1 +1,1 @@
-1:4 ERROR at '': Illegal expression
+1:4 ERROR at '': illegal expression

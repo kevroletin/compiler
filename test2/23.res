@@ -1,1 +1,1 @@
-1:5 ERROR at 'var': Illegal expression
+1:5 ERROR at 'var': illegal expression

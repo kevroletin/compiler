@@ -1,0 +1,2 @@
+1:1 STR_CONST Cdhjaghjg
+1:14 END_OF_FILE 

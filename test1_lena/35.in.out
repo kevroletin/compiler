@@ -1,0 +1,68 @@
+type Key Word 1 1
+ARec Identifier 5 2
+= Operation 10 2
+record Key Word 12 2
+x Identifier 9 3
+, Separator 10 3
+y Identifier 11 3
+: Separator 12 3
+integer Key Word 14 3
+; Separator 21 3
+end Key Word 5 4
+; Separator 8 4
+var Key Word 1 5
+a Identifier 5 6
+: Separator 6 6
+ARec Identifier 8 6
+; Separator 12 6
+function Key Word 1 8
+test Identifier 10 8
+( Separator 14 8
+a Identifier 15 8
+, Separator 16 8
+var Key Word 18 8
+b Identifier 22 8
+) Separator 23 8
+; Separator 24 8
+procedure Key Word 1 9
+solve Identifier 11 9
+( Separator 16 9
+) Separator 17 9
+; Separator 18 9
+begin Key Word 1 14
+a Identifier 5 15
+:= Operation 7 15
+test Identifier 10 15
+( Separator 14 15
+1 Integer Literal 15 15
+, Separator 16 15
+5.5 Real Literal 18 15
+, Separator 21 15
+17.9e-5 Real Literal 23 15
+, Separator 30 15
+$F16 Hexadecimal Literal 32 15
+, Separator 36 15
+'abc' String Literal 38 15
+, Separator 43 15
+key Identifier 45 15
+, Separator 48 15
+a Identifier 50 15
+[ Separator 51 15
+i Identifier 52 15
+] Separator 53 15
+[ Separator 54 15
+j Identifier 55 15
+] Separator 56 15
+, Separator 57 15
+rs Identifier 59 15
+. Separator 61 15
+m Identifier 62 15
+) Separator 63 15
+; Separator 64 15
+solve Identifier 5 17
+( Separator 10 17
+) Separator 11 17
+; Separator 12 17
+end Key Word 1 18
+. Separator 4 18
+EOF End Of File 5 18

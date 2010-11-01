@@ -1,0 +1,18 @@
+type
+	ARec = record
+		x,y: integer;
+	end;
+var
+	a: ARec;
+
+function test(a, var b);
+procedure solve();
+///fgdsjkgjkh
+{fjdksgjkfh
+}
+
+begin
+	a := test(1, 5.5, 17.9e-5, $F16, 'abc', key, a[i][j], rs.m);
+(*gfsdjgkh*)
+	solve();
+end.

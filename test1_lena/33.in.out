@@ -1,0 +1,175 @@
+program Key Word 1 1
+Concatenation Identifier 9 1
+; Separator 22 1
+uses Key Word 1 2
+SysUtils Identifier 3 3
+; Separator 11 3
+var Key Word 1 5
+n Identifier 3 6
+, Separator 4 6
+m Identifier 6 6
+, Separator 7 6
+l Identifier 9 6
+, Separator 10 6
+r Identifier 12 6
+: Separator 13 6
+integer Key Word 15 6
+; Separator 22 6
+p Identifier 3 7
+, Separator 4 7
+q Identifier 6 7
+: Separator 7 7
+array Key Word 9 7
+[ Separator 14 7
+1 Integer Literal 15 7
+.. Separator 16 7
+1000 Integer Literal 18 7
+] Separator 22 7
+of Key Word 24 7
+integer Key Word 27 7
+; Separator 34 7
+ans Identifier 3 8
+: Separator 6 8
+string Key Word 8 8
+; Separator 14 8
+begin Key Word 1 9
+assign Identifier 3 10
+( Separator 9 10
+input Identifier 10 10
+, Separator 15 10
+'input.txt' String Literal 17 10
+) Separator 28 10
+; Separator 29 10
+assign Identifier 3 11
+( Separator 9 11
+output Identifier 10 11
+, Separator 16 11
+'output.txt' String Literal 18 11
+) Separator 30 11
+; Separator 31 11
+reset Identifier 3 12
+( Separator 8 12
+input Identifier 9 12
+) Separator 14 12
+; Separator 15 12
+rewrite Identifier 3 13
+( Separator 10 13
+output Identifier 11 13
+) Separator 17 13
+; Separator 18 13
+readln Key Word 3 14
+( Separator 9 14
+n Identifier 10 14
+, Separator 11 14
+m Identifier 13 14
+, Separator 14 14
+l Identifier 16 14
+, Separator 17 14
+r Identifier 19 14
+) Separator 20 14
+; Separator 21 14
+for Key Word 3 15
+i Identifier 7 15
+:= Operation 9 15
+1 Integer Literal 12 15
+to Key Word 14 15
+n Identifier 17 15
+do Key Word 19 15
+begin Key Word 3 16
+readln Key Word 5 17
+( Separator 11 17
+a Identifier 12 17
+[ Separator 13 17
+i Identifier 14 17
+] Separator 15 17
+) Separator 16 17
+; Separator 17 17
+len Identifier 5 18
+[ Separator 8 18
+i Identifier 9 18
+] Separator 10 18
+:= Operation 12 18
+length Identifier 15 18
+( Separator 21 18
+a Identifier 22 18
+[ Separator 23 18
+i Identifier 24 18
+] Separator 25 18
+) Separator 26 18
+; Separator 27 18
+end Key Word 3 19
+; Separator 6 19
+for Key Word 3 20
+i Identifier 7 20
+:= Operation 9 20
+n Identifier 12 20
++ Operation 14 20
+1 Integer Literal 16 20
+to Key Word 18 20
+m Identifier 21 20
++ Operation 23 20
+n Identifier 25 20
+do Key Word 27 20
+begin Key Word 3 21
+read Key Word 5 22
+( Separator 9 22
+p Identifier 10 22
+[ Separator 11 22
+i Identifier 12 22
+- Operation 14 22
+n Identifier 16 22
+] Separator 17 22
+, Separator 18 22
+q Identifier 20 22
+[ Separator 21 22
+i Identifier 22 22
+- Operation 24 22
+n Identifier 26 22
+] Separator 27 22
+) Separator 28 22
+; Separator 29 22
+len Identifier 5 23
+[ Separator 8 23
+i Identifier 9 23
+] Separator 10 23
+:= Operation 12 23
+len Identifier 15 23
+[ Separator 18 23
+p Identifier 19 23
+[ Separator 20 23
+i Identifier 21 23
+- Operation 23 23
+n Identifier 25 23
+] Separator 26 23
+] Separator 27 23
++ Operation 29 23
+len Identifier 31 23
+[ Separator 34 23
+q Identifier 35 23
+[ Separator 36 23
+i Identifier 37 23
+- Operation 39 23
+n Identifier 41 23
+] Separator 42 23
+] Separator 43 23
+; Separator 44 23
+end Key Word 3 24
+; Separator 6 24
+writeln Key Word 3 25
+( Separator 10 25
+ans Identifier 11 25
+) Separator 14 25
+; Separator 15 25
+close Identifier 3 26
+( Separator 8 26
+input Identifier 9 26
+) Separator 14 26
+; Separator 15 26
+close Identifier 3 27
+( Separator 8 27
+output Identifier 9 27
+) Separator 15 27
+; Separator 16 27
+end Key Word 1 28
+. Separator 4 28
+EOF End Of File 1 29
