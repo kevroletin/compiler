@@ -115,6 +115,54 @@ bool ReservedWords::Identify(string& str, TokenType& returned_type)
 
 //---Token---
 
+
+bool Token::IsRelationalOp() const
+{
+    return !strcmp(value, ">") || !strcmp(value, ">=") ||
+           !strcmp(value, "<") || !strcmp(value, "<=") ||
+           !strcmp(value, "<>") || !strcmp(value, "=");
+}
+
+bool Token::IsAddingOp() const
+{
+    return !strcmp(value, "+") || !strcmp(value, "-") ||
+           !strcmp(value, "or") || !strcmp(value, "xor");
+}
+
+bool Token::IsMultOp() const
+{
+    return !strcmp(value, "*") || !strcmp(value, "/") ||
+           !strcmp(value, "div") || !strcmp(value, "mod") ||
+           !strcmp(value, "and") || !strcmp(value, "shl") ||
+           !strcmp(value, "shr");
+}
+
+bool Token::IsUnaryOp() const
+{
+    return !strcmp(value, "not") || !strcmp(value, "@") ||
+           !strcmp(value, "+") || !strcmp(value, "-");
+}
+
+bool Token::IsTermOp() const
+{
+    return !strcmp(value, "[") || !strcmp(value, ".") || !strcmp(value, "(");
+}
+
+bool Token::IsConst() const
+{
+    return type == HEX_CONST || type == INT_CONST || type == REAL_CONST || type == STR_CONST;
+}
+
+bool Token::IsVar() const
+{
+    return type == IDENTIFIER;
+}
+
+bool Token::IsConstVar() const
+{
+    return IsConst() || IsVar();
+}
+
 ostream& operator<<(ostream& out, const Token & token)
 {
     out << token.GetLine() << ':' << token.GetPos() << ' '<< TOKEN_DESCRIPTION[token.GetType()]

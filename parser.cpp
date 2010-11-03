@@ -195,6 +195,25 @@ Parser::Parser(Scanner& scanner):
     scan.NextToken();
 }
 
+SymType* Parser::ParseType()
+{
+    Token name = scan.GetToken();
+    if (!name.IsVar()) return NULL;
+    scan.NextToken();
+    //if (scan.NextToken() != tSemicolon)
+    if (strcmp(scan.NextToken().GetValue(), ":")) Error("':' expected");
+    scan.NextToken();
+}
+
+void Parser::ParseDeclarations()
+{
+    Symbol* sym = NULL;
+    while (sym = ParseType()) {
+        if (syn_table.Find(sym)) Error("duplicate declaration");
+        syn_table.Add(sym);
+    }
+}
+
 Expression* Parser::GetTerm()
 {
     Expression* left = NULL;
@@ -207,7 +226,7 @@ Expression* Parser::GetTerm()
             Error("expected )");
         scan.NextToken();
     }
-    if (IsConst(scan.GetToken()))
+    if (scan.GetToken().IsConst())
     {
         Token token = scan.GetToken();
         scan.NextToken();
@@ -220,7 +239,7 @@ Expression* Parser::GetTerm()
         scan.NextToken();
     }
     Token op = scan.GetToken();
-    while (IsTermOp(op))
+    while (op.IsTermOp())
     {
         if (!strcmp(op.GetValue(), "("))
         {
@@ -273,10 +292,12 @@ Expression* Parser::GetUnaryExpr()
     Token token = scan.GetToken();
     UnOper* un = NULL;
     UnOper* firstun = NULL;
-    while (IsUnaryOp(token))
+    while (token.IsUnaryOp())
     {
-        un = new UnOper(token, un);
-        if (firstun == NULL) firstun = un;
+        UnOper* newOp = new UnOper(token, firstun);
+        if (firstun != NULL) firstun -> child = newOp;
+        firstun = newOp;
+        if (un == NULL) un = firstun;
         token = scan.NextToken();
     }
     Expression* res = GetTerm();
@@ -299,17 +320,10 @@ Expression* Parser::GetMultiplyingExpr()
     Expression* left = NULL;
     UnOper* root = NULL;
     UnOper* first_root = NULL;
-    Token token = scan.GetToken();
-    while (IsAddingOp(token))
-    {
-        root = new UnOper(token, NULL, root);
-        if (first_root == NULL) first_root = root;
-        token = scan.NextToken();
-    }
     left = GetUnaryExpr();
     if (left == NULL) return NULL;
-    token = scan.GetToken();
-    while (IsMultOp(token))
+    Token token = scan.GetToken();
+    while (token.IsMultOp())
     {
         scan.NextToken();
         Expression* right = GetUnaryExpr();
@@ -331,7 +345,7 @@ Expression* Parser::GetAddingExpr()
     Expression* left = GetMultiplyingExpr();
     if (left == NULL) return NULL;
     Token op = scan.GetToken();
-    while (IsAddingOp(op))
+    while (op.IsAddingOp())
     {
         scan.NextToken();
         Expression* right = GetMultiplyingExpr();
@@ -347,7 +361,7 @@ Expression* Parser::GetRelationalExpr()
     Expression* left = GetAddingExpr();
     if (left == NULL) return NULL;
     Token op = scan.GetToken();
-    while (IsRelationalOp(op))
+    while (op.IsRelationalOp())
     {
         scan.NextToken();
         Expression* right = GetAddingExpr();
@@ -358,53 +372,10 @@ Expression* Parser::GetRelationalExpr()
     return left;
 }
 
-bool Parser::IsRelationalOp(const Token& token) const
-{
-    return !strcmp(token.GetValue(), ">") || !strcmp(token.GetValue(), ">=") ||
-           !strcmp(token.GetValue(), "<") || !strcmp(token.GetValue(), "<=") ||
-           !strcmp(token.GetValue(), "<>");
-}
-
-bool Parser::IsAddingOp(const Token& token) const
-{
-    return !strcmp(token.GetValue(), "+") || !strcmp(token.GetValue(), "-") ||
-           !strcmp(token.GetValue(), "or") || !strcmp(token.GetValue(), "xor");
-}
-
-bool Parser::IsMultOp(const Token& token) const
-{
-    return !strcmp(token.GetValue(), "*") || !strcmp(token.GetValue(), "/") ||
-           !strcmp(token.GetValue(), "div") || !strcmp(token.GetValue(), "mod") ||
-           !strcmp(token.GetValue(), "and") || !strcmp(token.GetValue(), "shl") ||
-           !strcmp(token.GetValue(), "shr");
-}
-
-bool Parser::IsUnaryOp(const Token& token) const
-{
-    return !strcmp(token.GetValue(), "not") || !strcmp(token.GetValue(), "@") ||
-           !strcmp(token.GetValue(), "+") || !strcmp(token.GetValue(), "-");
-}
-
-bool Parser::IsTermOp(const Token& token) const
-{
-    return !strcmp(token.GetValue(), "[") || !strcmp(token.GetValue(), ".") || !strcmp(token.GetValue(), "(");
-}
-
 void Parser::Error(char* msg)
 {
     stringstream s;
     Token token = scan.GetToken();
     s << token.GetLine() << ':' << token.GetPos() << " ERROR at '" << token.GetValue() << "': " << msg;
     throw( CompilerException( s.str().c_str() ) ) ;
-}
-
-bool Parser::IsConst(const Token& token) const
-{
-    TokenType type = token.GetType();
-    return type == HEX_CONST || type == INT_CONST || type == REAL_CONST || type == STR_CONST;
-}
-
-bool Parser::IsConstVar(const Token& token) const
-{
-    return IsConst(token) || token.GetType() == VARIBLE;
 }

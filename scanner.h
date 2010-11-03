@@ -22,6 +22,10 @@ enum TokenType{
 	END_OF_FILE
 };
 
+enum TokenValue{
+
+};
+
 class ReservedWords{
 private:
     map<string, TokenType> words;
@@ -38,6 +42,14 @@ private:
 	int pos;
 	char* value;
 public:
+    bool IsRelationalOp() const;
+    bool IsAddingOp() const;
+    bool IsMultOp() const;
+    bool IsUnaryOp() const;
+    bool IsTermOp() const;
+    bool IsConst() const;
+    bool IsVar() const;
+    bool IsConstVar() const;
     Token();
 	Token(const char* value, TokenType type, int line, int pos);
 	Token(const Token& token);
