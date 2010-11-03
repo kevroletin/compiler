@@ -2,6 +2,7 @@
 #define SYN_TABLE
 
 #include <string.h>
+#include "scanner.h"
 #include <map>
 #include <set>
 
@@ -20,7 +21,6 @@ private:
 public:
     Symbol(Token token_);
     Symbol(const Symbol& sym);
-    ~Symbol();
     const char* GetName() const;
     virtual SymbolClass GetClassName() const;
 };
@@ -34,7 +34,7 @@ class SymProc: public Symbol{
 private:
     SynTable* syn_table;
 public:
-    SymProc(char* name, SynTable* syn_table_);
+    SymProc(Token token_, SynTable* syn_table_);
     virtual SymbolClass GetClassName() const;
 };
 
@@ -42,7 +42,7 @@ class SymFunct: public SymProc{
 private:
     SymType return_type;
 public:
-    SymFunct(char* name, SynTable* syn_table, SymType return_type_);
+    SymFunct(Token token_, SynTable* syn_table, SymType return_type_);
     virtual SymbolClass GetClassName() const ;
 };
 
@@ -50,7 +50,7 @@ class SymVar: public Symbol{
 private:
     SymType type;
 public:
-    SymVar(char* name, SymType type_);
+    SymVar(Token token_, SymType type_);
     virtual SymbolClass GetClassName() const;
 };
 

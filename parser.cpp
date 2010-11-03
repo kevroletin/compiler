@@ -201,7 +201,9 @@ SymType* Parser::ParseType()
     if (!name.IsVar()) return NULL;
     scan.NextToken();
     //if (scan.NextToken() != tSemicolon)
-    if (strcmp(scan.NextToken().GetValue(), ":")) Error("':' expected");
+    if (strcmp(scan.NextToken().GetValue(), ":")) Error("':' expected"); //плохо
+    Token token = scan.NextToken();
+
     scan.NextToken();
 }
 

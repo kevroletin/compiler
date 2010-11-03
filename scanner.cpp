@@ -20,89 +20,70 @@ const char* const TOKEN_DESCRIPTION[] =
 
 //---Reserved words--
 
-void ReservedWords::Add(char* value, TokenType type)
+void ReservedWords::Add(char* name, TokenType type, TokenValue value)
 {
-    words.insert(pair<char*, TokenType>(value, type));
+    words.insert(pair<char*, TokenType>(name, type));
 }
 
 ReservedWords::ReservedWords()
 {
-    Add("absolute", RESERVED_WORD);
-    Add("and", OPERATION);
-    Add("array", RESERVED_WORD);
-    Add("asm", RESERVED_WORD);
-    Add("begin", RESERVED_WORD);
-    Add("case", RESERVED_WORD);
-    Add("const", RESERVED_WORD);
-    Add("constructor", RESERVED_WORD);
-    Add("destructor", RESERVED_WORD);
-    Add("div", OPERATION);
-    Add("do", RESERVED_WORD);
-    Add("downto", RESERVED_WORD);
-    Add("else", RESERVED_WORD);
-    Add("end", RESERVED_WORD);
-    Add("file", RESERVED_WORD);
-    Add("for", RESERVED_WORD);
-    Add("function", RESERVED_WORD);
-    Add("goto", RESERVED_WORD);
-    Add("if", RESERVED_WORD);
-    Add("implementation", RESERVED_WORD);
-    Add("in", RESERVED_WORD);
-    Add("inherited", RESERVED_WORD);
-    Add("inline", RESERVED_WORD);
-    Add("interface", RESERVED_WORD);
-    Add("label", RESERVED_WORD);
-    Add("mod", OPERATION);
-    Add("nil", RESERVED_WORD);
-    Add("not", OPERATION);
-    Add("object", OPERATION);
-    Add("of", RESERVED_WORD);
-    Add("or", OPERATION);
-    Add("on", RESERVED_WORD);
-    Add("operator", RESERVED_WORD);
-    Add("packed", RESERVED_WORD);
-    Add("procedure", RESERVED_WORD);
-    Add("program", RESERVED_WORD);
-    Add("record", RESERVED_WORD);
-    Add("repeat", RESERVED_WORD);
-    Add("reintroduce", RESERVED_WORD);
-    Add("set", RESERVED_WORD);
-    Add("self", RESERVED_WORD);
-    Add("shl", OPERATION);
-    Add("shr", OPERATION);
-    Add("string", RESERVED_WORD);
-    Add("then", RESERVED_WORD);
-    Add("to", RESERVED_WORD);
-    Add("type", RESERVED_WORD);
-    Add("unit", RESERVED_WORD);
-    Add("until", RESERVED_WORD);
-    Add("uses", RESERVED_WORD);
-    Add("var", RESERVED_WORD);
-    Add("while", RESERVED_WORD);
-    Add("with", RESERVED_WORD);
-    Add("xor", OPERATION);
-    Add("..", RESERVED_WORD);
-    Add(":=", OPERATION);
-    Add("-", OPERATION);
-    Add("+", OPERATION);
-    Add("*", OPERATION);
-    Add("/", OPERATION);
-    Add("[", OPERATION);
-    Add("]", OPERATION);
-    Add(";", DELIMITER);
-    Add(":", DELIMITER);
-    Add(",", DELIMITER);
-    Add(".", OPERATION);
-    Add("^", OPERATION);
-    Add("@", OPERATION);
-    Add("(", OPERATION);
-    Add(")", OPERATION);
-    Add(">", OPERATION);
-    Add("<", OPERATION);
-    Add("=", OPERATION);
-    Add(">=", OPERATION);
-    Add("<=", OPERATION);
-    Add("<>", OPERATION);
+    Add("and", OPERATION, TOK_AND);
+    Add("array", RESERVED_WORD, TOK_ARRAY);
+    Add("begin", RESERVED_WORD, TOK_BEGIN);
+    Add("case", RESERVED_WORD, TOK_CASE);
+    Add("const", RESERVED_WORD, TOK_CONST);
+    Add("div", OPERATION, TOK_DIV);
+    Add("do", RESERVED_WORD, TOK_DO);
+    Add("downto", RESERVED_WORD, TOK_DOWNTO);
+    Add("else", RESERVED_WORD, TOK_ELSE);
+    Add("end", RESERVED_WORD, TOK_END);
+    Add("file", RESERVED_WORD, TOK_FILE);
+    Add("for", RESERVED_WORD, TOK_FILE);
+    Add("function", RESERVED_WORD, TOK_FUNCTION);
+    Add("if", RESERVED_WORD, TOK_IF);
+    Add("in", RESERVED_WORD, TOK_IN);
+    Add("mod", OPERATION, TOK_MOD);
+    Add("nil", RESERVED_WORD, TOK_NIL);
+    Add("not", OPERATION, TOK_NOT);
+    Add("of", RESERVED_WORD, TOK_OF);
+    Add("or", OPERATION, TOK_OR);
+    Add("procedure", RESERVED_WORD, TOK_PROCEDURE);
+    Add("record", RESERVED_WORD, TOK_RECORD);
+    Add("repeat", RESERVED_WORD, TOK_REPEAT);
+    Add("set", RESERVED_WORD, TOK_SET);
+    Add("shl", OPERATION, TOK_SHL);
+    Add("shr", OPERATION, TOK_SHR);
+    Add("string", RESERVED_WORD, TOK_STRING);
+    Add("then", RESERVED_WORD, TOK_THEN);
+    Add("to", RESERVED_WORD, TOK_TO);
+    Add("type", RESERVED_WORD, TOK_TYPE);
+    Add("until", RESERVED_WORD, TOK_UNTIL);
+    Add("var", RESERVED_WORD, TOK_VAR);
+    Add("while", RESERVED_WORD, TOK_WHILE);
+    Add("with", RESERVED_WORD, TOK_WITH);
+    Add("xor", OPERATION, TOK_XOR);
+    Add("..", RESERVED_WORD, TOK_DOUBLE_DOT);
+    Add(":=", OPERATION, TOK_ASSIGN);
+    Add("-", OPERATION, TOK_MINUS);
+    Add("+", OPERATION, TOK_PLUS);
+    Add("*", OPERATION, TOK_MULT);
+    Add("/", OPERATION, TOK_DIVISION);
+    Add("[", OPERATION, TOK_BRACKETS_SQUARE_LEFT);
+    Add("]", OPERATION, TOK_BRACKETS_SQUARE_RIGHT);
+    Add(";", DELIMITER, TOK_SEMICOLON);
+    Add(":", DELIMITER, TOK_COLON);
+    Add(",", DELIMITER, TOK_COMMA);
+    Add(".", OPERATION, TOK_DOT);
+    Add("^", OPERATION, TOK_CAP);
+    Add("@", OPERATION, TOK_DOG);
+    Add("(", OPERATION, TOK_BRACKETS_LEFT);
+    Add(")", OPERATION, TOK_BRACKETS_RIGHT);
+    Add(">", OPERATION, TOK_BRACKETS_ANGLE_RIGHT);
+    Add("<", OPERATION, TOK_BRACKETS_ANGLE_LEFT);
+    Add("=", OPERATION, TOK_EQUAL);
+    Add(">=", OPERATION, TOK_GREATER_OR_EQUAL);
+    Add("<=", OPERATION, TOK_LESS_OR_EQUAL);
+    Add("<>", OPERATION, TOK_NOT_EQUAL);
 }
 
 bool ReservedWords::Identify(string& str, TokenType& returned_type)

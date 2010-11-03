@@ -2,19 +2,14 @@
 
 //---Symbol---
 
-Symbol::Symbol(char* name_):
-    name(strcpy(new char[strlen(name_) + 1], name_))
+Symbol::Symbol(Token token_):
+    token(token_)
 {
 }
 
 Symbol::Symbol(const Symbol& sym):
-    name(strcpy(new char[strlen(sym.name) + 1], sym.name))
+    token(sym.token)
 {
-}
-
-Symbol::~Symbol()
-{
-    delete(name);
 }
 
 SymbolClass Symbol::GetClassName() const // оч плохо
@@ -23,7 +18,7 @@ SymbolClass Symbol::GetClassName() const // оч плохо
 
 const char* Symbol::GetName() const
 {
-    return name;
+    return token.GetValue();
 }
 
 //---SymType---
@@ -35,8 +30,8 @@ SymbolClass SymType::GetClassName() const
 
 //---SymProc---
 
-SymProc::SymProc(char* name, SynTable* syn_table_):
-    Symbol(name),
+SymProc::SymProc(Token token, SynTable* syn_table_):
+    Symbol(token),
     syn_table(syn_table_)
 {
 }
@@ -48,8 +43,8 @@ SymbolClass SymProc::GetClassName() const
 
 //---SymFunct---
 
-SymFunct::SymFunct(char* name, SynTable* syn_table, SymType return_type_):
-    SymProc(name, syn_table),
+SymFunct::SymFunct(Token token, SynTable* syn_table, SymType return_type_):
+    SymProc(token, syn_table),
     return_type(return_type_)
 {
 }
@@ -61,8 +56,8 @@ SymbolClass SymFunct::GetClassName() const
 
 //---SymVar---
 
-SymVar::SymVar(char* name, SymType type_):
-    Symbol(name),
+SymVar::SymVar(Token token, SymType type_):
+    Symbol(token),
     type(type_)
 {
 }
