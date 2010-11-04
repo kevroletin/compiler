@@ -201,7 +201,7 @@ SymType* Parser::ParseType()
     if (!name.IsVar()) return NULL;
     scan.NextToken();
     //if (scan.NextToken() != tSemicolon)
-    if (strcmp(scan.NextToken().GetName(), ":")) Error("':' expected"); //плохо
+    if (scan.NextToken().GetValue() == TOK_COLON) Error("':' expected"); //плохо
     Token token = scan.NextToken();
 
     scan.NextToken();
@@ -221,12 +221,12 @@ void Parser::ParseDeclarations()
 Expression* Parser::GetTerm()
 {
     Expression* left = NULL;
-    if (!strcmp(scan.GetToken().GetName(), "("))
+    if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
     {
         scan.NextToken();
         left = GetRelationalExpr();
         if (left == NULL) Error("illegal expression");
-        if (strcmp(scan.GetToken().GetName(), ")"))
+        if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
             Error("expected )");
         scan.NextToken();
     }
@@ -245,26 +245,26 @@ Expression* Parser::GetTerm()
     Token op = scan.GetToken();
     while (op.IsTermOp())
     {
-        if (!strcmp(op.GetName(), "("))
+        if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
         {
             scan.NextToken();
             FunctionCall* funct = new FunctionCall(op, left);
-            while (strcmp(scan.GetToken().GetName(), ")"))
+            while (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
             {
                 Expression* arg = GetRelationalExpr();
                 if (arg == NULL) Error("illegal expression");
-                if (!strcmp(scan.GetToken().GetName(), ","))
+                if (scan.GetToken().GetValue() == TOK_COMMA)
                     scan.NextToken();
-                else if (strcmp(scan.GetToken().GetName(), ")"))
+                else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
                     Error(", expected");
                 funct->AddArgument(arg);
             }
             scan.NextToken();
             left = funct;
         }
-        else if (!strcmp(op.GetName(), "."))
+        else if (op.GetValue() == TOK_DOT)
         {
-            while (!strcmp(op.GetName(), "."))
+            while (op.GetValue() == TOK_DOT)
             {
                 Token field = scan.NextToken();
                 if (scan.GetToken().GetType() != IDENTIFIER) Error("identifier after . expected");
@@ -272,18 +272,18 @@ Expression* Parser::GetTerm()
                 op = scan.NextToken();
             }
         }
-        else if (!strcmp(op.GetName(), "["))
+        else if (op.GetValue() == TOK_BRACKETS_SQUARE_LEFT)
         {
             scan.NextToken();
             do {
                 Expression* index = GetRelationalExpr();
                 if (index == NULL) Error("illegal expression");
-                if (!strcmp(scan.GetToken().GetName(), ","))
+                if (scan.GetToken().GetValue() == TOK_COMMA)
                     scan.NextToken();
-                else if (strcmp(scan.GetToken().GetName(), "]"))
+                else if (scan.GetToken().GetValue() != TOK_BRACKETS_SQUARE_RIGHT)
                     Error(", expected");
                 left = new ArrayAccess(op, left, index);
-            } while (strcmp(scan.GetToken().GetName(), "]"));
+            } while (scan.GetToken().GetValue() != TOK_BRACKETS_SQUARE_RIGHT);
             scan.NextToken();
         }
         op = scan.GetToken();

@@ -70,8 +70,8 @@ const char* const TOKEN_VALUE_DESCRIPTION[] =
     "TOK_DOG",
     "TOK_BRACKETS_LEFT",
     "TOK_BRACKETS_RIGHT",
-    "TOK_BRACKETS_ANGLE_LEFT",
-    "TOK_BRACKETS_ANGLE_RIGHT",
+    "TOK_LESS",
+    "TOK_GREATER",
     "TOK_EQUAL",
     "TOK_LESS_OR_EQUAL",
     "TOK_GREATER_OR_EQUAL",
@@ -139,8 +139,8 @@ ReservedWords::ReservedWords()
     Add("@", OPERATION, TOK_DOG);
     Add("(", OPERATION, TOK_BRACKETS_LEFT);
     Add(")", OPERATION, TOK_BRACKETS_RIGHT);
-    Add(">", OPERATION, TOK_BRACKETS_ANGLE_RIGHT);
-    Add("<", OPERATION, TOK_BRACKETS_ANGLE_LEFT);
+    Add(">", OPERATION, TOK_GREATER);
+    Add("<", OPERATION, TOK_LESS);
     Add("=", OPERATION, TOK_EQUAL);
     Add(">=", OPERATION, TOK_GREATER_OR_EQUAL);
     Add("<=", OPERATION, TOK_LESS_OR_EQUAL);
@@ -158,40 +158,37 @@ bool ReservedWords::Identify(string& str, TokenType& returned_type, TokenValue& 
 
 //---Token---
 
-
 bool Token::IsRelationalOp() const
 {
-
-
-    return !strcmp(name, ">") || !strcmp(name, ">=") ||
-           !strcmp(name, "<") || !strcmp(name, "<=") ||
-           !strcmp(name, "<>") || !strcmp(name, "=");
-
+    return value == TOK_GREATER || value == TOK_GREATER_OR_EQUAL ||
+           value == TOK_LESS || value == TOK_LESS_OR_EQUAL ||
+           value == TOK_NOT_EQUAL || value == TOK_EQUAL;
 }
 
 bool Token::IsAddingOp() const
 {
-    return !strcmp(name, "+") || !strcmp(name, "-") ||
-           !strcmp(name, "or") || !strcmp(name, "xor");
+    return value == TOK_PLUS || value == TOK_MINUS ||
+           value == TOK_OR || value == TOK_XOR;
 }
 
 bool Token::IsMultOp() const
 {
-    return !strcmp(name, "*") || !strcmp(name, "/") ||
-           !strcmp(name, "div") || !strcmp(name, "mod") ||
-           !strcmp(name, "and") || !strcmp(name, "shl") ||
-           !strcmp(name, "shr");
+    return value == TOK_MULT || value == TOK_DIVISION ||
+           value == TOK_DIV || value == TOK_MOD ||
+           value == TOK_AND || value == TOK_SHL ||
+           value == TOK_SHR;
 }
 
 bool Token::IsUnaryOp() const
 {
-    return !strcmp(name, "not") || !strcmp(name, "@") ||
-           !strcmp(name, "+") || !strcmp(name, "-");
+    return value == TOK_NOT || value == TOK_DOG ||
+           value == TOK_PLUS || value == TOK_MINUS;
 }
 
 bool Token::IsTermOp() const
 {
-    return !strcmp(name, "[") || !strcmp(name, ".") || !strcmp(name, "(");
+    return value == TOK_BRACKETS_SQUARE_LEFT || value == TOK_DOT ||
+           value == TOK_BRACKETS_LEFT;
 }
 
 bool Token::IsConst() const
@@ -211,7 +208,6 @@ bool Token::IsConstVar() const
 
 ostream& operator<<(ostream& out, const Token & token)
 {
-  //  out << "|" << token.GetValue() << "|";
     out << token.GetLine() << ':' << token.GetPos() << '\t'<< TOKEN_DESCRIPTION[token.GetType()]
         << '\t' << TOKEN_VALUE_DESCRIPTION[token.GetValue()] << '\t' << token.GetName() << endl;
     return out;
