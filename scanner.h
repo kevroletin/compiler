@@ -13,7 +13,6 @@ using namespace std;
 enum TokenType{
 	IDENTIFIER,
 	RESERVED_WORD,
-	HEX_CONST,
 	INT_CONST,
 	REAL_CONST,
 	STR_CONST,
@@ -79,24 +78,26 @@ enum TokenValue{
     TOK_EQUAL,
     TOK_LESS_OR_EQUAL,
     TOK_GREATER_OR_EQUAL,
-    TOK_NOT_EQUAL
+    TOK_NOT_EQUAL,
+    TOK_UNRESERVED
 };
 
 class ReservedWords{
 private:
-    map<string, TokenType> words;
+    map<string, pair<TokenType, TokenValue> > words;
     void Add(char* name, TokenType type, TokenValue value);
 public:
     ReservedWords();
-    bool Identify(string& str, TokenType& returned_type);
+    bool Identify(string& str, TokenType& returned_type, TokenValue& returned_value);
 };
 
 class Token{
 private:
 	TokenType type;
+	TokenValue value;
 	int line;
 	int pos;
-	char* value;
+	char* name;
 public:
     bool IsRelationalOp() const;
     bool IsAddingOp() const;
@@ -107,12 +108,13 @@ public:
     bool IsVar() const;
     bool IsConstVar() const;
     Token();
-	Token(const char* value, TokenType type, int line, int pos);
+	Token(const char* name_, TokenType type_, TokenValue value_, int line_, int pos_);
 	Token(const Token& token);
 	Token& operator=(const Token& token);
 	~Token();
 	TokenType GetType() const;
-	const char* GetValue() const;
+	TokenValue GetValue() const;
+	const char* GetName() const;
 	int GetPos() const;
 	int GetLine() const;
 };
@@ -144,7 +146,7 @@ private:
 	State state;
 	void AddToBuffer(char c);
 	void ReduceBuffer();
-    void MakeToken(TokenType type);
+    void MakeToken(TokenType type, TokenValue value = TOK_UNRESERVED);
     void IdentifyAndMake();
     bool TryToIdentify();
     void Error(const char* msg) const;

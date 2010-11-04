@@ -1,2 +1,0 @@
-1:1 STR_CONST Hello world!
-1:15 END_OF_FILE 

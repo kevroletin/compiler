@@ -1,9 +1,0 @@
-[]
-  arr
-  ()
-    funct
-    .
-      []
-        arr
-        a
-      b

@@ -1,2 +1,0 @@
-1:1 STR_CONST 
-1:3 END_OF_FILE 

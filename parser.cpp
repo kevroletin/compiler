@@ -21,9 +21,9 @@ void Parser::PrintNode(ostream& o, Expression* e, int margin = 1)
     }
     if (margins.size()) o << "|-";
     if (e -> token.GetType() == OPERATION)
-        o << '\'' <<  e -> token.GetValue() << '\'' << "\n"  ;
+        o << '\'' <<  e -> token.GetName() << '\'' << "\n"  ;
     else
-        o << e -> token.GetValue() << "\n"  ;
+        o << e -> token.GetName() << "\n"  ;
     switch (e -> GetType())
     {
         case CONSTANT:
@@ -65,17 +65,17 @@ void Parser::PrintNode(ostream& o, Expression* e, int margin)
     switch (e -> GetType())
     {
         case CONSTANT:
-            o << e -> token.GetValue() << "\n";
+            o << e -> token.GetName() << "\n";
         break;
         case VARIBLE:
-            o << e -> token.GetValue() << "\n";
+            o << e -> token.GetName() << "\n";
         break;
         case UN_OPER:
-            o << e -> token.GetValue() << "\n";
+            o << e -> token.GetName() << "\n";
             PrintNode(o, ((UnOper*)e) -> child, margin + 2);
         break;
         case BIN_OPER:
-            o << e -> token.GetValue() << "\n";
+            o << e -> token.GetName() << "\n";
             PrintNode(o, ((BinOper*)e) -> left, margin + 2);
             PrintNode(o, ((BinOper*)e) -> right, margin + 2);
         break;
@@ -92,7 +92,7 @@ void Parser::PrintNode(ostream& o, Expression* e, int margin)
             o << ".\n";
             PrintNode(o, ((RecordAccess*)e) -> record, margin + 2);
             PrintSpaces(o, margin + 2);
-            o << ((RecordAccess*)e) -> field.GetValue() << "\n";
+            o << ((RecordAccess*)e) -> field.GetName() << "\n";
         break;
         case ARRAY_ACCESS:
             o << "[]\n";
@@ -201,7 +201,7 @@ SymType* Parser::ParseType()
     if (!name.IsVar()) return NULL;
     scan.NextToken();
     //if (scan.NextToken() != tSemicolon)
-    if (strcmp(scan.NextToken().GetValue(), ":")) Error("':' expected"); //плохо
+    if (strcmp(scan.NextToken().GetName(), ":")) Error("':' expected"); //плохо
     Token token = scan.NextToken();
 
     scan.NextToken();
@@ -210,21 +210,23 @@ SymType* Parser::ParseType()
 void Parser::ParseDeclarations()
 {
     Symbol* sym = NULL;
+   /*
     while (sym = ParseType()) {
         if (syn_table.Find(sym)) Error("duplicate declaration");
         syn_table.Add(sym);
     }
+    */
 }
 
 Expression* Parser::GetTerm()
 {
     Expression* left = NULL;
-    if (!strcmp(scan.GetToken().GetValue(), "("))
+    if (!strcmp(scan.GetToken().GetName(), "("))
     {
         scan.NextToken();
         left = GetRelationalExpr();
         if (left == NULL) Error("illegal expression");
-        if (strcmp(scan.GetToken().GetValue(), ")"))
+        if (strcmp(scan.GetToken().GetName(), ")"))
             Error("expected )");
         scan.NextToken();
     }
@@ -243,26 +245,26 @@ Expression* Parser::GetTerm()
     Token op = scan.GetToken();
     while (op.IsTermOp())
     {
-        if (!strcmp(op.GetValue(), "("))
+        if (!strcmp(op.GetName(), "("))
         {
             scan.NextToken();
             FunctionCall* funct = new FunctionCall(op, left);
-            while (strcmp(scan.GetToken().GetValue(), ")"))
+            while (strcmp(scan.GetToken().GetName(), ")"))
             {
                 Expression* arg = GetRelationalExpr();
                 if (arg == NULL) Error("illegal expression");
-                if (!strcmp(scan.GetToken().GetValue(), ","))
+                if (!strcmp(scan.GetToken().GetName(), ","))
                     scan.NextToken();
-                else if (strcmp(scan.GetToken().GetValue(), ")"))
+                else if (strcmp(scan.GetToken().GetName(), ")"))
                     Error(", expected");
                 funct->AddArgument(arg);
             }
             scan.NextToken();
             left = funct;
         }
-        else if (!strcmp(op.GetValue(), "."))
+        else if (!strcmp(op.GetName(), "."))
         {
-            while (!strcmp(op.GetValue(), "."))
+            while (!strcmp(op.GetName(), "."))
             {
                 Token field = scan.NextToken();
                 if (scan.GetToken().GetType() != IDENTIFIER) Error("identifier after . expected");
@@ -270,18 +272,18 @@ Expression* Parser::GetTerm()
                 op = scan.NextToken();
             }
         }
-        else if (!strcmp(op.GetValue(), "["))
+        else if (!strcmp(op.GetName(), "["))
         {
             scan.NextToken();
             do {
                 Expression* index = GetRelationalExpr();
                 if (index == NULL) Error("illegal expression");
-                if (!strcmp(scan.GetToken().GetValue(), ","))
+                if (!strcmp(scan.GetToken().GetName(), ","))
                     scan.NextToken();
-                else if (strcmp(scan.GetToken().GetValue(), "]"))
+                else if (strcmp(scan.GetToken().GetName(), "]"))
                     Error(", expected");
                 left = new ArrayAccess(op, left, index);
-            } while (strcmp(scan.GetToken().GetValue(), "]"));
+            } while (strcmp(scan.GetToken().GetName(), "]"));
             scan.NextToken();
         }
         op = scan.GetToken();
@@ -378,6 +380,6 @@ void Parser::Error(char* msg)
 {
     stringstream s;
     Token token = scan.GetToken();
-    s << token.GetLine() << ':' << token.GetPos() << " ERROR at '" << token.GetValue() << "': " << msg;
+    s << token.GetLine() << ':' << token.GetPos() << " ERROR at '" << token.GetName() << "': " << msg;
     throw( CompilerException( s.str().c_str() ) ) ;
 }

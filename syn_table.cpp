@@ -18,7 +18,7 @@ SymbolClass Symbol::GetClassName() const // оч плохо
 
 const char* Symbol::GetName() const
 {
-    return token.GetValue();
+    return token.GetName();
 }
 
 //---SymType---

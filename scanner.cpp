@@ -9,7 +9,6 @@ const char* const TOKEN_DESCRIPTION[] =
 {
 	"IDENTIFIER",
 	"RESERVED_WORD",
-	"HEX_CONST",
 	"INT_CONST",
 	"REAL_CONST",
 	"STR_CONST",
@@ -18,11 +17,73 @@ const char* const TOKEN_DESCRIPTION[] =
 	"END_OF_FILE"
 };
 
+const char* const TOKEN_VALUE_DESCRIPTION[] =
+{
+    "TOK_AND",
+    "TOK_ARRAY",
+    "TOK_BEGIN",
+    "TOK_CASE",
+    "TOK_CONST",
+    "TOK_DIV",
+    "TOK_DO",
+    "TOK_DOWNTO",
+    "TOK_ELSE",
+    "TOK_END",
+    "TOK_FILE",
+    "TOK_FOR",
+    "TOK_FUNCTION",
+    "TOK_IF",
+    "TOK_IN",
+    "TOK_MOD",
+    "TOK_NIL",
+    "TOK_NOT",
+    "TOK_OF",
+    "TOK_OR",
+    "TOK_PROCEDURE",
+    "TOK_RECORD",
+    "TOK_REPEAT",
+    "TOK_SET",
+    "TOK_SHL",
+    "TOK_SHR",
+    "TOK_STRING",
+    "TOK_THEN",
+    "TOK_TO",
+    "TOK_TYPE",
+    "TOK_UNTIL",
+    "TOK_VAR",
+    "TOK_WHILE",
+    "TOK_WITH",
+    "TOK_XOR",
+    "TOK_DOUBLE_DOT",
+    "TOK_ASSIGN",
+    "TOK_MINUS",
+    "TOK_PLUS",
+    "TOK_MULT",
+    "TOK_DIVISION",
+    "TOK_BRACKETS_SQUARE_LEFT",
+    "TOK_BRACKETS_SQUARE_RIGHT",
+    "TOK_SEMICOLON",
+    "TOK_COLON",
+    "TOK_COMMA",
+    "TOK_DOT",
+    "TOK_CAP",
+    "TOK_DOG",
+    "TOK_BRACKETS_LEFT",
+    "TOK_BRACKETS_RIGHT",
+    "TOK_BRACKETS_ANGLE_LEFT",
+    "TOK_BRACKETS_ANGLE_RIGHT",
+    "TOK_EQUAL",
+    "TOK_LESS_OR_EQUAL",
+    "TOK_GREATER_OR_EQUAL",
+    "TOK_NOT_EQUAL",
+    "TOK_UNRESERVED"
+};
+
 //---Reserved words--
 
 void ReservedWords::Add(char* name, TokenType type, TokenValue value)
 {
-    words.insert(pair<char*, TokenType>(name, type));
+    words.insert(pair<char*, pair<TokenType, TokenValue> >(name, pair<TokenType, TokenValue>(type, value)));
 }
 
 ReservedWords::ReservedWords()
@@ -86,11 +147,12 @@ ReservedWords::ReservedWords()
     Add("<>", OPERATION, TOK_NOT_EQUAL);
 }
 
-bool ReservedWords::Identify(string& str, TokenType& returned_type)
+bool ReservedWords::Identify(string& str, TokenType& returned_type, TokenValue& returned_value)
 {
-    map<string, TokenType>::iterator i  = words.find(str);
+    map<string, pair<TokenType, TokenValue> >::iterator i  = words.find(str);
     if (i == words.end()) return false;
-    returned_type = i->second;
+    returned_type = i->second.first;
+    returned_value = i->second.second;
     return true;
 }
 
@@ -99,39 +161,42 @@ bool ReservedWords::Identify(string& str, TokenType& returned_type)
 
 bool Token::IsRelationalOp() const
 {
-    return !strcmp(value, ">") || !strcmp(value, ">=") ||
-           !strcmp(value, "<") || !strcmp(value, "<=") ||
-           !strcmp(value, "<>") || !strcmp(value, "=");
+
+
+    return !strcmp(name, ">") || !strcmp(name, ">=") ||
+           !strcmp(name, "<") || !strcmp(name, "<=") ||
+           !strcmp(name, "<>") || !strcmp(name, "=");
+
 }
 
 bool Token::IsAddingOp() const
 {
-    return !strcmp(value, "+") || !strcmp(value, "-") ||
-           !strcmp(value, "or") || !strcmp(value, "xor");
+    return !strcmp(name, "+") || !strcmp(name, "-") ||
+           !strcmp(name, "or") || !strcmp(name, "xor");
 }
 
 bool Token::IsMultOp() const
 {
-    return !strcmp(value, "*") || !strcmp(value, "/") ||
-           !strcmp(value, "div") || !strcmp(value, "mod") ||
-           !strcmp(value, "and") || !strcmp(value, "shl") ||
-           !strcmp(value, "shr");
+    return !strcmp(name, "*") || !strcmp(name, "/") ||
+           !strcmp(name, "div") || !strcmp(name, "mod") ||
+           !strcmp(name, "and") || !strcmp(name, "shl") ||
+           !strcmp(name, "shr");
 }
 
 bool Token::IsUnaryOp() const
 {
-    return !strcmp(value, "not") || !strcmp(value, "@") ||
-           !strcmp(value, "+") || !strcmp(value, "-");
+    return !strcmp(name, "not") || !strcmp(name, "@") ||
+           !strcmp(name, "+") || !strcmp(name, "-");
 }
 
 bool Token::IsTermOp() const
 {
-    return !strcmp(value, "[") || !strcmp(value, ".") || !strcmp(value, "(");
+    return !strcmp(name, "[") || !strcmp(name, ".") || !strcmp(name, "(");
 }
 
 bool Token::IsConst() const
 {
-    return type == HEX_CONST || type == INT_CONST || type == REAL_CONST || type == STR_CONST;
+    return type == INT_CONST || type == REAL_CONST || type == STR_CONST;
 }
 
 bool Token::IsVar() const
@@ -146,27 +211,30 @@ bool Token::IsConstVar() const
 
 ostream& operator<<(ostream& out, const Token & token)
 {
-    out << token.GetLine() << ':' << token.GetPos() << ' '<< TOKEN_DESCRIPTION[token.GetType()]
-            << ' ' << token.GetValue() << endl;
+  //  out << "|" << token.GetValue() << "|";
+    out << token.GetLine() << ':' << token.GetPos() << '\t'<< TOKEN_DESCRIPTION[token.GetType()]
+        << '\t' << TOKEN_VALUE_DESCRIPTION[token.GetValue()] << '\t' << token.GetName() << endl;
     return out;
 }
 
 Token::Token():
-    value(NULL)
+    name(NULL)
 {
 }
 
-Token::Token(const char* value_, TokenType type_, int line_, int pos_):
-    value(strcpy(new char[strlen(value_)+1], value_)),
+Token::Token(const char* name_, TokenType type_, TokenValue value_, int line_, int pos_):
+    name(strcpy(new char[strlen(name_)+1], name_)),
     type(type_),
+    value(value_),
     line(line_),
     pos(pos_)
 {
 }
 
 Token::Token(const Token& token):
-    value(strcpy(new char[strlen(token.value)+1], token.value)),
+	name(strcpy(new char[strlen(token.name)+1], token.name)),
 	type(token.type),
+	value(token.value),
 	line(token.line),
 	pos(token.pos)
 {
@@ -174,9 +242,10 @@ Token::Token(const Token& token):
 
 Token& Token::operator=(const Token& token)
 {
-	if (value != NULL) delete(value);
-	value = strcpy(new char[strlen(token.value)+1], token.value);
+	if (name != NULL) delete(name);
+	name = strcpy(new char[strlen(token.name)+1], token.name);
 	type = token.type;
+	value = token.value;
 	line = token.line;
 	pos = token.pos;
 	return *this;
@@ -184,7 +253,7 @@ Token& Token::operator=(const Token& token)
 
 Token::~Token()
 {
-	if (value != NULL) delete(value);
+	if (name != NULL) delete(name);
 }
 
 TokenType Token::GetType() const
@@ -192,9 +261,14 @@ TokenType Token::GetType() const
     return type;
 }
 
-const char* Token::GetValue() const
+TokenValue Token::GetValue() const
 {
 	return value;
+}
+
+const char* Token::GetName() const
+{
+	return name;
 }
 
 int Token::GetPos() const
@@ -221,9 +295,9 @@ void Scanner::ReduceBuffer()
     buffer_low.resize(buffer.size());
 }
 
-void Scanner::MakeToken(TokenType type)
+void Scanner::MakeToken(TokenType type, TokenValue value)
 {
-    token = Token(buffer.c_str(), type, first_line, first_pos);
+    token = Token(buffer.c_str(), type, value, first_line, first_pos);
     buffer.clear();
     buffer_low.clear();
     state = NONE_ST;
@@ -232,16 +306,22 @@ void Scanner::MakeToken(TokenType type)
 void Scanner::IdentifyAndMake()
 {
     TokenType t;
-    if (!reserved_words.Identify(buffer_low, t)) t = IDENTIFIER;
-    MakeToken(t);
+    TokenValue v;
+    if (!reserved_words.Identify(buffer_low, t, v))
+    {
+        t = IDENTIFIER;
+        v = TOK_UNRESERVED;
+    }
+    MakeToken(t, v);
 }
 
 bool Scanner::TryToIdentify()
 {
     TokenType t;
-    if (reserved_words.Identify(buffer_low, t))
+    TokenValue v;
+    if (reserved_words.Identify(buffer_low, t, v))
     {
-        MakeToken(t);
+        MakeToken(t, v);
         return true;
     }
     return false;
@@ -410,7 +490,7 @@ void Scanner::EatHex()
 	if (!read)
 		Error("invalid integer expression");
 	else
-		MakeToken(HEX_CONST);
+		MakeToken(INT_CONST);
 }
 
 void Scanner::EatInteger()
