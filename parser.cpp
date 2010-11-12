@@ -1,8 +1,5 @@
 #include "parser.h"
 
-
-#include <vector>
-
 /*
 vector<bool> margins;
 void Parser::PrintNode(ostream& o, Expression* e, int margin = 1)
@@ -53,7 +50,7 @@ void Parser::PrintNode(ostream& o, Expression* e, int margin = 1)
 }
 */
 
-void PrintSpaces(ostream& o, int count)
+static void PrintSpaces(ostream& o, int count)
 {
     for (int i = 0; i < count; ++i) o << ' ';
 }
@@ -102,7 +99,7 @@ void Parser::PrintNode(ostream& o, Expression* e, int margin)
 
 }
 
-ostream& Parser::operator<<(ostream& o)
+void Parser::PrintSimpleParse(ostream& o)
 {
     Expression* root = GetRelationalExpr();
     if (scan.GetToken().GetType() != END_OF_FILE)
@@ -110,6 +107,11 @@ ostream& Parser::operator<<(ostream& o)
     PrintNode(o, root);
 }
 
+void Parser::PrintDeclarationsParse(ostream& o)
+{
+    ParseTypeDefinitions();
+    syn_table.Print(o);
+}
 
 //---Expression---
 
@@ -193,29 +195,122 @@ Parser::Parser(Scanner& scanner):
     scan(scanner)
 {
     scan.NextToken();
+    syn_table_stack.push_back(&syn_table);
 }
 
 SymType* Parser::ParseType()
 {
     Token name = scan.GetToken();
-    if (!name.IsVar()) return NULL;
-    scan.NextToken();
-    //if (scan.NextToken() != tSemicolon)
-    if (scan.NextToken().GetValue() == TOK_COLON) Error("':' expected"); //плохо
-    Token token = scan.NextToken();
-
-    scan.NextToken();
+    switch (name.GetValue()) {
+        case TOK_ARRAY: {
+            std::vector<std::pair<Token, Token> > bounds;
+            if (scan.NextToken().GetValue() != TOK_BRACKETS_SQUARE_LEFT) Error("'[' expected");
+            bool was_comma = true;
+            while (was_comma)
+            {
+                Token low = scan.NextToken();
+                if (scan.NextToken().GetValue() != TOK_DOUBLE_DOT) Error("'..' expected");
+                Token high = scan.NextToken();
+                if (low.GetType() != INT_CONST || high.GetType() != INT_CONST)
+		    Error("non-integer array bounds is not implemented");
+                bounds.push_back(std::pair<Token, Token>(low, high));
+                was_comma = (scan.NextToken().GetValue() == TOK_COMMA);
+            }
+            if (scan.GetToken().GetValue() != TOK_BRACKETS_SQUARE_RIGHT) Error("']' expected");
+            if (scan.NextToken().GetValue() != TOK_OF) Error("'of' expected");
+            scan.NextToken();
+            SymType* res = ParseType();
+            for (std::vector<std::pair<Token, Token> >::reverse_iterator it = bounds.rbegin(); it != bounds.rend(); ++it)
+            {
+                res = new SymTypeArray(name, res, atoi(it->first.GetName()), atoi(it->second.GetName()));
+            }
+            return res;
+        } break;
+        case TOK_RECORD: {
+            syn_table_stack.push_back(new SynTable);
+            scan.NextToken();
+            ParseTypeDefinitions();
+            SymType* res = new SymTypeRecord(name, syn_table_stack.back());
+            syn_table_stack.pop_back();
+            if (scan.GetToken().GetValue() != TOK_END) Error("'end' expected");
+            scan.NextToken();
+            return res;
+        } break;
+        default: {
+            SymType* res = NULL;
+            switch (scan.GetToken().GetValue()) {
+                case TOK_INTEGER: {
+                    res = new SymTypeInteger(scan.GetToken());
+                } break;
+                case TOK_REAL: {
+                    res = new SymTypeReal(scan.GetToken());
+                } break;
+            }
+            scan.NextToken();
+            return res;
+        }
+    }
 }
 
-void Parser::ParseDeclarations()
+void Parser::ParseTypeDefinitions()
 {
-    Symbol* sym = NULL;
-   /*
-    while (sym = ParseType()) {
-        if (syn_table.Find(sym)) Error("duplicate declaration");
-        syn_table.Add(sym);
+    while (scan.GetToken().IsVar())
+    {
+        std::vector<Token> vars;
+        bool was_comma = true;
+        while (was_comma)
+        {
+            Token name = scan.GetToken();
+            if (FindSymbol(name) != NULL) Error("duplicate declaration");
+            vars.push_back(name);
+            if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA))
+                scan.NextToken();
+        }
+
+        if (scan.GetToken().GetValue() != TOK_COLON) Error("':' expected");
+        scan.NextToken();
+        SymType* type = ParseType();
+        for (std::vector<Token>::iterator it = vars.begin(); it != vars.end(); ++it)
+	    syn_table_stack.back()->Add(new SymVar(*it, type));
+        if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
+        scan.NextToken();
     }
-    */
+}
+
+void Parser::ParseStatement()
+{
+}
+
+#include <iostream>
+
+const Symbol* Parser::FindSymbol(Symbol* sym)
+{
+    const Symbol* res = NULL;
+    for (std::vector<SynTable*>::reverse_iterator it = syn_table_stack.rbegin();
+         it != syn_table_stack.rend() && res == NULL; ++it)
+    {
+        res = (*it)->Find(sym);
+        if (res != NULL)
+        {
+            (*it)->Print(std::cout);
+        }
+    }
+    return res;
+}
+
+const Symbol* Parser::FindSymbol(const Token& tok)
+{
+    Symbol sym(tok);
+    return FindSymbol(&sym);
+}
+
+void Parser::Parse()
+{
+    ParseTypeDefinitions();
+/*    if (scan.GetToken().GetValue() == TOK_VAR) ParseTypeDefinitions();
+    if (scan.GetToken().GetValue() == TOK_BEGIN) ParseStatement();
+    if (scan.GetToken().GetValue() != TOK_DOT) Error("'.' expected");
+*/
 }
 
 Expression* Parser::GetTerm()

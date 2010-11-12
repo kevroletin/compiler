@@ -77,6 +77,8 @@ const char* const TOKEN_VALUE_DESCRIPTION[] =
     "TOK_GREATER_OR_EQUAL",
     "TOK_NOT_EQUAL",
     "TOK_UNRESERVED"
+
+    ,"TOK_INTEGER", "TOK_REAL"
 };
 
 //---Reserved words--
@@ -88,6 +90,9 @@ void ReservedWords::Add(char* name, TokenType type, TokenValue value)
 
 ReservedWords::ReservedWords()
 {
+    Add("integer", RESERVED_WORD, TOK_INTEGER);
+    Add("real", RESERVED_WORD, TOK_REAL);
+
     Add("and", OPERATION, TOK_AND);
     Add("array", RESERVED_WORD, TOK_ARRAY);
     Add("begin", RESERVED_WORD, TOK_BEGIN);

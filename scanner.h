@@ -80,6 +80,8 @@ enum TokenValue{
     TOK_GREATER_OR_EQUAL,
     TOK_NOT_EQUAL,
     TOK_UNRESERVED
+
+    ,TOK_INTEGER, TOK_REAL
 };
 
 class ReservedWords{
@@ -133,19 +135,19 @@ public:
     };
 private:
     ReservedWords reserved_words;
-	Token* currentToken;
-	istream& in;
-	string buffer;
-	string buffer_low;
-	int first_pos;
-	int first_line;
-	Token token;
-	int line;
-	int pos;
-	char c;
-	State state;
-	void AddToBuffer(char c);
-	void ReduceBuffer();
+    Token* currentToken;
+    istream& in;
+    string buffer;
+    string buffer_low;
+    int first_pos;
+    int first_line;
+    Token token;
+    int line;
+    int pos;
+    char c;
+    State state;
+    void AddToBuffer(char c);
+    void ReduceBuffer();
     void MakeToken(TokenType type, TokenValue value = TOK_UNRESERVED);
     void IdentifyAndMake();
     bool TryToIdentify();
@@ -156,14 +158,14 @@ private:
     void EatRealFractPart();
     void EatStrNum();
     void EatStrConst();
-	void EatHex();
-	void EatInteger();
-	void EatIdentifier();
-	void EatOperation();
+    void EatHex();
+    void EatInteger();
+    void EatIdentifier();
+    void EatOperation();
 public:
-	Scanner(istream& input);
-	Token GetToken();
-	Token NextToken();
+    Scanner(istream& input);
+    Token GetToken();
+    Token NextToken();
 };
 
 #endif

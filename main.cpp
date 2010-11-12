@@ -17,19 +17,21 @@ Usage: compiler [option] source.pas\n\
 avaible options are:\n\
 \t-h\tshow this message\n\
 \t-l\tshow lexems stream\n\
-\t-s\tsimple parse\n";
+\t-s\tsimple parse\n\
+\t-d\tdeclaration parse\n";
 }
 
 char *my_argv[] = {"compiler.exe", "-l", "test/16.in" };
 
+
 int main(int argc, char* argv[])
 {
 //	argv = my_argv;	argc = 3;
-	if (argc == 1)
-	{
-        PrintHelp();
-        return 0;
-	}
+    if (argc == 1)
+    {
+		PrintHelp();
+		return 0;
+    }
 	try
 	{
         if (argc > 3) throw CompilerException("too many parametrs");
@@ -59,7 +61,7 @@ int main(int argc, char* argv[])
                     {
                         Scanner scan(in);
                         Parser parser(scan);
-                        parser<<(cout);
+                        parser.PrintSimpleParse(cout);
                     }
                     break;
                     case 'l':
@@ -69,6 +71,12 @@ int main(int argc, char* argv[])
                         {
                             cout << ( t = scan.NextToken() );
                         }
+                    }
+                    case 'd':
+                    {
+                        Scanner scan(in);
+                        Parser parser(scan);
+                        parser.PrintDeclarationsParse(cout);
                     }
                     break;
                 }

@@ -1,11 +1,14 @@
 #ifndef PARSER
 #define PARSER
 
+#include <stdlib.h>
 #include "scanner.h"
 #include "syn_table.h"
 #include <string.h>
 #include "exception.h"
 #include <vector>
+#include <utility>
+#include <stack>
 
 #include <ostream>
 
@@ -77,6 +80,7 @@ class Parser{
 private:
     Scanner& scan;
     SynTable syn_table;
+    std::vector<SynTable*> syn_table_stack;
     void NextToken();
     Expression* GetTerm();
     Expression* GetAddingExpr();
@@ -86,12 +90,15 @@ private:
     void Error(char* msgn);
     void PrintNode(ostream& o, Expression* e, int margin = 0);
     SymType* ParseType();
+    void ParseTypeDefinitions();
+    void ParseStatement();
+    const Symbol* FindSymbol(Symbol* sym);
+    const Symbol* FindSymbol(const Token& tok);
 public:
     Parser(Scanner& scanner);
-    void ParseDeclarations();
-    void ParseStatements();
     void Parse();
-    ostream& operator<<(ostream& o);
+    void PrintSimpleParse(ostream& o);
+    void PrintDeclarationsParse(ostream& o);
 };
 
 #endif
