@@ -109,7 +109,8 @@ void Parser::PrintSimpleParse(ostream& o)
 
 void Parser::PrintDeclarationsParse(ostream& o)
 {
-    ParseTypeDefinitions();
+//    ParseVarDefinitions();
+    Parse();
     syn_table.Print(o);
 }
 
@@ -195,6 +196,9 @@ Parser::Parser(Scanner& scanner):
     scan(scanner)
 {
     scan.NextToken();
+    syn_table.Add(new SymTypeInteger(Token("Integer", RESERVED_WORD, TOK_INTEGER, -1, -1)));
+    syn_table.Add(new SymTypeReal(Token("Real", RESERVED_WORD, TOK_REAL, -1, -1)));
+//debug    syn_table.Print(std::cout);
     syn_table_stack.push_back(&syn_table);
 }
 
@@ -229,30 +233,34 @@ SymType* Parser::ParseType()
         case TOK_RECORD: {
             syn_table_stack.push_back(new SynTable);
             scan.NextToken();
-            ParseTypeDefinitions();
+            ParseVarDefinitions();
             SymType* res = new SymTypeRecord(name, syn_table_stack.back());
             syn_table_stack.pop_back();
             if (scan.GetToken().GetValue() != TOK_END) Error("'end' expected");
             scan.NextToken();
             return res;
         } break;
-        default: {
-            SymType* res = NULL;
-            switch (scan.GetToken().GetValue()) {
-                case TOK_INTEGER: {
-                    res = new SymTypeInteger(scan.GetToken());
-                } break;
-                case TOK_REAL: {
-                    res = new SymTypeReal(scan.GetToken());
-                } break;
-            }
+        case TOK_CAP: {
+            Token name = scan.NextToken();
+            if (!name.IsVar()) Error("identifier expected");
+            const Symbol* ref_type = syn_table_stack.back()->Find(name);
+            if (ref_type == NULL) Error("identifier not found");
+            if (!(ref_type->GetClassName() && SYM_TYPE)) Error("type identifier expected");
             scan.NextToken();
-            return res;
+            return new SymTypeAlias(name, (SymType*)ref_type);
+        } break;
+        default: {            
+            const Symbol* res = syn_table_stack.back()->Find(scan.GetToken());
+//debug            syn_table_stack.back()->Print(std::cout);
+            if (res == NULL) Error("identifier not found");
+            if (!(res->GetClassName() && SYM_TYPE)) Error("type identifier expected");
+            scan.NextToken();
+            return (SymType*)res;
         }
     }
 }
 
-void Parser::ParseTypeDefinitions()
+void Parser::ParseVarDefinitions()
 {
     while (scan.GetToken().IsVar())
     {
@@ -272,6 +280,21 @@ void Parser::ParseTypeDefinitions()
         SymType* type = ParseType();
         for (std::vector<Token>::iterator it = vars.begin(); it != vars.end(); ++it)
 	    syn_table_stack.back()->Add(new SymVar(*it, type));
+        if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
+        scan.NextToken();
+    }
+}
+
+void Parser::ParseTypeDefinitions()
+{
+    while (scan.GetToken().IsVar())
+    {
+        Token name = scan.GetToken();
+        if (FindSymbol(name) != NULL) Error("duplicate declaration");
+        if (scan.GetToken().GetValue() != TOK_EQUAL) Error("'=' expected");
+        scan.NextToken();
+        SymType* type = ParseType();
+        syn_table_stack.back()->Add(new SymTypeAlias(name, type));
         if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
         scan.NextToken();
     }
@@ -306,11 +329,22 @@ const Symbol* Parser::FindSymbol(const Token& tok)
 
 void Parser::Parse()
 {
-    ParseTypeDefinitions();
-/*    if (scan.GetToken().GetValue() == TOK_VAR) ParseTypeDefinitions();
-    if (scan.GetToken().GetValue() == TOK_BEGIN) ParseStatement();
-    if (scan.GetToken().GetValue() != TOK_DOT) Error("'.' expected");
-*/
+    bool loop = true;
+    while (loop)
+    {
+        switch (scan.GetToken().GetValue()) {
+            case TOK_VAR:
+                scan.NextToken();
+                ParseVarDefinitions();
+            break;
+            case TOK_TYPE:
+                scan.NextToken();
+                ParseTypeDefinitions();
+            break;
+            default:
+                loop = false;
+        }      
+    }
 }
 
 Expression* Parser::GetTerm()

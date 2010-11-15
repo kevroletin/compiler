@@ -1,0 +1,5 @@
+var
+r: record
+    a, b: Real;
+    i, j: Integer;
+end;

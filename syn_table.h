@@ -7,15 +7,17 @@
 #include <set>
 
 enum SymbolClass{
-    SYM,
-    SYM_FUNCT,
-    SYM_PROC,
-    SYM_TYPE,
-    SYM_TYPE_SCALAR,
-    SYM_TYPE_INTEGER,
-    SYM_TYPE_REAL,
-    SYM_TYPE_ARRAY,
-    SYM_VAR,
+    SYM = 0,
+    SYM_FUNCT = 1,
+    SYM_PROC = 2,
+    SYM_TYPE = 4,
+    SYM_TYPE_SCALAR = 8,
+    SYM_TYPE_INTEGER = 16,
+    SYM_TYPE_REAL = 32,
+    SYM_TYPE_ARRAY = 64,
+    SYM_TYPE_ALIAS = 128,
+    SYM_TYPE_POINTER = 256,
+    SYM_VAR = 512,
 };
 
 class SynTable;
@@ -107,11 +109,21 @@ public:
 };
 
 class SymTypeAlias: public SymType{
-
+private:
+    SymType* target;
+public:
+    SymTypeAlias(Token name, SymType* ratget_);
+    virtual void Print(ostream& o, int offset = 0) const;
+    virtual SymbolClass GetClassName() const;
 };
 
 class SymTypePointer: public SymType{
-
+private:
+    SymType* ref_type;
+public:
+    SymTypePointer(Token name, SymType* ref_type_);
+    virtual void Print(ostream& o, int offset = 0) const;
+    virtual SymbolClass GetClassName() const;    
 };
 
 //---SymVar descendants---

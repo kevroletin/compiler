@@ -90,6 +90,7 @@ private:
     void Error(char* msgn);
     void PrintNode(ostream& o, Expression* e, int margin = 0);
     SymType* ParseType();
+    void ParseVarDefinitions();
     void ParseTypeDefinitions();
     void ParseStatement();
     const Symbol* FindSymbol(Symbol* sym);

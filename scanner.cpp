@@ -219,7 +219,11 @@ ostream& operator<<(ostream& out, const Token & token)
 }
 
 Token::Token():
-    name(NULL)
+    name(strcpy(new char[2], "")),
+    type(UNDEFINED),
+    value(TOK_UNRESERVED),
+    line(0),
+    pos(0)
 {
 }
 
@@ -233,7 +237,7 @@ Token::Token(const char* name_, TokenType type_, TokenValue value_, int line_, i
 }
 
 Token::Token(const Token& token):
-	name(strcpy(new char[strlen(token.name)+1], token.name)),
+	name(strcpy(new char[strlen(token.name) + 1], token.name)),
 	type(token.type),
 	value(token.value),
 	line(token.line),
@@ -280,6 +284,12 @@ int Token::GetPos() const
 int Token::GetLine() const
 {
 	return line;
+}
+
+void Token::NameToLowerCase()
+{
+    int i = 0;
+    while (name[i++]) name[i] = tolower(name[i]);
 }
 
 //---Scanner---

@@ -1,0 +1,8 @@
+var
+r1: record 
+    r2: record
+	r3: record
+	end;
+    end;
+end;
+    

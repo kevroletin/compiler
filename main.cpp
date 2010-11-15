@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <fstream>
 #include <list>
@@ -11,7 +12,7 @@ using namespace std;
 
 void PrintHelp()
 {
-	cout << "Pascal Compiler\n\
+    cout << "Pascal Compiler\n\
 Usage: compiler [option] source.pas\n\
 \n\
 avaible options are:\n\
@@ -21,19 +22,19 @@ avaible options are:\n\
 \t-d\tdeclaration parse\n";
 }
 
-char *my_argv[] = {"compiler.exe", "-l", "test/16.in" };
+string my_argv[] = {"compiler.exe", "-l", "test/16.in" };
 
 
 int main(int argc, char* argv[])
 {
-//	argv = my_argv;	argc = 3;
+//    argv = my_argv;    argc = 3;
     if (argc == 1)
     {
-		PrintHelp();
-		return 0;
+        PrintHelp();
+        return 0;
     }
-	try
-	{
+    try
+    {
         if (argc > 3) throw CompilerException("too many parametrs");
         if (argc == 2)
         {
@@ -81,14 +82,14 @@ int main(int argc, char* argv[])
                     break;
                 }
             }
-	}
-	catch (CompilerException& e)
-	{
+    }
+    catch (CompilerException& e)
+    {
         cout << e.what() << endl;
-	}
-	catch (exception& e)
-	{
-		cout << e.what() << endl;
-	}
-	return 0;
+    }
+    catch (exception& e)
+    {
+        cout << e.what() << endl;
+    }
+    return 0;
 }

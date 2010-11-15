@@ -11,14 +11,15 @@
 using namespace std;
 
 enum TokenType{
-	IDENTIFIER,
-	RESERVED_WORD,
-	INT_CONST,
-	REAL_CONST,
-	STR_CONST,
-	OPERATION,
-	DELIMITER,
-	END_OF_FILE
+    IDENTIFIER,
+    RESERVED_WORD,
+    INT_CONST,
+    REAL_CONST,
+    STR_CONST,
+    OPERATION,
+    DELIMITER,
+    END_OF_FILE,
+    UNDEFINED
 };
 
 enum TokenValue{
@@ -79,9 +80,9 @@ enum TokenValue{
     TOK_LESS_OR_EQUAL,
     TOK_GREATER_OR_EQUAL,
     TOK_NOT_EQUAL,
-    TOK_UNRESERVED
-
-    ,TOK_INTEGER, TOK_REAL
+    TOK_UNRESERVED,
+    TOK_INTEGER, 
+    TOK_REAL
 };
 
 class ReservedWords{
@@ -95,11 +96,11 @@ public:
 
 class Token{
 private:
-	TokenType type;
-	TokenValue value;
-	int line;
-	int pos;
-	char* name;
+    TokenType type;
+    TokenValue value;
+    int line;
+    int pos;
+    char* name;
 public:
     bool IsRelationalOp() const;
     bool IsAddingOp() const;
@@ -110,15 +111,16 @@ public:
     bool IsVar() const;
     bool IsConstVar() const;
     Token();
-	Token(const char* name_, TokenType type_, TokenValue value_, int line_, int pos_);
-	Token(const Token& token);
-	Token& operator=(const Token& token);
-	~Token();
-	TokenType GetType() const;
-	TokenValue GetValue() const;
-	const char* GetName() const;
-	int GetPos() const;
-	int GetLine() const;
+    Token(const char* name_, TokenType type_, TokenValue value_, int line_, int pos_);
+    Token(const Token& token);
+    Token& operator=(const Token& token);
+    ~Token();
+    TokenType GetType() const;
+    TokenValue GetValue() const;
+    const char* GetName() const;
+    int GetPos() const;
+    int GetLine() const;
+    void NameToLowerCase();
 };
 
 ostream& operator<<(ostream& out, const Token& token);
@@ -127,7 +129,7 @@ class Scanner{
 public:
     enum State {
         IDENTIFIER_ST,
-		HEX_ST,
+        HEX_ST,
         INTEGER_ST,
         OPERATION_ST,
         EOF_ST,
