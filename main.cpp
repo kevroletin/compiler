@@ -24,7 +24,6 @@ avaible options are:\n\
 
 string my_argv[] = {"compiler.exe", "-l", "test/16.in" };
 
-
 int main(int argc, char* argv[])
 {
 //    argv = my_argv;    argc = 3;

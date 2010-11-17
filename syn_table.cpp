@@ -78,15 +78,20 @@ SymbolClass SymProc::GetClassName() const
 
 //---SymFunct---
 
-SymFunct::SymFunct(Token token, SynTable* syn_table, SymType return_type_):
+SymFunct::SymFunct(Token token_, SynTable* syn_table, const SymType* result_type_):
     SymProc(token, syn_table),
-    return_type(return_type_)
+    result_type(result_type_)
 {
 }
 
 SymbolClass SymFunct::GetClassName() const
 {
     return SymbolClass(SYM | SYM_TYPE | SYM_FUNCT);
+}
+
+const SymType* SymFunct::GetResultType() const
+{
+    return result_type;
 }
 
 //---SymVar---
@@ -107,6 +112,11 @@ void SymVar::Print(ostream& o, int offset) const
     PrintSpaces(o, offset);
     o << token.GetName() << ": ";
     type->Print(o, offset + 1);
+}
+
+const SymType* SymVar::GetVarType() const
+{
+    return type;
 }
 
 //---SymTypeScalar---
@@ -146,13 +156,27 @@ SymbolClass SymTypeReal::GetClassName() const
 }
 
 //---SymTypeArray---
-
-SymTypeArray::SymTypeArray(Token name, SymType* elem_type_, int low_, int hight_):
+SymTypeArray::SymTypeArray(Token name, SymType* elem_type_, int low_, int high_):
     SymType(name),
     elem_type(elem_type_),
     low(low_),
-    hight(hight_)
+    high(high_)
 {
+}
+
+int SymTypeArray::GetLow()
+{
+    return low;
+}
+ 
+int SymTypeArray::GetHigh()
+{
+    return high;
+}
+
+const SymType* SymTypeArray::GetElemType()
+{
+    return elem_type;
 }
 
 SymbolClass SymTypeArray::GetClassName() const
@@ -163,7 +187,7 @@ SymbolClass SymTypeArray::GetClassName() const
 void SymTypeArray::Print(ostream& o, int offset) const
 {
     //PrintSpaces(o, offset);
-    o << token.GetName() << '[' << low << ".." << hight << "] of ";
+    o << token.GetName() << '[' << low << ".." << high << "] of ";
     elem_type->Print(o, offset);
 }
 
@@ -193,7 +217,16 @@ SymTypeAlias::SymTypeAlias(Token name, SymType* target_):
 
 void SymTypeAlias::Print(ostream& o, int offset) const
 {
-    o << target->GetName() << " = " << token.GetName();
+    PrintSpaces(o, offset);
+    o << token.GetName();
+}
+
+
+void SymTypeAlias::PrintVerbose(ostream& o, int offset) const
+{
+    PrintSpaces(o, offset);
+    o << token.GetName() << " = ";
+    target->Print(o, offset);
 }
 
 SymbolClass SymTypeAlias::GetClassName() const
@@ -220,10 +253,43 @@ SymbolClass  SymTypePointer::GetClassName() const
     return SymbolClass(SYM | SYM_TYPE | SYM_TYPE_POINTER);
 }
 
+//---SymVarConst---
+
+SymbolClass SymVarConst::GetClassName() const
+{
+    return SymbolClass(SYM | SYM_VAR | SYM_VAR_CONST);
+}
+
+//---SymVarParam---
+
+SymVarParam::SymVarParam(Token name, SymType* type):
+    SymVar(name, type)
+{
+}
+
+SymbolClass SymVarParam::GetClassName() const
+{
+    return SymbolClass(SYM | SYM_VAR | SYM_VAR_PARAM);
+}
+
+//---SymVarGlobal---
+
+SymbolClass SymVarGlobal::GetClassName() const
+{
+    return SymbolClass(SYM | SYM_VAR | SYM_VAR_GLOBAL);
+}
+
+//---SymVarLocal---
+
+SymbolClass SymVarLocal::GetClassName() const
+{    
+    return SymbolClass(SYM | SYM_VAR | SYM_VAR_GLOBAL);
+}
+
 //---SynTable---
 
 void SynTable::Add(Symbol* sym)
-{    
+{
     table.insert(sym);
 }
 
@@ -245,7 +311,10 @@ void SynTable::Print(ostream& o, int offset) const
 {
     for (std::set<Symbol*, SymbLessComp>::iterator it = table.begin(); it != table.end(); ++it)
     {
-        (*it)->Print(o, offset);
+        if ((*it)->GetClassName() & SYM_TYPE_ALIAS) 
+            ((SymTypeAlias*)(*it))->PrintVerbose(o, offset);
+        else
+            (*it)->Print(o, offset);
         o << '\n';
     }
 }

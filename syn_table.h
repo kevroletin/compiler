@@ -18,6 +18,10 @@ enum SymbolClass{
     SYM_TYPE_ALIAS = 128,
     SYM_TYPE_POINTER = 256,
     SYM_VAR = 512,
+    SYM_VAR_CONST = 1024,
+    SYM_VAR_PARAM = 2048,
+    SYM_VAR_GLOBAL = 4096,
+    SYM_VAR_LOCAL = 8192
 };
 
 class SynTable;
@@ -51,19 +55,21 @@ public:
 
 class SymFunct: public SymProc{
 private:
-    SymType return_type;
+    const SymType* result_type;
 public:
-    SymFunct(Token token_, SynTable* syn_table, SymType return_type_);
-    virtual SymbolClass GetClassName() const ;
+    SymFunct(Token token_, SynTable* syn_table, const SymType* result_type_);
+    virtual SymbolClass GetClassName() const;
+    const SymType* GetResultType() const;
 };
 
 class SymVar: public Symbol{
 private:
-    SymType* type;
+    const SymType* type;
 public:
-    SymVar(Token token_, SymType* type_);
+    SymVar(Token token, SymType* type_);
     virtual SymbolClass GetClassName() const;
-    virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int ofefset = 0) const;
+    const SymType* GetVarType() const;
 };
 
 //---SymType descendants---
@@ -90,12 +96,12 @@ class SymTypeArray: public SymType{
 private:
     SymType* elem_type;
     int low;
-    int hight;
+    int high;
 public:
-    SymTypeArray(Token name, SymType* type_, int low_, int hight_);
+    SymTypeArray(Token name, SymType* elem_type_, int low_, int high_);
     int GetLow();
-    int GetHight();
-    SymType GetType();
+    int GetHigh();
+    const SymType* GetElemType();
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
 };
@@ -114,6 +120,7 @@ private:
 public:
     SymTypeAlias(Token name, SymType* ratget_);
     virtual void Print(ostream& o, int offset = 0) const;
+    void PrintVerbose(ostream& o, int offset) const;
     virtual SymbolClass GetClassName() const;
 };
 
@@ -129,19 +136,24 @@ public:
 //---SymVar descendants---
 
 class SymVarConst: public SymVar{
-
+public:
+    virtual SymbolClass GetClassName() const;    
 };
 
 class SymVarParam: public SymVar{
-
+public:
+    SymVarParam(Token name, SymType* type);
+    virtual SymbolClass GetClassName() const;    
 };
 
 class SymVarGlobal: public SymVar{
-
+public:
+    virtual SymbolClass GetClassName() const;    
 };
 
 class SymVarLocal: public SymVar{
-
+public:
+    virtual SymbolClass GetClassName() const;    
 };
 
 //---SynTable---

@@ -6,8 +6,8 @@ for file in *.in
 do
 	num=$((num+1));
 	i=${file%%.in}
-	../debug -s $i.in > $i.res	
-#	../bin/Debug/compiler -s $i.in > $i.res	
+	../debug -d $i.in > $i.res	
+#	../bin/Debug/compiler -d $i.in > $i.res	
 	tmp=$(diff -q -b $i.out $i.res)
 	if [ -z $1 ] && [ "$1" != "n" ]; then echo "$i: $tmp"; fi
 	if [ -n "$tmp" ]; then fail="$fail $i"; fi

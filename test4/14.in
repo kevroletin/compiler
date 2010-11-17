@@ -1,7 +1,7 @@
 var
 r: record
     i, j: Integer;
-    sub_r: record;
+    sub_r: record
 	a, b: Real;
     end;
 end;

@@ -7,14 +7,14 @@ bool ishexnum(char c)
 
 const char* const TOKEN_DESCRIPTION[] =
 {
-	"IDENTIFIER",
-	"RESERVED_WORD",
-	"INT_CONST",
-	"REAL_CONST",
-	"STR_CONST",
-	"OPERATION",
-	"DELIMITER",
-	"END_OF_FILE"
+    "IDENTIFIER",
+    "RESERVED_WORD",
+    "INT_CONST",
+    "REAL_CONST",
+    "STR_CONST",
+    "OPERATION",
+    "DELIMITER",
+    "END_OF_FILE"
 };
 
 const char* const TOKEN_VALUE_DESCRIPTION[] =
@@ -90,9 +90,10 @@ void ReservedWords::Add(char* name, TokenType type, TokenValue value)
 
 ReservedWords::ReservedWords()
 {
-    Add("integer", RESERVED_WORD, TOK_INTEGER);
-    Add("real", RESERVED_WORD, TOK_REAL);
-
+//    Add("integer", RESERVED_WORD, TOK_INTEGER);
+    Add("integer", IDENTIFIER, TOK_INTEGER);
+//    Add("real", RESERVED_WORD, TOK_REAL);
+    Add("real", IDENTIFIER, TOK_REAL);
     Add("and", OPERATION, TOK_AND);
     Add("array", RESERVED_WORD, TOK_ARRAY);
     Add("begin", RESERVED_WORD, TOK_BEGIN);
@@ -237,28 +238,28 @@ Token::Token(const char* name_, TokenType type_, TokenValue value_, int line_, i
 }
 
 Token::Token(const Token& token):
-	name(strcpy(new char[strlen(token.name) + 1], token.name)),
-	type(token.type),
-	value(token.value),
-	line(token.line),
-	pos(token.pos)
+    name(strcpy(new char[strlen(token.name) + 1], token.name)),
+    type(token.type),
+    value(token.value),
+    line(token.line),
+    pos(token.pos)
 {
 }
 
 Token& Token::operator=(const Token& token)
 {
-	if (name != NULL) delete(name);
-	name = strcpy(new char[strlen(token.name)+1], token.name);
-	type = token.type;
-	value = token.value;
-	line = token.line;
-	pos = token.pos;
-	return *this;
+    if (name != NULL) delete(name);
+    name = strcpy(new char[strlen(token.name)+1], token.name);
+    type = token.type;
+    value = token.value;
+    line = token.line;
+    pos = token.pos;
+    return *this;
 }
 
 Token::~Token()
 {
-	if (name != NULL) delete(name);
+    if (name != NULL) delete(name);
 }
 
 TokenType Token::GetType() const
@@ -268,28 +269,29 @@ TokenType Token::GetType() const
 
 TokenValue Token::GetValue() const
 {
-	return value;
+    return value;
 }
 
 const char* Token::GetName() const
 {
-	return name;
+    return name;
 }
 
 int Token::GetPos() const
 {
-	return pos;
+    return pos;
 }
 
 int Token::GetLine() const
 {
-	return line;
+    return line;
 }
 
 void Token::NameToLowerCase()
 {
-    int i = 0;
-    while (name[i++]) name[i] = tolower(name[i]);
+    int i = -1;
+    while (name[++i]) 
+        name[i] = tolower(name[i]);
 }
 
 //---Scanner---
@@ -356,7 +358,7 @@ Scanner::Scanner(istream& input):
 
 Token Scanner::GetToken()
 {
-	return token;
+    return token;
 }
 
 void Scanner::EatLineComment()
@@ -491,17 +493,17 @@ void Scanner::EatStrConst()
 
 void Scanner::EatHex()
 {
-	bool read = false;
-	while (ishexnum(c))
-	{
-		read = true;
-		AddToBuffer(c);
-		ExtractChar();
-	}
-	if (!read)
-		Error("invalid integer expression");
-	else
-		MakeToken(INT_CONST);
+    bool read = false;
+    while (ishexnum(c))
+    {
+        read = true;
+        AddToBuffer(c);
+        ExtractChar();
+    }
+    if (!read)
+        Error("invalid integer expression");
+    else
+        MakeToken(INT_CONST);
 }
 
 void Scanner::EatInteger()

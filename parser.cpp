@@ -1,205 +1,61 @@
 #include "parser.h"
 
-/*
-vector<bool> margins;
-void Parser::PrintNode(ostream& o, Expression* e, int margin = 1)
-{
-    if (e == NULL) return;
-    if (margins.size())
-    {
-        bool tmp = margins.back();
-        margins.pop_back();
-        for (vector<bool>::iterator it = margins.begin(); it != margins.end(); ++it)
-            if (*it)
-                o << "| ";
-            else
-                o << "  ";
-        margins.push_back(tmp);
-    }
-    if (margins.size()) o << "|-";
-    if (e -> token.GetType() == OPERATION)
-        o << '\'' <<  e -> token.GetName() << '\'' << "\n"  ;
-    else
-        o << e -> token.GetName() << "\n"  ;
-    switch (e -> GetType())
-    {
-        case CONSTANT:
-        break;
-        case VARIBLE:
-        break;
-        case UN_OPER:
-            margins.pop_back();
-            margins.push_back( margin == 1);
-            margins.push_back(false);
-            PrintNode(o, ((UnOper*)e) -> child, 0);
-            margins.pop_back();
-        break;
-        case BIN_OPER:
-            margins.push_back(true);
-            PrintNode(o, ((BinOper*)e) -> left, 1);
-            --margin;
-            if (!margin)
-            {
-                margins.pop_back();
-                margins.push_back(false);
-            }
-            PrintNode(o, ((BinOper*)e) -> right, 0);
-            margins.pop_back();
-        break;
-    }
-}
-*/
-
 static void PrintSpaces(ostream& o, int count)
 {
     for (int i = 0; i < count; ++i) o << ' ';
 }
 
-void Parser::PrintNode(ostream& o, Expression* e, int margin)
-{
-    if (e == NULL) return;
-    PrintSpaces(o, margin);
-    switch (e -> GetType())
-    {
-        case CONSTANT:
-            o << e -> token.GetName() << "\n";
-        break;
-        case VARIBLE:
-            o << e -> token.GetName() << "\n";
-        break;
-        case UN_OPER:
-            o << e -> token.GetName() << "\n";
-            PrintNode(o, ((UnOper*)e) -> child, margin + 2);
-        break;
-        case BIN_OPER:
-            o << e -> token.GetName() << "\n";
-            PrintNode(o, ((BinOper*)e) -> left, margin + 2);
-            PrintNode(o, ((BinOper*)e) -> right, margin + 2);
-        break;
-        case FUNCTION_CALL:
-        {
-            o << "()" << "\n";
-            FunctionCall* f = (FunctionCall*)e;
-            PrintNode(o, f->funct, margin + 2);
-            for(vector<Expression*>::iterator it = f->args.begin(); it != f->args.end(); ++it)
-                PrintNode(o, *it, margin + 2);
-        }
-        break;
-        case RECORD_ACCESS:
-            o << ".\n";
-            PrintNode(o, ((RecordAccess*)e) -> record, margin + 2);
-            PrintSpaces(o, margin + 2);
-            o << ((RecordAccess*)e) -> field.GetName() << "\n";
-        break;
-        case ARRAY_ACCESS:
-            o << "[]\n";
-            PrintNode(o, ((ArrayAccess*)e) -> arr, margin + 2);
-            PrintNode(o, ((ArrayAccess*)e) -> index, margin + 2);
-    }
-
-}
+//---Parser---
 
 void Parser::PrintSimpleParse(ostream& o)
 {
-    Expression* root = GetRelationalExpr();
-    if (scan.GetToken().GetType() != END_OF_FILE)
-        Error("end of file expected");
-    PrintNode(o, root);
+    bool loop = true;
+    while (loop)
+    {
+        switch (scan.GetToken().GetValue()) {
+            case TOK_VAR:
+                scan.NextToken();
+                ParseVarDefinitions();
+            break;
+            case TOK_TYPE:
+                scan.NextToken();
+                ParseTypeDefinitions();
+            break;
+            case TOK_BEGIN:
+            {
+                syn_table_stack.back()->Print(std::cout, 0);//debug
+                scan.NextToken();
+                SyntaxNode* root = GetRelationalExpr();
+                if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
+                if (scan.NextToken().GetValue() != TOK_END) Error("'end' expected");
+                if (scan.NextToken().GetValue() != TOK_DOT) Error("'.' expected");
+                if (scan.NextToken().GetType() != END_OF_FILE) Error("end of file expected");
+                root->Print(o, 0);                
+                loop = false;
+            }
+            default:
+                loop = false;
+        }      
+    }
 }
 
 void Parser::PrintDeclarationsParse(ostream& o)
 {
 //    ParseVarDefinitions();
     Parse();
-    syn_table.Print(o);
+    top_syn_table.Print(o);
 }
-
-//---Expression---
-
-Expression::Expression():
-    pred(NULL)
-{
-}
-
-Expression::Expression(Token token_, Expression* pred_):
-    token(token_),
-    pred(pred_)
-{
-}
-
-//---BinOper---
-
-BinOper::BinOper(Token token_, Expression* pred_, Expression* left_, Expression* right_):
-    Expression(token_, pred_),
-    left(left_),
-    right(right_)
-{
-}
-
-//---UnOper---
-
-UnOper::UnOper(Token token_, Expression* pred_, Expression* child_):
-    Expression(token_, pred_),
-    child(child_)
-{
-}
-
-//---Varible---
-
-Varible::Varible(Token token_, Expression* pred_):
-    Expression(token_, pred_)
-{
-}
-
-//---Constant---
-
-Constant::Constant(Token token_, Expression* pred_):
-    Expression(token_, pred_)
-{
-}
-
-//---RecordAccess
-
-RecordAccess::RecordAccess(Token token, Token field_, Expression* record_, Expression* pred_):
-    Expression(token, pred_),
-    field(field_),
-    record(record_)
-{
-}
-
-//---ArrayAccess
-
-ArrayAccess::ArrayAccess(Token token, Expression* arr_, Expression* index_, Expression* pred_):
-    Expression(token, pred_),
-    arr(arr_),
-    index(index_)
-{
-    index -> pred = this;
-}
-
-//---FunctionCall---
-
-FunctionCall::FunctionCall(Token token, Expression* funct_, Expression* pred_):
-    Expression(token, pred_),
-    funct(funct_)
-{
-}
-
-void FunctionCall::AddArgument(Expression* arg)
-{
-    args.push_back(arg);
-}
-
-//---Parser---
 
 Parser::Parser(Scanner& scanner):
     scan(scanner)
 {
     scan.NextToken();
-    syn_table.Add(new SymTypeInteger(Token("Integer", RESERVED_WORD, TOK_INTEGER, -1, -1)));
-    syn_table.Add(new SymTypeReal(Token("Real", RESERVED_WORD, TOK_REAL, -1, -1)));
+    top_type_int = new SymTypeInteger(Token("Integer", RESERVED_WORD, TOK_INTEGER, -1, -1));
+    top_syn_table.Add(top_type_int);
+    top_type_real = new SymTypeReal(Token("Real", RESERVED_WORD, TOK_REAL, -1, -1));
+    top_syn_table.Add(top_type_real);
 //debug    syn_table.Print(std::cout);
-    syn_table_stack.push_back(&syn_table);
+    syn_table_stack.push_back(&top_syn_table);
 }
 
 SymType* Parser::ParseType()
@@ -247,10 +103,11 @@ SymType* Parser::ParseType()
             if (ref_type == NULL) Error("identifier not found");
             if (!(ref_type->GetClassName() && SYM_TYPE)) Error("type identifier expected");
             scan.NextToken();
-            return new SymTypeAlias(name, (SymType*)ref_type);
+            return new SymTypePointer(name, (SymType*)ref_type);
         } break;
         default: {            
-            const Symbol* res = syn_table_stack.back()->Find(scan.GetToken());
+            //const Symbol* res = syn_table_stack.back()->Find(scan.GetToken());
+            const Symbol* res = FindSymbol(scan.GetToken());
 //debug            syn_table_stack.back()->Print(std::cout);
             if (res == NULL) Error("identifier not found");
             if (!(res->GetClassName() && SYM_TYPE)) Error("type identifier expected");
@@ -291,7 +148,7 @@ void Parser::ParseTypeDefinitions()
     {
         Token name = scan.GetToken();
         if (FindSymbol(name) != NULL) Error("duplicate declaration");
-        if (scan.GetToken().GetValue() != TOK_EQUAL) Error("'=' expected");
+        if (scan.NextToken().GetValue() != TOK_EQUAL) Error("'=' expected");
         scan.NextToken();
         SymType* type = ParseType();
         syn_table_stack.back()->Add(new SymTypeAlias(name, type));
@@ -313,12 +170,23 @@ const Symbol* Parser::FindSymbol(Symbol* sym)
          it != syn_table_stack.rend() && res == NULL; ++it)
     {
         res = (*it)->Find(sym);
-        if (res != NULL)
-        {
-            (*it)->Print(std::cout);
-        }
+//debug        if (res != NULL) {(*it)->Print(std::cout);}
     }
     return res;
+}
+
+const Symbol* Parser::FindSymbolOrDie(Symbol* sym, SymbolClass type, string msg)
+{
+    const Symbol* res = FindSymbol(sym);
+    if (res == NULL) Error("identifier not found");
+    if (!(res->GetClassName() & type)) Error(msg);
+    return res;
+}
+
+const Symbol* Parser::FindSymbolOrDie(Token tok, SymbolClass type, string msg)
+{
+    Symbol sym(tok);
+    return FindSymbolOrDie(&sym, type, msg);
 }
 
 const Symbol* Parser::FindSymbol(const Token& tok)
@@ -347,9 +215,9 @@ void Parser::Parse()
     }
 }
 
-Expression* Parser::GetTerm()
+SyntaxNode* Parser::GetTerm()
 {
-    Expression* left = NULL;
+    SyntaxNode* left = NULL;
     if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
     {
         scan.NextToken();
@@ -362,31 +230,36 @@ Expression* Parser::GetTerm()
     if (scan.GetToken().IsConst())
     {
         Token token = scan.GetToken();
+        SymType* type = NULL;
+        if (token.GetType() == INT_CONST) type = top_type_int;
+        else if (token.GetType() == REAL_CONST) type = top_type_real;
+        else Error("operations of string const not implemented");
         scan.NextToken();
-        return new Constant(token);
+        return new NodeVar(new SymVarParam(token, type));
     }
     if (left == NULL)
     {
         if (scan.GetToken().GetType() != IDENTIFIER) return NULL;
-        left = new Varible(scan.GetToken());
+        const Symbol* sym = FindSymbolOrDie(scan.GetToken(), SYM_VAR, "varible expected");
         scan.NextToken();
+        left = new NodeVar((SymVar*)sym);
     }
     Token op = scan.GetToken();
     while (op.IsTermOp())
     {
         if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
         {
+            NodeCall* funct = new NodeCall(left);
             scan.NextToken();
-            FunctionCall* funct = new FunctionCall(op, left);
             while (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
             {
-                Expression* arg = GetRelationalExpr();
+                SyntaxNode* arg = GetRelationalExpr();
                 if (arg == NULL) Error("illegal expression");
                 if (scan.GetToken().GetValue() == TOK_COMMA)
                     scan.NextToken();
                 else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
                     Error(", expected");
-                funct->AddArgument(arg);
+                funct->AddArg(arg);
             }
             scan.NextToken();
             left = funct;
@@ -397,21 +270,21 @@ Expression* Parser::GetTerm()
             {
                 Token field = scan.NextToken();
                 if (scan.GetToken().GetType() != IDENTIFIER) Error("identifier after . expected");
-                left = new RecordAccess(op, field, left);
+                left = new NodeRecordAccess(left, field);
                 op = scan.NextToken();
             }
         }
         else if (op.GetValue() == TOK_BRACKETS_SQUARE_LEFT)
-        {
+        {            
             scan.NextToken();
             do {
-                Expression* index = GetRelationalExpr();
+                SyntaxNode* index = GetRelationalExpr();
                 if (index == NULL) Error("illegal expression");
                 if (scan.GetToken().GetValue() == TOK_COMMA)
                     scan.NextToken();
                 else if (scan.GetToken().GetValue() != TOK_BRACKETS_SQUARE_RIGHT)
                     Error(", expected");
-                left = new ArrayAccess(op, left, index);
+                left = new NodeArrayAccess(left, index);
             } while (scan.GetToken().GetValue() != TOK_BRACKETS_SQUARE_RIGHT);
             scan.NextToken();
         }
@@ -420,92 +293,73 @@ Expression* Parser::GetTerm()
     return left;
 }
 
-Expression* Parser::GetUnaryExpr()
+SyntaxNode* Parser::GetUnaryExpr()
 {
-    Token token = scan.GetToken();
-    UnOper* un = NULL;
-    UnOper* firstun = NULL;
-    while (token.IsUnaryOp())
+    std::vector<Token> un;
+    while (scan.GetToken().IsUnaryOp())
     {
-        UnOper* newOp = new UnOper(token, firstun);
-        if (firstun != NULL) firstun -> child = newOp;
-        firstun = newOp;
-        if (un == NULL) un = firstun;
-        token = scan.NextToken();
+        un.push_back(scan.GetToken());
+        scan.NextToken();
     }
-    Expression* res = GetTerm();
-    if (un != NULL && res == NULL) Error("illegal expression");
+    SyntaxNode* res = GetTerm();
+    if (un.size() != 0 && res == NULL) Error("illegal expression");
     if (res != NULL)
     {
-        if (un != NULL)
-        {
-            firstun -> child = res;
-            res -> pred = firstun;
-            return un;
-        }
-        return res;
+        for (std::vector<Token>::reverse_iterator it = un.rbegin(); it != un.rend(); ++it)
+            res = new NodeUnaryOp(*it, res);
     }
-    return NULL;
+    return res;
 }
 
-Expression* Parser::GetMultiplyingExpr()
+SyntaxNode* Parser::GetMultiplyingExpr()
 {
-    Expression* left = NULL;
-    UnOper* root = NULL;
-    UnOper* first_root = NULL;
-    left = GetUnaryExpr();
+    SyntaxNode* left = GetUnaryExpr();
     if (left == NULL) return NULL;
-    Token token = scan.GetToken();
-    while (token.IsMultOp())
+    Token op = scan.GetToken();
+    while (op.IsMultOp())
     {
         scan.NextToken();
-        Expression* right = GetUnaryExpr();
+        SyntaxNode* right = GetUnaryExpr();
         if (right == NULL) Error("illegal expression");
-        left = new BinOper(token, NULL, left, right);
-        token = scan.GetToken();
-    }
-    if (root != NULL)
-    {
-        left -> pred = first_root;
-        first_root -> child = left;
-        return root;
+        left = new NodeBinaryOp(op, left, right);
+        op = scan.GetToken();
     }
     return left;
 }
 
-Expression* Parser::GetAddingExpr()
+SyntaxNode* Parser::GetAddingExpr()
 {
-    Expression* left = GetMultiplyingExpr();
+    SyntaxNode* left = GetMultiplyingExpr();
     if (left == NULL) return NULL;
     Token op = scan.GetToken();
     while (op.IsAddingOp())
     {
         scan.NextToken();
-        Expression* right = GetMultiplyingExpr();
+        SyntaxNode* right = GetMultiplyingExpr();
         if (right == NULL) Error("expression expected");
-        left = new BinOper(op, NULL, left, right);
+        left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
     return left;
 }
 
-Expression* Parser::GetRelationalExpr()
+SyntaxNode* Parser::GetRelationalExpr()
 {
-    Expression* left = GetAddingExpr();
+    SyntaxNode* left = GetAddingExpr();
     if (left == NULL) return NULL;
     Token op = scan.GetToken();
     while (op.IsRelationalOp())
     {
         scan.NextToken();
-        Expression* right = GetAddingExpr();
+        SyntaxNode* right = GetAddingExpr();
         if (right == NULL) Error("expression expected");
-        left = new BinOper(op, NULL, left, right);
+        left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
     return left;
 }
 
-void Parser::Error(char* msg)
+void Parser::Error(string msg)
 {
     stringstream s;
     Token token = scan.GetToken();
