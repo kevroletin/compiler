@@ -5,8 +5,8 @@ CompilerException::CompilerException():
 {
 }
 
-CompilerException::CompilerException(const char* const msg):
-    err(strcpy(new char[strlen(msg) + 1], msg))
+CompilerException::CompilerException(const std::string& msg):
+    err(strcpy(new char[msg.size() + 1], msg.c_str()))
 {
 }
 

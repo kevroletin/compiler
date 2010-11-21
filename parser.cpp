@@ -195,6 +195,31 @@ const Symbol* Parser::FindSymbol(const Token& tok)
     return FindSymbol(&sym);
 }
 
+SyntaxNode* Parser::ConvertType(SyntaxNode* node, const SymType* type)
+{
+    const SymType* node_act_type = node->GetSymType()->GetActualType();
+    const SymType* act_type = type->GetActualType();
+    if (node_act_type == act_type) return node;
+    if (node_act_type == top_type_int)
+        return new NodeIntToRealConv(node, top_type_real);
+    return NULL;
+}
+
+void Parser::TryToConvertType(SyntaxNode*& first, SyntaxNode*& second)
+{
+    const SymType* fst_act_type = first->GetSymType()->GetActualType();
+    const SymType* sec_act_type = second->GetSymType()->GetActualType();
+    if (fst_act_type != sec_act_type) return;
+    SyntaxNode* tmp = ConvertType(first, sec_act_type);
+    if (tmp != NULL)
+    {
+        first = tmp;
+        return;
+    }
+    tmp = ConvertType(second, fst_act_type);
+    if (tmp != NULL) second = tmp;
+}
+
 void Parser::Parse()
 {
     bool loop = true;
@@ -233,7 +258,7 @@ SyntaxNode* Parser::GetTerm()
         SymType* type = NULL;
         if (token.GetType() == INT_CONST) type = top_type_int;
         else if (token.GetType() == REAL_CONST) type = top_type_real;
-        else Error("operations of string const not implemented");
+        else Error("operations on string const not implemented");
         scan.NextToken();
         return new NodeVar(new SymVarParam(token, type));
     }
@@ -305,6 +330,9 @@ SyntaxNode* Parser::GetUnaryExpr()
     if (un.size() != 0 && res == NULL) Error("illegal expression");
     if (res != NULL)
     {
+//    return value == TOK_NOT || value == TOK_DOG ||
+//           value == TOK_PLUS || value == TOK_MINUS;
+
         for (std::vector<Token>::reverse_iterator it = un.rbegin(); it != un.rend(); ++it)
             res = new NodeUnaryOp(*it, res);
     }
@@ -337,6 +365,7 @@ SyntaxNode* Parser::GetAddingExpr()
         scan.NextToken();
         SyntaxNode* right = GetMultiplyingExpr();
         if (right == NULL) Error("expression expected");
+        TryToConvertType(left, right);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
@@ -364,5 +393,5 @@ void Parser::Error(string msg)
     stringstream s;
     Token token = scan.GetToken();
     s << token.GetLine() << ':' << token.GetPos() << " ERROR at '" << token.GetName() << "': " << msg;
-    throw( CompilerException( s.str().c_str() ) ) ;
+    throw( CompilerException(s.str()) );
 }

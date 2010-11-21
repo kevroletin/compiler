@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <fstream>
 #include <list>
@@ -7,8 +6,6 @@
 #include <sstream>
 #include <string.h>
 #include "exception.h"
-
-using namespace std;
 
 void PrintHelp()
 {
@@ -63,6 +60,7 @@ int main(int argc, char* argv[])
                         Parser parser(scan);
                         parser.PrintSimpleParse(cout);
                     }
+
                     break;
                     case 'l':
                     {

@@ -43,7 +43,7 @@ SymbolClass Symbol::GetClassName() const
 void Symbol::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset);
-    o << token.GetName() << '\t';
+    o << token.GetName();
 }
 
 //---SymType---
@@ -60,7 +60,12 @@ SymbolClass SymType::GetClassName() const
 
 void SymType::Print(ostream& o, int offset) const
 {
-    o << token.GetName() << '\t';
+    o << token.GetName();
+}
+
+const SymType* SymType::GetActualType() const
+{
+    return this;
 }
 
 //---SymProc---
@@ -217,7 +222,6 @@ SymTypeAlias::SymTypeAlias(Token name, SymType* target_):
 
 void SymTypeAlias::Print(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
     o << token.GetName();
 }
 
@@ -232,6 +236,11 @@ void SymTypeAlias::PrintVerbose(ostream& o, int offset) const
 SymbolClass SymTypeAlias::GetClassName() const
 {
     return SymbolClass(SYM | SYM_TYPE | SYM_TYPE_ALIAS);
+}
+
+const SymType* SymTypeAlias::GetActualType() const
+{
+    return target->GetActualType();
 }
 
 //---SymTypePointer---

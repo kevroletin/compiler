@@ -19,6 +19,7 @@ private:
     SynTable top_syn_table;
     SymType* top_type_int;
     SymType* top_type_real;
+    SymType* top_type_bool;
     std::vector<SynTable*> syn_table_stack;
     void NextToken();
     SyntaxNode* GetTerm();
@@ -29,6 +30,7 @@ private:
     void Error(string msgn);
     //void PrintNode(ostream& o, Expression* e, int margin = 0);
     SymType* ParseType();
+    void ParseConstDefinitions();
     void ParseVarDefinitions();
     void ParseTypeDefinitions();
     void ParseStatement();
@@ -36,6 +38,8 @@ private:
     const Symbol* FindSymbolOrDie(Symbol* sym, SymbolClass type, string msg);
     const Symbol* FindSymbolOrDie(Token tok, SymbolClass type, string msg); 
     const Symbol* FindSymbol(const Token& tok);
+    SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type);
+    void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second);
 public:
     Parser(Scanner& scanner);
     void Parse();

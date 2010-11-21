@@ -43,6 +43,7 @@ public:
     SymType(Token token);
     virtual SymbolClass GetClassName() const;
     void Print(ostream& o, int offset = 0) const;
+    virtual const SymType* GetActualType() const;
 };
 
 class SymProc: public Symbol{
@@ -122,6 +123,7 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     void PrintVerbose(ostream& o, int offset) const;
     virtual SymbolClass GetClassName() const;
+    virtual const SymType* GetActualType() const;
 };
 
 class SymTypePointer: public SymType{
