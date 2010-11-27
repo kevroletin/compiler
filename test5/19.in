@@ -1,0 +1,5 @@
+var
+    Three: Real;
+begin
+    (1 - 1)*(2 - 2) / ( 4 * (Three * Three) / 5);
+end.

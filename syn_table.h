@@ -15,6 +15,7 @@ enum SymbolClass{
     SYM_TYPE_INTEGER = 16,
     SYM_TYPE_REAL = 32,
     SYM_TYPE_ARRAY = 64,
+    SYM_TYPE_RECORD = 16384,
     SYM_TYPE_ALIAS = 128,
     SYM_TYPE_POINTER = 256,
     SYM_VAR = 512,
@@ -25,6 +26,10 @@ enum SymbolClass{
 };
 
 class SynTable;
+class SymType;
+
+extern SymType* top_type_int;
+extern SymType* top_type_real;
 
 class Symbol{
 protected:
@@ -34,7 +39,7 @@ public:
     Symbol(const Symbol& sym);
     const char* GetName() const;
     virtual SymbolClass GetClassName() const;
-//    virtual ostream& operator<< (ostream& o) const;
+    virtual void PrintVerbose(ostream& o, int offset) const;
     virtual void Print(ostream& o, int offset = 0) const;
 };
 
@@ -70,7 +75,9 @@ public:
     SymVar(Token token, SymType* type_);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int ofefset = 0) const;
+    virtual void PrintVerbose(ostream& o, int offset) const;
     const SymType* GetVarType() const;
+    void PrintAsNode(ostream& o, int offset = 0) const;
 };
 
 //---SymType descendants---
@@ -105,6 +112,7 @@ public:
     const SymType* GetElemType();
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void PrintVerbose(ostream& o, int offset) const;
 };
 
 class SymTypeRecord: public SymType{
@@ -112,7 +120,10 @@ private:
     SynTable* syn_table;
 public:
     SymTypeRecord(Token name, SynTable* syn_table_);
+    const SymVar* FindField(Token& field_name);
+    virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void PrintVerbose(ostream& o, int offset) const;
 };
 
 class SymTypeAlias: public SymType{
@@ -121,7 +132,7 @@ private:
 public:
     SymTypeAlias(Token name, SymType* ratget_);
     virtual void Print(ostream& o, int offset = 0) const;
-    void PrintVerbose(ostream& o, int offset) const;
+    virtual void PrintVerbose(ostream& o, int offset) const;
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetActualType() const;
 };

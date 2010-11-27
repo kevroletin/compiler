@@ -1,0 +1,5 @@
+var
+    variable: Integer;
+begin
+@variable;
+end.

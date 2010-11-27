@@ -187,8 +187,7 @@ bool Token::IsMultOp() const
 
 bool Token::IsUnaryOp() const
 {
-    return value == TOK_NOT || value == TOK_DOG ||
-           value == TOK_PLUS || value == TOK_MINUS;
+    return value == TOK_NOT || value == TOK_PLUS || value == TOK_MINUS;
 }
 
 bool Token::IsTermOp() const

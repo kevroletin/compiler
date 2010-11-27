@@ -1,0 +1,11 @@
+type
+    R = Real;
+    T = record
+	b: R;
+    end;
+var
+    arr: array[1..2] of Real;
+    a: T;
+begin
+ arr[1] + a.b;
+end.

@@ -17,8 +17,6 @@ class Parser{
 private:
     Scanner& scan;
     SynTable top_syn_table;
-    SymType* top_type_int;
-    SymType* top_type_real;
     SymType* top_type_bool;
     std::vector<SynTable*> syn_table_stack;
     void NextToken();

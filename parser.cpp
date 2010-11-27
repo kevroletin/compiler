@@ -50,11 +50,8 @@ Parser::Parser(Scanner& scanner):
     scan(scanner)
 {
     scan.NextToken();
-    top_type_int = new SymTypeInteger(Token("Integer", RESERVED_WORD, TOK_INTEGER, -1, -1));
     top_syn_table.Add(top_type_int);
-    top_type_real = new SymTypeReal(Token("Real", RESERVED_WORD, TOK_REAL, -1, -1));
     top_syn_table.Add(top_type_real);
-//debug    syn_table.Print(std::cout);
     syn_table_stack.push_back(&top_syn_table);
 }
 
@@ -197,26 +194,22 @@ const Symbol* Parser::FindSymbol(const Token& tok)
 
 SyntaxNode* Parser::ConvertType(SyntaxNode* node, const SymType* type)
 {
-    const SymType* node_act_type = node->GetSymType()->GetActualType();
-    const SymType* act_type = type->GetActualType();
-    if (node_act_type == act_type) return node;
-    if (node_act_type == top_type_int)
+    if (node->GetSymType() == type) return node;
+    if (node->GetSymType() == top_type_int && type == top_type_real)
         return new NodeIntToRealConv(node, top_type_real);
     return NULL;
 }
 
 void Parser::TryToConvertType(SyntaxNode*& first, SyntaxNode*& second)
 {
-    const SymType* fst_act_type = first->GetSymType()->GetActualType();
-    const SymType* sec_act_type = second->GetSymType()->GetActualType();
-    if (fst_act_type != sec_act_type) return;
-    SyntaxNode* tmp = ConvertType(first, sec_act_type);
+    if (first->GetSymType() == second->GetSymType()) return;
+    SyntaxNode* tmp = ConvertType(first, second->GetSymType());
     if (tmp != NULL)
     {
         first = tmp;
         return;
     }
-    tmp = ConvertType(second, fst_act_type);
+    tmp = ConvertType(second, first->GetSymType());
     if (tmp != NULL) second = tmp;
 }
 
@@ -295,23 +288,30 @@ SyntaxNode* Parser::GetTerm()
             {
                 Token field = scan.NextToken();
                 if (scan.GetToken().GetType() != IDENTIFIER) Error("identifier after . expected");
-                left = new NodeRecordAccess(left, field);
+                left = new NodeRecordAccess((NodeVar*)left, field);
                 op = scan.NextToken();
             }
         }
         else if (op.GetValue() == TOK_BRACKETS_SQUARE_LEFT)
-        {            
+        {
             scan.NextToken();
-            do {
+            while (true) {
                 SyntaxNode* index = GetRelationalExpr();
                 if (index == NULL) Error("illegal expression");
-                if (scan.GetToken().GetValue() == TOK_COMMA)
+                if (scan.GetToken().GetValue() == TOK_DOUBLE_DOT)
                     scan.NextToken();
                 else if (scan.GetToken().GetValue() != TOK_BRACKETS_SQUARE_RIGHT)
                     Error(", expected");
-                left = new NodeArrayAccess(left, index);
-            } while (scan.GetToken().GetValue() != TOK_BRACKETS_SQUARE_RIGHT);
-            scan.NextToken();
+                left = new NodeArrayAccess(left, index, op);
+                op = scan.GetToken();
+                if (scan.GetToken().GetValue() == TOK_BRACKETS_SQUARE_RIGHT)
+                {
+                    if (scan.NextToken().GetValue() == TOK_BRACKETS_SQUARE_LEFT)
+                        scan.NextToken();
+                    else
+                        break;
+                }
+            }
         }
         op = scan.GetToken();
     }
@@ -349,6 +349,7 @@ SyntaxNode* Parser::GetMultiplyingExpr()
         scan.NextToken();
         SyntaxNode* right = GetUnaryExpr();
         if (right == NULL) Error("illegal expression");
+        TryToConvertType(left, right);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
@@ -382,6 +383,7 @@ SyntaxNode* Parser::GetRelationalExpr()
         scan.NextToken();
         SyntaxNode* right = GetAddingExpr();
         if (right == NULL) Error("expression expected");
+        TryToConvertType(left, right);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }

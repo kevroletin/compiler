@@ -1,0 +1,3 @@
+begin
+call(a > b) = c;
+end.

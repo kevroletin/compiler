@@ -1,0 +1,6 @@
+var
+arr: array[1..5] of Real;
+index: Integer;
+begin
+arr[index*4 - 2];
+end.

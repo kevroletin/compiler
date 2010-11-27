@@ -1,0 +1,10 @@
+var
+    a: record
+	i: Integer;
+    end;
+    b: record
+	r: Real;
+    end;
+begin
+    a.i - b.r;
+end.
