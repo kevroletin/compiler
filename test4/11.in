@@ -2,3 +2,6 @@ var
 r: record
   a: Integer;
 end;
+
+begin
+end.

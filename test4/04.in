@@ -1,2 +1,5 @@
 var
 i, j: Real;
+
+begin
+end.

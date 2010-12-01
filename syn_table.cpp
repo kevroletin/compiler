@@ -359,12 +359,20 @@ const Symbol* SynTable::Find(const Token& tok) const
     Symbol* res = table.find(&sym) != table.end() ? *table.find(&sym) : NULL; // fix
     return res;
 }
+ 
+#include <vector>
+#include <algorithm>
 
 void SynTable::Print(ostream& o, int offset) const
 {
+    std::vector<Symbol*> v;    
     for (std::set<Symbol*, SymbLessComp>::iterator it = table.begin(); it != table.end(); ++it)
+        v.push_back((*it));
+    SymbLessComp comp;
+    sort(v.begin(), v.end(), comp);
+    for (std::vector<Symbol*>::iterator it = v.begin(); it != v.end(); ++it)
     {
         (*it)->PrintVerbose(o, offset);
-        o << "\n";
-    }
+        o << ";\n";
+    }    
 }

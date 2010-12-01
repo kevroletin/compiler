@@ -6,3 +6,5 @@ r1: record
     end;
 end;
     
+begin
+end.

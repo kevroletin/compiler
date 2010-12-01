@@ -15,10 +15,11 @@
 
 class Parser{
 private:
+    SyntaxNode* syntax_tree;
     Scanner& scan;
-    SynTable top_syn_table;
+    SynTable top_sym_table;
     SymType* top_type_bool;
-    std::vector<SynTable*> syn_table_stack;
+    std::vector<SynTable*> sym_table_stack;
     void NextToken();
     SyntaxNode* GetTerm();
     SyntaxNode* GetAddingExpr();
@@ -26,9 +27,7 @@ private:
     SyntaxNode* GetUnaryExpr();
     SyntaxNode* GetRelationalExpr();
     void Error(string msgn);
-    //void PrintNode(ostream& o, Expression* e, int margin = 0);
     SymType* ParseType();
-    void ParseConstDefinitions();
     void ParseVarDefinitions();
     void ParseTypeDefinitions();
     void ParseStatement();
@@ -36,13 +35,11 @@ private:
     const Symbol* FindSymbolOrDie(Symbol* sym, SymbolClass type, string msg);
     const Symbol* FindSymbolOrDie(Token tok, SymbolClass type, string msg); 
     const Symbol* FindSymbol(const Token& tok);
-    SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type);
-    void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second);
+    void Parse();
 public:
     Parser(Scanner& scanner);
-    void Parse();
-    void PrintSimpleParse(ostream& o);
-    void PrintDeclarationsParse(ostream& o);
+    void PrintSyntaxTree(ostream& o);
+    void PrintSymTable(ostream& o);
 };
 
 #endif

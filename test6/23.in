@@ -1,3 +1,7 @@
+var
+    r: record
+	a: Real;
+    end;
 begin
-arr[,];
+    r.a:= 0.75;
 end.

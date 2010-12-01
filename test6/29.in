@@ -1,3 +1,5 @@
+var
+    a: Integer;
 begin
-5 > > 6;
+    a := ;
 end.

@@ -1,3 +1,9 @@
+type
+    ArrT = array[1..10] of Integer;
+var
+    r: record 
+	d: ArrT;
+    end;
 begin
-arr[][1];
+    ( (r).d[10] ) := 10;
 end.

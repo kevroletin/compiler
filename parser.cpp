@@ -7,52 +7,26 @@ static void PrintSpaces(ostream& o, int count)
 
 //---Parser---
 
-void Parser::PrintSimpleParse(ostream& o)
+void Parser::PrintSyntaxTree(ostream& o)
 {
-    bool loop = true;
-    while (loop)
-    {
-        switch (scan.GetToken().GetValue()) {
-            case TOK_VAR:
-                scan.NextToken();
-                ParseVarDefinitions();
-            break;
-            case TOK_TYPE:
-                scan.NextToken();
-                ParseTypeDefinitions();
-            break;
-            case TOK_BEGIN:
-            {
-                syn_table_stack.back()->Print(std::cout, 0);//debug
-                scan.NextToken();
-                SyntaxNode* root = GetRelationalExpr();
-                if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
-                if (scan.NextToken().GetValue() != TOK_END) Error("'end' expected");
-                if (scan.NextToken().GetValue() != TOK_DOT) Error("'.' expected");
-                if (scan.NextToken().GetType() != END_OF_FILE) Error("end of file expected");
-                root->Print(o, 0);                
-                loop = false;
-            }
-            default:
-                loop = false;
-        }      
-    }
+    if (syntax_tree != NULL) syntax_tree->Print(o, 0);
 }
 
-void Parser::PrintDeclarationsParse(ostream& o)
+void Parser::PrintSymTable(ostream& o)
 {
-//    ParseVarDefinitions();
-    Parse();
-    top_syn_table.Print(o);
+    for (std::vector<SynTable*>::const_iterator it = sym_table_stack.begin(); it != sym_table_stack.end(); ++it)
+        (*it)->Print(o);
 }
 
 Parser::Parser(Scanner& scanner):
+    syntax_tree(NULL),
     scan(scanner)
 {
     scan.NextToken();
-    top_syn_table.Add(top_type_int);
-    top_syn_table.Add(top_type_real);
-    syn_table_stack.push_back(&top_syn_table);
+    top_sym_table.Add(top_type_int);
+    top_sym_table.Add(top_type_real);
+    sym_table_stack.push_back(&top_sym_table);
+    Parse();
 }
 
 SymType* Parser::ParseType()
@@ -84,11 +58,11 @@ SymType* Parser::ParseType()
             return res;
         } break;
         case TOK_RECORD: {
-            syn_table_stack.push_back(new SynTable);
+            sym_table_stack.push_back(new SynTable);
             scan.NextToken();
             ParseVarDefinitions();
-            SymType* res = new SymTypeRecord(name, syn_table_stack.back());
-            syn_table_stack.pop_back();
+            SymType* res = new SymTypeRecord(name, sym_table_stack.back());
+            sym_table_stack.pop_back();
             if (scan.GetToken().GetValue() != TOK_END) Error("'end' expected");
             scan.NextToken();
             return res;
@@ -96,16 +70,16 @@ SymType* Parser::ParseType()
         case TOK_CAP: {
             Token name = scan.NextToken();
             if (!name.IsVar()) Error("identifier expected");
-            const Symbol* ref_type = syn_table_stack.back()->Find(name);
+            const Symbol* ref_type = sym_table_stack.back()->Find(name);
             if (ref_type == NULL) Error("identifier not found");
             if (!(ref_type->GetClassName() && SYM_TYPE)) Error("type identifier expected");
             scan.NextToken();
             return new SymTypePointer(name, (SymType*)ref_type);
         } break;
         default: {            
-            //const Symbol* res = syn_table_stack.back()->Find(scan.GetToken());
+            //const Symbol* res = sym_table_stack.back()->Find(scan.GetToken());
             const Symbol* res = FindSymbol(scan.GetToken());
-//debug            syn_table_stack.back()->Print(std::cout);
+//debug            sym_table_stack.back()->Print(std::cout);
             if (res == NULL) Error("identifier not found");
             if (!(res->GetClassName() && SYM_TYPE)) Error("type identifier expected");
             scan.NextToken();
@@ -133,7 +107,7 @@ void Parser::ParseVarDefinitions()
         scan.NextToken();
         SymType* type = ParseType();
         for (std::vector<Token>::iterator it = vars.begin(); it != vars.end(); ++it)
-	    syn_table_stack.back()->Add(new SymVar(*it, type));
+	    sym_table_stack.back()->Add(new SymVar(*it, type));
         if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
         scan.NextToken();
     }
@@ -148,26 +122,19 @@ void Parser::ParseTypeDefinitions()
         if (scan.NextToken().GetValue() != TOK_EQUAL) Error("'=' expected");
         scan.NextToken();
         SymType* type = ParseType();
-        syn_table_stack.back()->Add(new SymTypeAlias(name, type));
+        sym_table_stack.back()->Add(new SymTypeAlias(name, type));
         if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
         scan.NextToken();
     }
 }
 
-void Parser::ParseStatement()
-{
-}
-
-#include <iostream>
-
 const Symbol* Parser::FindSymbol(Symbol* sym)
 {
     const Symbol* res = NULL;
-    for (std::vector<SynTable*>::reverse_iterator it = syn_table_stack.rbegin();
-         it != syn_table_stack.rend() && res == NULL; ++it)
+    for (std::vector<SynTable*>::reverse_iterator it = sym_table_stack.rbegin();
+         it != sym_table_stack.rend() && res == NULL; ++it)
     {
         res = (*it)->Find(sym);
-//debug        if (res != NULL) {(*it)->Print(std::cout);}
     }
     return res;
 }
@@ -192,27 +159,6 @@ const Symbol* Parser::FindSymbol(const Token& tok)
     return FindSymbol(&sym);
 }
 
-SyntaxNode* Parser::ConvertType(SyntaxNode* node, const SymType* type)
-{
-    if (node->GetSymType() == type) return node;
-    if (node->GetSymType() == top_type_int && type == top_type_real)
-        return new NodeIntToRealConv(node, top_type_real);
-    return NULL;
-}
-
-void Parser::TryToConvertType(SyntaxNode*& first, SyntaxNode*& second)
-{
-    if (first->GetSymType() == second->GetSymType()) return;
-    SyntaxNode* tmp = ConvertType(first, second->GetSymType());
-    if (tmp != NULL)
-    {
-        first = tmp;
-        return;
-    }
-    tmp = ConvertType(second, first->GetSymType());
-    if (tmp != NULL) second = tmp;
-}
-
 void Parser::Parse()
 {
     bool loop = true;
@@ -227,6 +173,30 @@ void Parser::Parse()
                 scan.NextToken();
                 ParseTypeDefinitions();
             break;
+            case TOK_BEGIN:
+            {
+                scan.NextToken();
+                SyntaxNode* left = GetRelationalExpr();
+                SyntaxNode* right = NULL;
+                if (left != NULL && scan.GetToken().GetValue() == TOK_ASSIGN)
+                {
+                    Token op = scan.GetToken();
+                    scan.NextToken();
+                    right = GetRelationalExpr();
+                    if (right == NULL) Error("expression expected");
+                    left = new StmtAssign(op, left, right);
+                }
+                if (left != NULL)
+                {
+                    if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
+                    scan.NextToken();
+                }
+                if (scan.GetToken().GetValue() != TOK_END) Error("'end' expected");
+                if (scan.NextToken().GetValue() != TOK_DOT) Error("'.' expected");
+                if (scan.NextToken().GetType() != END_OF_FILE) Error("end of file expected");
+                loop = false;
+                syntax_tree = left;
+            }
             default:
                 loop = false;
         }      
@@ -298,19 +268,17 @@ SyntaxNode* Parser::GetTerm()
             while (true) {
                 SyntaxNode* index = GetRelationalExpr();
                 if (index == NULL) Error("illegal expression");
-                if (scan.GetToken().GetValue() == TOK_DOUBLE_DOT)
-                    scan.NextToken();
-                else if (scan.GetToken().GetValue() != TOK_BRACKETS_SQUARE_RIGHT)
-                    Error(", expected");
                 left = new NodeArrayAccess(left, index, op);
                 op = scan.GetToken();
-                if (scan.GetToken().GetValue() == TOK_BRACKETS_SQUARE_RIGHT)
+                if (op.GetValue() == TOK_COMMA) scan.NextToken();
+                else if (op.GetValue() == TOK_BRACKETS_SQUARE_RIGHT)
                 {
                     if (scan.NextToken().GetValue() == TOK_BRACKETS_SQUARE_LEFT)
                         scan.NextToken();
                     else
                         break;
                 }
+                else Error("illegal expression");
             }
         }
         op = scan.GetToken();
@@ -330,9 +298,6 @@ SyntaxNode* Parser::GetUnaryExpr()
     if (un.size() != 0 && res == NULL) Error("illegal expression");
     if (res != NULL)
     {
-//    return value == TOK_NOT || value == TOK_DOG ||
-//           value == TOK_PLUS || value == TOK_MINUS;
-
         for (std::vector<Token>::reverse_iterator it = un.rbegin(); it != un.rend(); ++it)
             res = new NodeUnaryOp(*it, res);
     }
@@ -349,7 +314,6 @@ SyntaxNode* Parser::GetMultiplyingExpr()
         scan.NextToken();
         SyntaxNode* right = GetUnaryExpr();
         if (right == NULL) Error("illegal expression");
-        TryToConvertType(left, right);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
@@ -366,7 +330,6 @@ SyntaxNode* Parser::GetAddingExpr()
         scan.NextToken();
         SyntaxNode* right = GetMultiplyingExpr();
         if (right == NULL) Error("expression expected");
-        TryToConvertType(left, right);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
@@ -383,7 +346,6 @@ SyntaxNode* Parser::GetRelationalExpr()
         scan.NextToken();
         SyntaxNode* right = GetAddingExpr();
         if (right == NULL) Error("expression expected");
-        TryToConvertType(left, right);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }

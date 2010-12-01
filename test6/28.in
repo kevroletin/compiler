@@ -1,3 +1,5 @@
+var
+    a: array[1..10] of Integer;
 begin
-funct(;
+    a := 10;
 end.

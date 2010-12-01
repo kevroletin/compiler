@@ -1,2 +1,5 @@
 var
 a: array[1..4, 5..6] of Real;
+
+begin
+end.

@@ -14,16 +14,15 @@ Usage: compiler [option] source.pas\n\
 \n\
 avaible options are:\n\
 \t-h\tshow this message\n\
-\t-l\tshow lexems stream\n\
-\t-s\tsimple parse\n\
-\t-d\tdeclaration parse\n";
+\t-l\tshow Lexems stream\n\
+\t-s\tprint Syntax tree\n\
+\t-t\tprint symTable\n";
 }
 
 string my_argv[] = {"compiler.exe", "-l", "test/16.in" };
 
 int main(int argc, char* argv[])
 {
-//    argv = my_argv;    argc = 3;
     if (argc == 1)
     {
         PrintHelp();
@@ -58,9 +57,15 @@ int main(int argc, char* argv[])
                     {
                         Scanner scan(in);
                         Parser parser(scan);
-                        parser.PrintSimpleParse(cout);
+                        parser.PrintSyntaxTree(std::cout);
                     }
-
+                    break;
+                    case 't':
+                    {
+                        Scanner scan(in);
+                        Parser parser(scan);                        
+                        parser.PrintSymTable(std::cout);
+                    }
                     break;
                     case 'l':
                     {
@@ -69,12 +74,6 @@ int main(int argc, char* argv[])
                         {
                             cout << ( t = scan.NextToken() );
                         }
-                    }
-                    case 'd':
-                    {
-                        Scanner scan(in);
-                        Parser parser(scan);
-                        parser.PrintDeclarationsParse(cout);
                     }
                     break;
                 }

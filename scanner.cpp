@@ -17,7 +17,7 @@ const char* const TOKEN_DESCRIPTION[] =
     "END_OF_FILE"
 };
 
-const char* const TOKEN_VALUE_DESCRIPTION[] =
+const string TOKEN_VALUE_DESCRIPTION[] =
 {
     "TOK_AND",
     "TOK_ARRAY",
@@ -83,9 +83,9 @@ const char* const TOKEN_VALUE_DESCRIPTION[] =
 
 //---Reserved words--
 
-void ReservedWords::Add(char* name, TokenType type, TokenValue value)
+void ReservedWords::Add(string name, TokenType type, TokenValue value)
 {
-    words.insert(pair<char*, pair<TokenType, TokenValue> >(name, pair<TokenType, TokenValue>(type, value)));
+    words.insert(pair<string, pair<TokenType, TokenValue> >(name, pair<TokenType, TokenValue>(type, value)));
 }
 
 ReservedWords::ReservedWords()
@@ -219,7 +219,7 @@ ostream& operator<<(ostream& out, const Token & token)
 }
 
 Token::Token():
-    name(strcpy(new char[2], "")),
+    name(strcpy(new char[1], "")),
     type(UNDEFINED),
     value(TOK_UNRESERVED),
     line(0),

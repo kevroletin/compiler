@@ -1,3 +1,6 @@
+var
+    a: Integer;
+    b: Real;
 begin
-'hello'.a;
+    a := b;
 end.

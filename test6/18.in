@@ -1,3 +1,5 @@
+var
+    i: Integer;
 begin
-call(a > b) = c;
+    i := 5;
 end.

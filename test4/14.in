@@ -5,3 +5,5 @@ r: record
 	a, b: Real;
     end;
 end;
+begin
+end.

@@ -88,7 +88,7 @@ enum TokenValue{
 class ReservedWords{
 private:
     map<string, pair<TokenType, TokenValue> > words;
-    void Add(char* name, TokenType type, TokenValue value);
+    void Add(string name, TokenType type, TokenValue value);
 public:
     ReservedWords();
     bool Identify(string& str, TokenType& returned_type, TokenValue& returned_value);

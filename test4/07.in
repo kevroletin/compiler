@@ -1,2 +1,5 @@
 var
 a: array[1..4] of array[5..6] of Integer;
+
+begin
+end.
