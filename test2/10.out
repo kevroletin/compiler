@@ -1,11 +1,11 @@
--
-  +
-    /
-      3
-      a
-    *
-      b
-      4
-  div
-    5
-    4
+- [integer]
+  + [integer]
+    / [integer]
+      3 [integer]
+      a [integer]
+    * [integer]
+      b [integer]
+      4 [integer]
+  div [integer]
+    5 [integer]
+    4 [integer]

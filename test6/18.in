@@ -1,5 +1,0 @@
-var
-    i: Integer;
-begin
-    i := 5;
-end.

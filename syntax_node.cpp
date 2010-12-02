@@ -90,30 +90,20 @@ bool SyntaxNode::IsLValue() const
 
 //---NodeStatement---
 
-NodeStatement::NodeStatement(SyntaxNode* child_):
-    child(child_)
-{
-}
-
-void NodeStatement::Print(ostream& o, int offset) const 
-{
-    child->Print(o, offset);
-}
-
 //---StmtAssgn---
 
 StmtAssign::StmtAssign(Token& op, SyntaxNode* left_, SyntaxNode* right_):
-    NodeStatement(left_),
+    left(left_),
     right(right_)
 {
-    TryToConvertTypeOrDie(right, child->GetSymType(),  op);
-    if (child->GetSymType() != right->GetSymType()) Error("incompatible types", op);
-    if (!(child->IsLValue())) Error("l-value expected", op);
+    TryToConvertTypeOrDie(right, left->GetSymType(),  op);
+    if (left->GetSymType() != right->GetSymType()) Error("incompatible types", op);
+    if (!(left->IsLValue())) Error("l-value expected", op);
 }
 
 const SyntaxNode* StmtAssign::GetLeft() const
 {
-    return child;
+    return left;
 }
 
 const SyntaxNode* StmtAssign::GetRight() const
@@ -125,18 +115,30 @@ void StmtAssign::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset);
     o << ":= \n";
-    child->Print(o, offset + 1);
+    left->Print(o, offset + 1);
     right->Print(o, offset + 1);
+}
+
+//---StmtBlock---
+
+void StmtBlock::AddStatement(SyntaxNode* new_stmt)
+{
+    statements.push_back(new_stmt);
+}
+
+void StmtBlock::Print(ostream& o, int offset) const
+{
+    PrintSpaces(o, offset);
+    o << "begin\n";
+    for (vector<SyntaxNode*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
+        (*it)->Print(o, offset + 1);
+    PrintSpaces(o, offset);
+    o << "end;\n";
 }
 
 //---NodeCall---
 
-NodeCall::NodeCall(SyntaxNode* epr)
-{
-//TODO
-}
-
-NodeCall::NodeCall(SymFunct* funct_):
+NodeCall::NodeCall(const SymProc* funct_):
     funct(funct_)
 {
 }
@@ -144,6 +146,11 @@ NodeCall::NodeCall(SymFunct* funct_):
 void NodeCall::AddArg(SyntaxNode* arg)
 { 
     args.push_back(arg);
+}
+
+void NodeCall::ValidateParamsList()
+{
+    //TODO
 }
 
 void NodeCall::Print(ostream& o, int offset) const 

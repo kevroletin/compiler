@@ -1,4 +1,4 @@
--
-  +
-    not
-      5
+- [integer]
+  + [integer]
+    not [integer]
+      5 [integer]

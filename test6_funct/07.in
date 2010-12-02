@@ -1,0 +1,6 @@
+function Funct(a, b: Integer; var c, d: Real): Integer;
+begin
+end;
+
+begin
+end.

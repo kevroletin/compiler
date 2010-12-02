@@ -20,15 +20,11 @@ public:
 };
 
 class NodeStatement: public SyntaxNode{
-protected:
-    SyntaxNode* child;
-public:
-    NodeStatement(SyntaxNode* child_);
-    virtual void Print(ostream& o, int offset = 0) const;
 };
 
 class StmtAssign: public NodeStatement{
 private:
+    SyntaxNode* left;
     SyntaxNode* right;
 public:
     StmtAssign(Token& op, SyntaxNode* left_, SyntaxNode* right_);
@@ -36,15 +32,23 @@ public:
     const SyntaxNode* GetRight() const;
     virtual void Print(ostream& o, int offset = 0) const;
 };
+ 
+class StmtBlock: public NodeStatement{
+private:
+    vector<SyntaxNode*> statements;
+public:
+    void AddStatement(SyntaxNode* new_stmt);
+    virtual void Print(ostream& o, int offset = 0) const;    
+};
 
 class NodeCall: public SyntaxNode{
 private:
     std::vector<SyntaxNode*> args;
-    SymFunct* funct;
+    const SymProc* funct;
 public: 
-    NodeCall(SyntaxNode* epr);
-    NodeCall(SymFunct* funct_);
+    NodeCall(const SymProc* funct_);
     void AddArg(SyntaxNode* arg);
+    void ValidateParamsList();
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;    
 };

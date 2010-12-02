@@ -1,0 +1,6 @@
+function Funct(var a: Integer): Real;
+begin
+end;
+
+begin
+end.

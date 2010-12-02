@@ -76,9 +76,9 @@ const string TOKEN_VALUE_DESCRIPTION[] =
     "TOK_LESS_OR_EQUAL",
     "TOK_GREATER_OR_EQUAL",
     "TOK_NOT_EQUAL",
-    "TOK_UNRESERVED"
-
-    ,"TOK_INTEGER", "TOK_REAL"
+    "TOK_UNRESERVED",
+    "TOK_INTEGER",
+    "TOK_REAL"
 };
 
 //---Reserved words--
@@ -192,8 +192,7 @@ bool Token::IsUnaryOp() const
 
 bool Token::IsTermOp() const
 {
-    return value == TOK_BRACKETS_SQUARE_LEFT || value == TOK_DOT ||
-           value == TOK_BRACKETS_LEFT;
+    return value == TOK_BRACKETS_SQUARE_LEFT || value == TOK_DOT;
 }
 
 bool Token::IsConst() const

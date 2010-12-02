@@ -1,5 +1,0 @@
-var
-    i: ^Integer;
-
-begin
-end.

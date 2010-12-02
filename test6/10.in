@@ -1,7 +1,0 @@
-var
-    arr: array[1..4] of Integer;
-    arr2: array[1..3] of Integer;
-    index: Integer;
-begin
-arr[ arr2[index] ];
-end.

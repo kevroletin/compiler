@@ -1,8 +1,8 @@
-*
-  *
-    var1
-    +
-      -
-        not
-          var2
-  var3
+* [integer]
+  * [integer]
+    var1 [integer]
+    + [integer]
+      - [integer]
+        not [integer]
+          var2 [integer]
+  var3 [integer]

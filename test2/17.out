@@ -1,11 +1,11 @@
--
-  +
-    4
-    +
-      +
-        2
-        +
-          1
-          1
-      3
-  5
+- [integer]
+  + [integer]
+    4 [integer]
+    + [integer]
+      + [integer]
+        2 [integer]
+        + [integer]
+          1 [integer]
+          1 [integer]
+      3 [integer]
+  5 [integer]

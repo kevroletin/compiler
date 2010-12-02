@@ -1,6 +1,6 @@
 #include "syn_table.h"
 
-const string SymbolClassDescription[]{
+const string SymbolClassDescription[] = {
     "SYM",
     "SYM_FUNCT",
     "SYM_PROC",
@@ -14,6 +14,7 @@ const string SymbolClassDescription[]{
 
 SymType* top_type_int = new SymTypeInteger(Token("Integer", RESERVED_WORD, TOK_INTEGER, -1, -1));
 SymType* top_type_real = new SymTypeReal(Token("Real", RESERVED_WORD, TOK_REAL, -1, -1));;
+SymType* top_type_untyped = new SymType(Token("untyped", RESERVED_WORD, TOK_UNRESERVED, -1, -1));
 
 static void PrintSpaces(ostream& o, int count = 0)
 {
@@ -78,9 +79,47 @@ const SymType* SymType::GetActualType() const
 
 //---SymProc---
 
+void SymProc::PrintPrototype(ostream& o, int offset) const
+{
+    o << token.GetName();
+    if (params.size() > 0)
+    {
+        o << "(";
+        (*params.begin())->Print(o, 0);
+        for (vector<SymVarParam*>::const_iterator it = ++params.begin(); it != params.end(); ++it)
+        {
+            o << "; ";
+            if ((*it)->IsByRef()) o << "var ";
+            (*it)->Print(o, 0);
+        }
+        o << ")";
+    }
+}
+
+SymProc::SymProc(Token name):
+    Symbol(name),
+    sym_table(NULL)
+{
+}
+
+void SymProc::AddSymTable(SynTable* syn_table_)
+{
+    sym_table = syn_table_;
+}
+
+void SymProc::AddParam(SymVarParam* param)
+{
+    params.push_back(param);
+}
+
+void SymProc::AddBody(NodeStatement* body_)
+{
+    body = body_;
+}
+
 SymProc::SymProc(Token token, SynTable* syn_table_):
     Symbol(token),
-    syn_table(syn_table_)
+    sym_table(syn_table_)
 {
 }
 
@@ -89,12 +128,41 @@ SymbolClass SymProc::GetClassName() const
     return SymbolClass(SYM | SYM_PROC);
 }
 
+const SymType* SymProc::GetResultType() const
+{
+    return top_type_untyped;
+}
+
+void SymProc::PrintVerbose(ostream& o, int offset) const
+{
+    Print(o, offset);
+//    sym_table->Print(o, offset);
+//    body->Print(o, offset);
+}
+    
+void SymProc::Print(ostream& o, int offset) const
+{
+    o << "procedure ";
+    PrintPrototype(o, offset);
+}
+
 //---SymFunct---
 
 SymFunct::SymFunct(Token token_, SynTable* syn_table, const SymType* result_type_):
     SymProc(token, syn_table),
     result_type(result_type_)
 {
+}
+
+SymFunct::SymFunct(Token name):
+    SymProc(name),
+    result_type(NULL)
+{
+}
+
+void SymFunct::AddResultType(const SymType* result_type_)
+{
+    result_type = result_type_;
 }
 
 SymbolClass SymFunct::GetClassName() const
@@ -107,9 +175,17 @@ const SymType* SymFunct::GetResultType() const
     return result_type->GetActualType();
 }
 
+void SymFunct::Print(ostream& o, int offset) const
+{
+    o << "function ";
+    PrintPrototype(o, offset);
+    o << ": ";
+    result_type->Print(o, 0);
+}
+
 //---SymVar---
 
-SymVar::SymVar(Token token, SymType* type_):
+SymVar::SymVar(Token token, const SymType* type_):
     Symbol(token),
     type(type_)
 {
@@ -308,6 +384,12 @@ SymbolClass  SymTypePointer::GetClassName() const
 
 //---SymVarConst---
 
+
+SymVarConst::SymVarConst(Token name, const SymType* type):
+    SymVar(name, type)
+{
+}
+
 SymbolClass SymVarConst::GetClassName() const
 {
     return SymbolClass(SYM | SYM_VAR | SYM_VAR_CONST);
@@ -315,9 +397,15 @@ SymbolClass SymVarConst::GetClassName() const
 
 //---SymVarParam---
 
-SymVarParam::SymVarParam(Token name, SymType* type):
-    SymVar(name, type)
+SymVarParam::SymVarParam(Token name, const SymType* type, bool by_ref_):
+    SymVar(name, type),
+    by_ref(by_ref_)
 {
+}
+
+bool SymVarParam::IsByRef() const
+{
+    return by_ref;
 }
 
 SymbolClass SymVarParam::GetClassName() const
@@ -327,12 +415,22 @@ SymbolClass SymVarParam::GetClassName() const
 
 //---SymVarGlobal---
 
+SymVarGlobal::SymVarGlobal(Token name, const SymType* type):
+    SymVar(name, type)
+{
+}
+
 SymbolClass SymVarGlobal::GetClassName() const
 {
     return SymbolClass(SYM | SYM_VAR | SYM_VAR_GLOBAL);
 }
 
 //---SymVarLocal---
+
+SymVarLocal::SymVarLocal(Token name, const SymType* type):
+    SymVar(name, type)
+{
+}
 
 SymbolClass SymVarLocal::GetClassName() const
 {    

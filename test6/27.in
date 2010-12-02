@@ -1,6 +1,0 @@
-var
-    a: Integer;
-    b: Real;
-begin
-    a := b;
-end.

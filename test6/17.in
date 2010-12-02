@@ -1,6 +1,0 @@
-var
-    arr: array[1..2] of Integer;
-    i: Integer;
-begin
-arr[i] > arr[i + 1];
-end.

@@ -1,6 +1,0 @@
-var
-    i, j: Integer;
-    arr: array [1..2, 1..2] of Real;
-begin
-arr[i][j];
-end.

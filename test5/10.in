@@ -1,5 +1,0 @@
-var
-    a, b: Integer;
-begin
-    3/a + b*4 - 5 div 4;
-end.

@@ -1,7 +1,0 @@
-var
-    a: record
-	b: Integer;
-    end;
-begin
-    a.b;
-end.

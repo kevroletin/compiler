@@ -1,8 +1,0 @@
-var
-    i: Integer;
-    a: record
-	b: Integer;
-    end;
-begin
-    i + a.b;
-end.

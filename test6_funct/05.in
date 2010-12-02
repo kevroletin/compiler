@@ -1,0 +1,6 @@
+procedure Proc(a,b: Integer; c,d: Real);
+begin
+end;
+
+begin
+end.

@@ -1,5 +1,5 @@
-+
-  +
-    10
-    20
-  30
++ [integer]
+  + [integer]
+    10 [integer]
+    20 [integer]
+  30 [integer]

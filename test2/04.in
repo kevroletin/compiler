@@ -1,1 +1,5 @@
-1 + varible + 'string' + 33.e32 
+var
+    v: Real;
+begin
+1 + v + 33.e32;
+end.

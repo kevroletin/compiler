@@ -1,5 +1,1 @@
--
-  +
-    not
-      @
-        10
+2:13 ERROR at '@': illegal expression

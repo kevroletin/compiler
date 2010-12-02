@@ -1,5 +1,0 @@
-var
-    a: Integer;
-begin
-+ + not a;
-end.

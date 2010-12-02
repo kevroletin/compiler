@@ -77,9 +77,7 @@ SymType* Parser::ParseType()
             return new SymTypePointer(name, (SymType*)ref_type);
         } break;
         default: {            
-            //const Symbol* res = sym_table_stack.back()->Find(scan.GetToken());
             const Symbol* res = FindSymbol(scan.GetToken());
-//debug            sym_table_stack.back()->Print(std::cout);
             if (res == NULL) Error("identifier not found");
             if (!(res->GetClassName() && SYM_TYPE)) Error("type identifier expected");
             scan.NextToken();
@@ -88,7 +86,7 @@ SymType* Parser::ParseType()
     }
 }
 
-void Parser::ParseVarDefinitions()
+void Parser::ParseVarDefinitions(bool is_global)
 {
     while (scan.GetToken().IsVar())
     {
@@ -102,12 +100,14 @@ void Parser::ParseVarDefinitions()
             if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA))
                 scan.NextToken();
         }
-
         if (scan.GetToken().GetValue() != TOK_COLON) Error("':' expected");
         scan.NextToken();
         SymType* type = ParseType();
         for (std::vector<Token>::iterator it = vars.begin(); it != vars.end(); ++it)
-	    sym_table_stack.back()->Add(new SymVar(*it, type));
+            if (is_global)
+                sym_table_stack.back()->Add(new SymVarGlobal(*it, type));
+            else
+                sym_table_stack.back()->Add(new SymVarLocal(*it, type));
         if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
         scan.NextToken();
     }
@@ -126,6 +126,89 @@ void Parser::ParseTypeDefinitions()
         if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
         scan.NextToken();
     }
+}
+
+#include <iostream>
+
+void Parser::ParseFunctionDefinition()
+{
+    SymProc* res = NULL;
+    TokenValue op = scan.GetToken().GetValue();
+    if (op != TOK_PROCEDURE && op != TOK_FUNCTION) return;
+    Token name = scan.NextToken();
+    if (FindSymbol(name) != NULL) Error("duplicate identifier");
+    if (op == TOK_PROCEDURE)
+        res = new SymProc(name);
+    else
+        res = new SymFunct(name);
+    sym_table_stack.push_back(new SynTable);
+    scan.NextToken();
+    if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
+    {
+        scan.NextToken();
+        if (scan.GetToken().GetValue() == TOK_BRACKETS_RIGHT) Error("empty formal parameters list");
+        bool was_semicolon = true;
+        while (was_semicolon || (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT))
+        {
+            bool by_ref = false;
+            if (by_ref = (scan.GetToken().GetValue() == TOK_VAR)) scan.NextToken();
+            vector<Token> v;
+            bool was_comma = true;
+            while (was_comma || (scan.GetToken().GetValue() != TOK_COLON))
+            {
+                if (!scan.GetToken().IsVar()) Error("identifier expected");
+                v.push_back(scan.GetToken());
+                if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA))
+                    scan.NextToken();
+            }
+            if (scan.GetToken().GetValue() != TOK_COLON) Error("':' expected");
+            scan.NextToken();
+            const SymType* type = (SymType*)FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
+            for (vector<Token>::iterator it = v.begin(); it != v.end(); ++it)
+            {
+                SymVarParam* param = new SymVarParam(*it, type, by_ref);
+                sym_table_stack.back()->Add(param);
+                res->AddParam(param);
+            }
+            if (was_semicolon = (scan.NextToken().GetValue() == TOK_SEMICOLON)) scan.NextToken();
+        }
+        if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT) Error("')' expected");
+        scan.NextToken();
+    }
+    if (op == TOK_FUNCTION)
+    {
+        if (scan.GetToken().GetValue() != TOK_COLON) Error("':' expected");
+        const SymType* type = (SymType*)FindSymbolOrDie(scan.NextToken(), SYM_TYPE, "type identifier expected");
+        ((SymFunct*)res)->AddResultType(type);
+        scan.NextToken();             
+    }
+    if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
+    scan.NextToken();
+    //parse body
+    ParseVarDefinitions(false);
+    res->AddBody(ParseStatement());
+    if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
+    res->AddSymTable(sym_table_stack.back());
+    sym_table_stack.pop_back();
+    sym_table_stack.back()->Add(res);
+}
+
+NodeStatement* Parser::ParseStatement()
+{
+    NodeStatement* res = NULL;
+    if (scan.GetToken().GetValue() == TOK_BEGIN)
+    {
+        StmtBlock* block = new StmtBlock();
+        scan.NextToken();
+        while (scan.GetToken().GetValue() != TOK_END)
+        {
+            block->AddStatement(ParseStatement());
+            if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
+        }
+        scan.NextToken();
+        res = block;
+    }
+    return res;
 }
 
 const Symbol* Parser::FindSymbol(Symbol* sym)
@@ -165,6 +248,10 @@ void Parser::Parse()
     while (loop)
     {
         switch (scan.GetToken().GetValue()) {
+            case TOK_PROCEDURE:
+            case TOK_FUNCTION:
+                ParseFunctionDefinition();
+            break;
             case TOK_VAR:
                 scan.NextToken();
                 ParseVarDefinitions();
@@ -223,36 +310,45 @@ SyntaxNode* Parser::GetTerm()
         else if (token.GetType() == REAL_CONST) type = top_type_real;
         else Error("operations on string const not implemented");
         scan.NextToken();
-        return new NodeVar(new SymVarParam(token, type));
+        return new NodeVar(new SymVarConst(token, type));
     }
     if (left == NULL)
     {
         if (scan.GetToken().GetType() != IDENTIFIER) return NULL;
-        const Symbol* sym = FindSymbolOrDie(scan.GetToken(), SYM_VAR, "varible expected");
-        scan.NextToken();
-        left = new NodeVar((SymVar*)sym);
+        const Symbol* sym = FindSymbol(scan.GetToken());
+        if (sym->GetClassName() & SYM_VAR)
+        {
+            left = new NodeVar((SymVar*)sym);
+        }
+        else if (sym->GetClassName() & SYM_PROC)
+        {
+            NodeCall* funct = new NodeCall((SymProc*)sym);
+            if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
+            {
+                scan.NextToken();
+                while (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
+                {
+                    SyntaxNode* arg = GetRelationalExpr();
+                    if (arg == NULL) Error("illegal expression");
+                    if (scan.GetToken().GetValue() == TOK_COMMA)
+                        scan.NextToken();
+                    else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
+                        Error(", expected");
+                    funct->AddArg(arg);
+                }
+                scan.NextToken();
+                left = funct;
+            }
+            funct->ValidateParamsList();
+            left = funct;
+        }
+        else Error("identifier expected");
+        scan.NextToken();        
     }
     Token op = scan.GetToken();
     while (op.IsTermOp())
     {
-        if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
-        {
-            NodeCall* funct = new NodeCall(left);
-            scan.NextToken();
-            while (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
-            {
-                SyntaxNode* arg = GetRelationalExpr();
-                if (arg == NULL) Error("illegal expression");
-                if (scan.GetToken().GetValue() == TOK_COMMA)
-                    scan.NextToken();
-                else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
-                    Error(", expected");
-                funct->AddArg(arg);
-            }
-            scan.NextToken();
-            left = funct;
-        }
-        else if (op.GetValue() == TOK_DOT)
+        if (op.GetValue() == TOK_DOT)
         {
             while (op.GetValue() == TOK_DOT)
             {

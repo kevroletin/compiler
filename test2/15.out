@@ -1,7 +1,7 @@
--
-  +
-    4
-  *
-    +
-      4
-    4
+- [integer]
+  + [integer]
+    4 [integer]
+  * [integer]
+    + [integer]
+      4 [integer]
+    4 [integer]

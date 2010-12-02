@@ -1,1 +1,3 @@
-- + not @ 10
+begin
+    - + not @ 10;
+end.

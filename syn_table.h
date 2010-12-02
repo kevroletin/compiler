@@ -5,6 +5,7 @@
 #include "scanner.h"
 #include <map>
 #include <set>
+#include <vector>
 
 enum SymbolClass{
     SYM = 0,
@@ -25,11 +26,16 @@ enum SymbolClass{
     SYM_VAR_LOCAL = 8192
 };
 
+
+class NodeStatement;
 class SynTable;
 class SymType;
+class SymVarParam;
+
 
 extern SymType* top_type_int;
 extern SymType* top_type_real;
+extern SymType* to_type_untyped;
 
 class Symbol{
 protected:
@@ -52,11 +58,21 @@ public:
 };
 
 class SymProc: public Symbol{
-private:
-    SynTable* syn_table;
+protected:
+    vector<SymVarParam*> params;
+    SynTable* sym_table;
+    NodeStatement* body;
+    void PrintPrototype(ostream& o, int offset) const;
 public:
     SymProc(Token token_, SynTable* syn_table_);
+    SymProc(Token name);
+    void AddSymTable(SynTable* syn_table_);
+    void AddParam(SymVarParam* param);
+    void AddBody(NodeStatement* body_);
     virtual SymbolClass GetClassName() const;
+    const SymType* GetResultType() const;
+    virtual void PrintVerbose(ostream& o, int offset) const;
+    virtual void Print(ostream& o, int offset = 0) const;
 };
 
 class SymFunct: public SymProc{
@@ -64,15 +80,18 @@ private:
     const SymType* result_type;
 public:
     SymFunct(Token token_, SynTable* syn_table, const SymType* result_type_);
+    SymFunct(Token name);
+    void AddResultType(const SymType* result_type_);
     virtual SymbolClass GetClassName() const;
     const SymType* GetResultType() const;
+    virtual void Print(ostream& o, int offset = 0) const;
 };
 
 class SymVar: public Symbol{
 private:
     const SymType* type;
 public:
-    SymVar(Token token, SymType* type_);
+    SymVar(Token token, const SymType* type_);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int ofefset = 0) const;
     virtual void PrintVerbose(ostream& o, int offset) const;
@@ -150,22 +169,28 @@ public:
 
 class SymVarConst: public SymVar{
 public:
-    virtual SymbolClass GetClassName() const;    
+    SymVarConst(Token name, const SymType* type);
+    virtual SymbolClass GetClassName() const;
 };
 
 class SymVarParam: public SymVar{
+private:
+    bool by_ref;
 public:
-    SymVarParam(Token name, SymType* type);
+    SymVarParam(Token name, const SymType* type, bool by_ref_);
+    bool IsByRef() const;
     virtual SymbolClass GetClassName() const;    
 };
 
 class SymVarGlobal: public SymVar{
 public:
+    SymVarGlobal(Token name, const SymType* type);
     virtual SymbolClass GetClassName() const;    
 };
 
 class SymVarLocal: public SymVar{
 public:
+    SymVarLocal(Token name, const SymType* type);
     virtual SymbolClass GetClassName() const;    
 };
 

@@ -28,9 +28,10 @@ private:
     SyntaxNode* GetRelationalExpr();
     void Error(string msgn);
     SymType* ParseType();
-    void ParseVarDefinitions();
+    void ParseVarDefinitions(bool is_global = true);
     void ParseTypeDefinitions();
-    void ParseStatement();
+    void ParseFunctionDefinition();
+    NodeStatement* ParseStatement();
     const Symbol* FindSymbol(Symbol* sym);
     const Symbol* FindSymbolOrDie(Symbol* sym, SymbolClass type, string msg);
     const Symbol* FindSymbolOrDie(Token tok, SymbolClass type, string msg); 

@@ -1,0 +1,6 @@
+function Funct: Integer;
+begin
+end;
+
+begin
+end.

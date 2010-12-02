@@ -1,1 +1,3 @@
-- + not 5
+begin
+- + not 5;
+end.

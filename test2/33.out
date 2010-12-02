@@ -1,5 +1,6 @@
-+
-  +
-    -
-      $123
-  13e32
++ [real]
+  IntToReal [real]
+    + [integer]
+      - [integer]
+        $123 [integer]
+  13e32 [real]

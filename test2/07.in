@@ -1,1 +1,7 @@
-589 + varible + 389
+type
+    t = Integer;
+var
+    variable: t;
+begin
+    589 + variable + 389;
+end.

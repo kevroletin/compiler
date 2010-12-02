@@ -1,10 +1,1 @@
-div
-  +
-    +
-      +
-        -
-          +
-            +
-              string
-              10
-  4
+2:12 ERROR at 'string': operations on string const not implemented
