@@ -105,7 +105,7 @@ ReservedWords::ReservedWords()
     Add("else", RESERVED_WORD, TOK_ELSE);
     Add("end", RESERVED_WORD, TOK_END);
     Add("file", RESERVED_WORD, TOK_FILE);
-    Add("for", RESERVED_WORD, TOK_FILE);
+    Add("for", RESERVED_WORD, TOK_FOR);
     Add("function", RESERVED_WORD, TOK_FUNCTION);
     Add("if", RESERVED_WORD, TOK_IF);
     Add("in", RESERVED_WORD, TOK_IN);

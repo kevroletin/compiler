@@ -1,0 +1,7 @@
+var
+    i: Integer;
+begin
+    repeat
+	i := i - 1;
+    until i > 0;
+end.

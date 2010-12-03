@@ -3,8 +3,7 @@
 
 #include <string.h>
 #include "scanner.h"
-#include "syntax_node_base.h"
-#include "statement.h"
+#include "statement_base.h"
 #include <map>
 #include <set>
 #include <vector>

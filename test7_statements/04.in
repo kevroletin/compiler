@@ -1,0 +1,7 @@
+var
+    i: Integer;
+begin
+    for i := 4 downto 3 do
+	begin
+	end;
+end.

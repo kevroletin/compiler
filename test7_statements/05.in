@@ -1,0 +1,5 @@
+begin
+    for i := 1 to 4 do
+	begin
+	end;
+end.

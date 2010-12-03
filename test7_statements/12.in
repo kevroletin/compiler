@@ -1,0 +1,8 @@
+var
+    i, c: Integer;
+begin
+    while i < 10 do
+	begin
+	    c := c + 1;
+	end;
+end.

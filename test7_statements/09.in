@@ -1,0 +1,7 @@
+var
+    i: Integer;
+begin
+    for i := 2.2 to 5 do
+	begin
+	end;
+end.

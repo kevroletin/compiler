@@ -197,3 +197,139 @@ bool NodeRecordAccess::IsLValue() const
 {
     return true;
 }
+
+//---StmtAssgn---
+
+StmtAssign::StmtAssign(Token& op, SyntaxNode* left_, SyntaxNode* right_):
+    left(left_),
+    right(right_)
+{
+    if (left->GetSymType() != right->GetSymType()) Error("incompatible types", op);
+    if (!(left->IsLValue())) Error("l-value expected", op);
+}
+
+const SyntaxNode* StmtAssign::GetLeft() const
+{
+    return left;
+}
+
+const SyntaxNode* StmtAssign::GetRight() const
+{
+    return right;
+}
+
+void StmtAssign::Print(ostream& o, int offset) const 
+{
+    PrintSpaces(o, offset);
+    o << ":= \n";
+    left->Print(o, offset + 1);
+    right->Print(o, offset + 1);
+}
+
+//---StmtBlock---
+
+void StmtBlock::AddStatement(SyntaxNode* new_stmt)
+{
+    statements.push_back(new_stmt);
+}
+
+void StmtBlock::Print(ostream& o, int offset) const
+{
+    PrintSpaces(o, offset);
+    o << "begin\n";
+    for (vector<SyntaxNode*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
+        (*it)->Print(o, offset + 1);
+    PrintSpaces(o, offset);
+    o << "end";
+}
+
+//---StmtExpression---
+
+StmtExpression::StmtExpression(SyntaxNode* expression):
+    expr(expression)
+{
+}
+
+void StmtExpression::Print(ostream& o, int offset) const
+{
+    expr->Print(o, offset);
+}
+
+//---StmtFor---
+
+StmtFor::StmtFor(const SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value, bool is_inc, NodeStatement* body_):
+    index(index_),
+    init_val(init_value),
+    last_val(last_value),
+    inc(is_inc),
+    body(body_)
+{
+}
+
+void StmtFor::Print(ostream& o, int offset) const
+{
+    PrintSpaces(o, offset);
+    o << "for " << (inc ? "to \n" : "downto \n");
+    index->PrintAsNode(o, offset + 1);
+    init_val->Print(o, offset + 1);
+    last_val->Print(o, offset + 1);    
+}
+
+//---StmtWhile---
+
+StmtWhile::StmtWhile(SyntaxNode* condition_, NodeStatement* body_):
+    condition(condition_),
+    body(body_)
+{
+}
+    
+void StmtWhile::Print(ostream& o, int offset) const
+{
+    PrintSpaces(o, offset);
+    o << "while\n";
+    condition->Print(o, offset + 1);
+    body->Print(o, offset + 1);
+    o << ";\n";
+}
+
+//---StmtUntil---
+
+StmtUntil::StmtUntil(SyntaxNode* condition_, NodeStatement* body_):
+    condition(condition_),
+    body(body_)
+{
+}
+
+void StmtUntil::Print(ostream& o, int offset) const
+{
+    PrintSpaces(o, offset);
+    o << "until\n";
+    condition->Print(o, offset + 1);
+    body->Print(o, offset + 1);
+    o << ";\n";
+}
+
+//---StmtIf---
+
+StmtIf::StmtIf(SyntaxNode* condition_, NodeStatement* then_branch_, NodeStatement* else_branch_):
+    condition(condition_),
+    then_branch(then_branch_),
+    else_branch(else_branch_)
+{
+}
+
+void StmtIf::Print(ostream& o, int offset) const
+{
+    PrintSpaces(o, offset);
+    o << "if\n";
+    condition->Print(o, offset + 1);
+    PrintSpaces(o, offset);
+    o << "then\n";
+    then_branch->Print(o, offset + 1);
+    if (else_branch != NULL)
+    {
+        PrintSpaces(o, offset);
+        o << "else\n"
+        else_branch->Print(o, offset + 1);
+    }
+}

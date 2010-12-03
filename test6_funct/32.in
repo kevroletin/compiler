@@ -1,0 +1,7 @@
+procedure Proc;
+begin
+    i := 2;
+end;
+
+begin
+end.

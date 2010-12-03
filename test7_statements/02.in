@@ -1,0 +1,6 @@
+var
+    i, a: Integer;
+begin
+    for i := 1 + 2 to 5 - 4 do
+	a := 0;
+end.

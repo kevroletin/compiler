@@ -1,0 +1,6 @@
+var
+    i, f, t, a: Integer;
+begin
+    for i := f to t do
+	a := 0;
+end.

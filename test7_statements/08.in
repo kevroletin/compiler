@@ -1,0 +1,7 @@
+var
+    r: Real;
+begin
+    for r := 1 to 4 do
+	begin
+	end;
+end.

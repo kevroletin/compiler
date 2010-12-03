@@ -5,9 +5,8 @@
 #include "scanner.h"
 #include "syn_table.h"
 #include "syntax_node.h"
-#include "statement.h"
-#include <string.h>
 #include "exception.h"
+#include <string.h>
 #include <vector>
 #include <utility>
 #include <stack>
@@ -39,7 +38,13 @@ private:
     void ParseTypeDefinitions();
     void ParseDeclarations(bool is_global = true);
     void ParseFunctionDefinition();
+    NodeStatement* ParseBlockStatement();
     NodeStatement* ParseStatement();
+    NodeStatement* ParseForStatement();
+    NodeStatement* ParseWhileStatement();
+    NodeStatement* ParseUntilStatement();
+    NodeStatement* ParseIfStatement();
+    NodeStatement* ParseAssignStatement();
     const Symbol* FindSymbol(Symbol* sym);
     const Symbol* FindSymbolOrDie(Symbol* sym, SymbolClass type, string msg);
     const Symbol* FindSymbolOrDie(Token tok, SymbolClass type, string msg); 

@@ -13,10 +13,11 @@ void PrintHelp()
 Usage: compiler [option] source.pas\n\
 \n\
 avaible options are:\n\
+\t-b\tprint Both syntax tree and symTable\n\
 \t-h\tshow this message\n\
 \t-l\tshow Lexems stream\n\
 \t-s\tprint Syntax tree\n\
-\t-t\tprint symTable\n";
+\t-t\tprint symTable\n";    
 }
 
 string my_argv[] = {"compiler.exe", "-l", "test/16.in" };
@@ -53,6 +54,14 @@ int main(int argc, char* argv[])
                 if (!argv[1][1] || argv[1][2]) throw CompilerException("invalid option");
                 switch (argv[1][1])
                 {
+                    case 'b':
+                    {
+                        Scanner scan(in);
+                        Parser parser(scan);
+                        parser.PrintSymTable(std::cout);
+                        parser.PrintSyntaxTree(std::cout);
+                    }
+                    break;
                     case 's':
                     {
                         Scanner scan(in);

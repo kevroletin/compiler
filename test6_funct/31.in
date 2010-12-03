@@ -1,0 +1,10 @@
+var
+    i: Integer;
+    
+procedure Proc;
+begin
+    i := i + 1;
+end;
+
+begin
+end.
