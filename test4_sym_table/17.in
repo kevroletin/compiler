@@ -1,0 +1,4 @@
+type
+    a = integer;
+begin
+end.

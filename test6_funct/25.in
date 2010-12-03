@@ -1,0 +1,7 @@
+procedure Proc(r: Real);
+begin
+    Proc(10);
+end;
+
+begin
+end.

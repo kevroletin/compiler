@@ -5,6 +5,7 @@
 #include "scanner.h"
 #include "syn_table.h"
 #include "syntax_node.h"
+#include "statement.h"
 #include <string.h>
 #include "exception.h"
 #include <vector>
@@ -12,6 +13,12 @@
 #include <stack>
 
 #include <ostream>
+
+extern SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type);
+extern void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second);
+extern void TryToConvertType(SyntaxNode*& expr, const SymType* type);
+extern void TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err);
+extern void TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err);
 
 class Parser{
 private:
@@ -30,6 +37,7 @@ private:
     SymType* ParseType();
     void ParseVarDefinitions(bool is_global = true);
     void ParseTypeDefinitions();
+    void ParseDeclarations(bool is_global = true);
     void ParseFunctionDefinition();
     NodeStatement* ParseStatement();
     const Symbol* FindSymbol(Symbol* sym);

@@ -1,0 +1,9 @@
+type
+    ArrT = array[1..10] of Integer;
+var
+    r: record 
+	d: ArrT;
+    end;
+begin
+    r.d[10] := 10;
+end.

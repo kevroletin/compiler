@@ -1,0 +1,7 @@
+var
+    r: record
+	a: Real;
+    end;
+begin
+    r.a:= 0.75;
+end.

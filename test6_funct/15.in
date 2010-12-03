@@ -1,0 +1,10 @@
+function Funct: Real;
+type
+    T = Integer;
+var
+    i: T;
+begin
+end;
+
+begin
+end.

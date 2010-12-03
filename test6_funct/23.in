@@ -1,0 +1,7 @@
+procedure P(a: Integer);
+begin
+    P;
+end;
+
+begin
+end.

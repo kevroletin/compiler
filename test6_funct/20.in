@@ -1,0 +1,7 @@
+function F(a: Integer): Integer;
+begin
+    Result := F(10);
+end;
+
+begin
+end.

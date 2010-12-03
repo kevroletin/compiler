@@ -1,0 +1,10 @@
+Program xyz;
+var i: Integer;
+	x,y,z: Real//yes, it's real!
+;
+begin
+{
+
+
+}
+end.

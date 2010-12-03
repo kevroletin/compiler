@@ -1,0 +1,7 @@
+function F(a: Integer; b: Real): Real;
+begin
+    F(10, 33.3);
+end;
+
+begin
+end.

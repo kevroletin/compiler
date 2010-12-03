@@ -1,0 +1,7 @@
+function F: Integer;
+begin
+    F := 5;
+end;
+
+begin
+end.

@@ -1,0 +1,5 @@
+var
+    b: Real;
+begin
+    b := 1.e10;
+end.

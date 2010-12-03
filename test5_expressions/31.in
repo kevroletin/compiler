@@ -1,0 +1,6 @@
+var
+    b: Real;
+    a: Integer;
+begin
+    b := a;
+end.

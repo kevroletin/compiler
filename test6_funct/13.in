@@ -1,0 +1,8 @@
+function F: Real;
+var
+    a, b: Integer;
+begin
+end;
+
+begin
+end.

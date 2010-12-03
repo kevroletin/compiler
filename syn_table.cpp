@@ -16,11 +16,6 @@ SymType* top_type_int = new SymTypeInteger(Token("Integer", RESERVED_WORD, TOK_I
 SymType* top_type_real = new SymTypeReal(Token("Real", RESERVED_WORD, TOK_REAL, -1, -1));;
 SymType* top_type_untyped = new SymType(Token("untyped", RESERVED_WORD, TOK_UNRESERVED, -1, -1));
 
-static void PrintSpaces(ostream& o, int count = 0)
-{
-    for (int i = 0; i < count; ++i) o << "  ";
-}
-
 //---Symbol---
 
 Symbol::Symbol(Token token_)
@@ -112,6 +107,16 @@ void SymProc::AddParam(SymVarParam* param)
     params.push_back(param);
 }
 
+int SymProc::GetArgsCount() const
+{
+    return params.size();
+}
+
+const SymVarParam* SymProc::GetArg(int arg_num) const
+{
+    return params[arg_num];
+}
+
 void SymProc::AddBody(NodeStatement* body_)
 {
     body = body_;
@@ -136,8 +141,13 @@ const SymType* SymProc::GetResultType() const
 void SymProc::PrintVerbose(ostream& o, int offset) const
 {
     Print(o, offset);
-//    sym_table->Print(o, offset);
-//    body->Print(o, offset);
+    o << ";\n";
+    if (!sym_table->IsEmpty())
+    {
+        o << "var\n";
+        sym_table->Print(o, offset + 1);
+    }
+    body->Print(o, offset);
 }
     
 void SymProc::Print(ostream& o, int offset) const
@@ -167,7 +177,7 @@ void SymFunct::AddResultType(const SymType* result_type_)
 
 SymbolClass SymFunct::GetClassName() const
 {
-    return SymbolClass(SYM | SYM_TYPE | SYM_FUNCT);
+    return SymbolClass(SYM | SYM_TYPE | SYM_PROC | SYM_FUNCT);
 }
 
 const SymType* SymFunct::GetResultType() const
@@ -198,16 +208,15 @@ SymbolClass SymVar::GetClassName() const
 
 void SymVar::Print(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
     o << token.GetName() << ": ";
-    type->Print(o, offset + 1);
+    type->Print(o, 0);
 }
 
 void SymVar::PrintVerbose(ostream& o, int offset) const
 {
     PrintSpaces(o, offset);
     o << token.GetName() << ": ";
-    type->PrintVerbose(o, offset + 1);
+    type->Print(o, 0);
 }
 
 const SymType* SymVar::GetVarType() const
@@ -458,9 +467,6 @@ const Symbol* SynTable::Find(const Token& tok) const
     return res;
 }
  
-#include <vector>
-#include <algorithm>
-
 void SynTable::Print(ostream& o, int offset) const
 {
     std::vector<Symbol*> v;    
@@ -473,4 +479,9 @@ void SynTable::Print(ostream& o, int offset) const
         (*it)->PrintVerbose(o, offset);
         o << ";\n";
     }    
+}
+
+bool SynTable::IsEmpty() const
+{
+    return table.empty();
 }

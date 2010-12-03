@@ -1,0 +1,5 @@
+var
+a: array[1..4] of Integer;
+
+begin
+end.

@@ -1,0 +1,7 @@
+function F: Real;
+begin
+    Result := 10.2;
+end;
+
+begin
+end.

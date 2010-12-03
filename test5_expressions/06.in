@@ -1,0 +1,11 @@
+var
+    a: record
+	b: record
+	    c: Real;
+	end;
+    end;
+
+
+begin
+a.b.c;
+end.

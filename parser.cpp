@@ -1,8 +1,61 @@
 #include "parser.h"
 
-static void PrintSpaces(ostream& o, int count)
+SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type)
 {
-    for (int i = 0; i < count; ++i) o << ' ';
+    if (node->GetSymType() == type) return node;
+    if (node->GetSymType() == top_type_int && type == top_type_real)
+        return new NodeIntToRealConv(node, top_type_real);
+    return NULL;
+}
+
+void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second)
+{
+    if (first->GetSymType() == second->GetSymType()) return;
+    SyntaxNode* tmp = ConvertType(first, second->GetSymType());
+    if (tmp != NULL)
+    {
+        first = tmp;
+        return;
+    }
+    tmp = ConvertType(second, first->GetSymType());
+    if (tmp != NULL) second = tmp;
+}
+
+void TryToConvertType(SyntaxNode*& expr, const SymType* type)
+{
+    if (expr->GetSymType() == type) return;
+    SyntaxNode* tmp = ConvertType(expr, type);
+    if (tmp == NULL) return;
+    expr = tmp;
+    return;
+}
+
+void TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err)
+{
+    TryToConvertType(first, second);
+    if (first->GetSymType() != second->GetSymType()) 
+    {
+        std::stringstream s;
+        s << "incompatible types: ";
+        first->GetSymType()->Print(s, 0);
+        s << " and ";
+        second->GetSymType()->Print(s, 0);
+        Error(s.str(), tok_err);
+    }
+}
+
+void TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err)
+{
+    TryToConvertType(expr, type);
+    if (expr->GetSymType() != type) 
+    {
+        std::stringstream s;
+        s << "incompatible types: ";
+        expr->GetSymType()->Print(s, 0);
+        s << " and ";
+        type->Print(s, 0);
+        Error(s.str(), tok_err);
+    }
 }
 
 //---Parser---
@@ -14,8 +67,9 @@ void Parser::PrintSyntaxTree(ostream& o)
 
 void Parser::PrintSymTable(ostream& o)
 {
-    for (std::vector<SynTable*>::const_iterator it = sym_table_stack.begin(); it != sym_table_stack.end(); ++it)
-        (*it)->Print(o);
+//    for (std::vector<SynTable*>::const_iterator it = sym_table_stack.begin(); it != sym_table_stack.end(); ++it)
+//        (*it)->Print(o);
+    sym_table_stack.back()->Print(o, 0);
 }
 
 Parser::Parser(Scanner& scanner):
@@ -26,6 +80,7 @@ Parser::Parser(Scanner& scanner):
     top_sym_table.Add(top_type_int);
     top_sym_table.Add(top_type_real);
     sym_table_stack.push_back(&top_sym_table);
+    sym_table_stack.push_back(new SynTable());
     Parse();
 }
 
@@ -128,7 +183,26 @@ void Parser::ParseTypeDefinitions()
     }
 }
 
-#include <iostream>
+void Parser::ParseDeclarations(bool is_global)
+{
+    bool loop = true;
+    while (loop)
+    {
+        switch (scan.GetToken().GetValue()) {
+            case TOK_VAR:
+                scan.NextToken();
+                ParseVarDefinitions(is_global);
+            break;
+            case TOK_TYPE:
+                scan.NextToken();
+                ParseTypeDefinitions();
+            break;
+            default:
+                loop = false;
+        }      
+    }
+
+}
 
 void Parser::ParseFunctionDefinition()
 {
@@ -141,7 +215,9 @@ void Parser::ParseFunctionDefinition()
         res = new SymProc(name);
     else
         res = new SymFunct(name);
+    sym_table_stack.back()->Add(res);
     sym_table_stack.push_back(new SynTable);
+    res->AddSymTable(sym_table_stack.back());
     scan.NextToken();
     if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
     {
@@ -180,17 +256,15 @@ void Parser::ParseFunctionDefinition()
         if (scan.GetToken().GetValue() != TOK_COLON) Error("':' expected");
         const SymType* type = (SymType*)FindSymbolOrDie(scan.NextToken(), SYM_TYPE, "type identifier expected");
         ((SymFunct*)res)->AddResultType(type);
+        sym_table_stack.back()->Add(new SymVar(Token("Result", IDENTIFIER, TOK_UNRESERVED, -1, -1), type));
         scan.NextToken();             
     }
     if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
     scan.NextToken();
-    //parse body
-    ParseVarDefinitions(false);
+    ParseDeclarations(false);
     res->AddBody(ParseStatement());
     if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
-    res->AddSymTable(sym_table_stack.back());
     sym_table_stack.pop_back();
-    sym_table_stack.back()->Add(res);
 }
 
 NodeStatement* Parser::ParseStatement()
@@ -204,9 +278,23 @@ NodeStatement* Parser::ParseStatement()
         {
             block->AddStatement(ParseStatement());
             if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
+            scan.NextToken();
         }
         scan.NextToken();
         res = block;
+    }
+    else
+    {
+        SyntaxNode* left = GetRelationalExpr();
+        if (left == NULL) return NULL;
+        if (scan.GetToken().GetValue() != TOK_ASSIGN)
+            return new StmtExpression(left);
+        Token op = scan.GetToken();
+        scan.NextToken();
+        SyntaxNode* right = GetRelationalExpr();
+        if (right == NULL) Error("expression expected");
+        TryToConvertTypeOrDie(right, left->GetSymType(),  op);
+        return new StmtAssign(op, left, right);
     }
     return res;
 }
@@ -271,6 +359,7 @@ void Parser::Parse()
                     scan.NextToken();
                     right = GetRelationalExpr();
                     if (right == NULL) Error("expression expected");
+                    TryToConvertTypeOrDie(right, left->GetSymType(),  op);
                     left = new StmtAssign(op, left, right);
                 }
                 if (left != NULL)
@@ -315,15 +404,16 @@ SyntaxNode* Parser::GetTerm()
     if (left == NULL)
     {
         if (scan.GetToken().GetType() != IDENTIFIER) return NULL;
-        const Symbol* sym = FindSymbol(scan.GetToken());
+        const Symbol* sym = FindSymbolOrDie(scan.GetToken(), SymbolClass(SYM_VAR | SYM_PROC), "identifier not found");
         if (sym->GetClassName() & SYM_VAR)
         {
             left = new NodeVar((SymVar*)sym);
+            scan.NextToken();
         }
         else if (sym->GetClassName() & SYM_PROC)
         {
             NodeCall* funct = new NodeCall((SymProc*)sym);
-            if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
+            if (scan.NextToken().GetValue() == TOK_BRACKETS_LEFT)
             {
                 scan.NextToken();
                 while (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
@@ -334,16 +424,18 @@ SyntaxNode* Parser::GetTerm()
                         scan.NextToken();
                     else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
                         Error(", expected");
+                    if (funct->GetCurrentArgType() == NULL) Error("too many actual parameters");
+                    TryToConvertTypeOrDie(arg, funct->GetCurrentArgType(), scan.GetToken());
+                    if (funct->IsCurrentArfByRef() && !arg->IsLValue()) Error("lvalue expected");
                     funct->AddArg(arg);
                 }
                 scan.NextToken();
                 left = funct;
             }
-            funct->ValidateParamsList();
+            if (funct->GetCurrentArgType() != NULL) Error("not enough actual parameters");
             left = funct;
         }
         else Error("identifier expected");
-        scan.NextToken();        
     }
     Token op = scan.GetToken();
     while (op.IsTermOp())
@@ -410,6 +502,7 @@ SyntaxNode* Parser::GetMultiplyingExpr()
         scan.NextToken();
         SyntaxNode* right = GetUnaryExpr();
         if (right == NULL) Error("illegal expression");
+        TryToConvertTypeOrDie(left, right, op);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
@@ -426,6 +519,7 @@ SyntaxNode* Parser::GetAddingExpr()
         scan.NextToken();
         SyntaxNode* right = GetMultiplyingExpr();
         if (right == NULL) Error("expression expected");
+        TryToConvertTypeOrDie(left, right, op);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
@@ -442,6 +536,7 @@ SyntaxNode* Parser::GetRelationalExpr()
         scan.NextToken();
         SyntaxNode* right = GetAddingExpr();
         if (right == NULL) Error("expression expected");
+        TryToConvertTypeOrDie(left, right, op);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }

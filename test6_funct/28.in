@@ -1,0 +1,7 @@
+procedure P(var a: Integer);
+begin
+    P(5);
+end.
+
+begin
+end.

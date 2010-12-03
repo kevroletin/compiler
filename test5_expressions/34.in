@@ -1,0 +1,6 @@
+var
+    r: record
+    end;
+begin
+    r := 4.4;
+end;

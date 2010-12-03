@@ -1,0 +1,7 @@
+procedure Proc(a: Integer);
+begin
+    Proc(10, 20);
+end;
+
+begin
+end.

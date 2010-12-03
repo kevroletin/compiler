@@ -1,0 +1,10 @@
+Program Example;
+uses 
+	SysUtils;
+var
+	s: String;
+begin
+	s := 'Hello world';
+	Writeln( s );
+	Readln;
+end.

@@ -1,0 +1,9 @@
+procedure P(var a: Real);
+var
+    b: Integer;
+begin
+    P(b);
+end;
+
+begin
+end.

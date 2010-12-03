@@ -3,9 +3,12 @@
 
 #include <string.h>
 #include "scanner.h"
+#include "syntax_node_base.h"
+#include "statement.h"
 #include <map>
 #include <set>
 #include <vector>
+#include <algorithm>
 
 enum SymbolClass{
     SYM = 0,
@@ -26,12 +29,9 @@ enum SymbolClass{
     SYM_VAR_LOCAL = 8192
 };
 
-
-class NodeStatement;
 class SynTable;
 class SymType;
 class SymVarParam;
-
 
 extern SymType* top_type_int;
 extern SymType* top_type_real;
@@ -68,9 +68,11 @@ public:
     SymProc(Token name);
     void AddSymTable(SynTable* syn_table_);
     void AddParam(SymVarParam* param);
+    int GetArgsCount() const;
+    const SymVarParam* GetArg(int arg_num) const;
     void AddBody(NodeStatement* body_);
     virtual SymbolClass GetClassName() const;
-    const SymType* GetResultType() const;
+    virtual const SymType* GetResultType() const;
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual void Print(ostream& o, int offset = 0) const;
 };
@@ -83,7 +85,7 @@ public:
     SymFunct(Token name);
     void AddResultType(const SymType* result_type_);
     virtual SymbolClass GetClassName() const;
-    const SymType* GetResultType() const;
+    virtual const SymType* GetResultType() const;
     virtual void Print(ostream& o, int offset = 0) const;
 };
 
@@ -213,6 +215,7 @@ public:
     const Symbol* Find(Symbol* sym) const;
     const Symbol* Find(const Token& tok) const;
     void Print(ostream& o, int offset = 0) const;
+    bool IsEmpty() const;
 };
 
 #endif

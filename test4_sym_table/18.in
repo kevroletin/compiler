@@ -1,0 +1,5 @@
+type
+    r = record end;
+    a = array[1..4] of ^r;
+begin
+end.

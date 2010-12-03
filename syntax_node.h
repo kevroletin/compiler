@@ -1,45 +1,10 @@
 #ifndef SYNTAX_NODE
 #define SYNTAX_NODE
+#include "syntax_node_base.h"
 #include "scanner.h"
 #include "syn_table.h"
 #include "exception.h"
 #include <vector>
-
-static void Error(string msg, Token token);
-
-class SyntaxNode{
-public:
-    static SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type);
-    static void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second);
-    static void TryToConvertType(SyntaxNode*& expr, const SymType* type);
-    static void TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err);
-    static void TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err);
-    virtual void Print(ostream& o, int offset = 0) const;
-    virtual const SymType* GetSymType() const;
-    virtual bool IsLValue() const;  
-};
-
-class NodeStatement: public SyntaxNode{
-};
-
-class StmtAssign: public NodeStatement{
-private:
-    SyntaxNode* left;
-    SyntaxNode* right;
-public:
-    StmtAssign(Token& op, SyntaxNode* left_, SyntaxNode* right_);
-    const SyntaxNode* GetLeft() const;
-    const SyntaxNode* GetRight() const;
-    virtual void Print(ostream& o, int offset = 0) const;
-};
- 
-class StmtBlock: public NodeStatement{
-private:
-    vector<SyntaxNode*> statements;
-public:
-    void AddStatement(SyntaxNode* new_stmt);
-    virtual void Print(ostream& o, int offset = 0) const;    
-};
 
 class NodeCall: public SyntaxNode{
 private:
@@ -48,7 +13,8 @@ private:
 public: 
     NodeCall(const SymProc* funct_);
     void AddArg(SyntaxNode* arg);
-    void ValidateParamsList();
+    const SymType* GetCurrentArgType() const;
+    bool IsCurrentArfByRef() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;    
 };

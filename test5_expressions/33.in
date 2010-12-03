@@ -1,0 +1,4 @@
+type
+    tt = T;
+begin
+end.

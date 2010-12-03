@@ -1,0 +1,5 @@
+var
+    var1: Real;
+begin
+5 > 10e10 > var1 > $12;
+end.

@@ -1,0 +1,7 @@
+procedure Proc;
+begin
+    Proc;
+end;
+
+begin
+end.
