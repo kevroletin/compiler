@@ -240,7 +240,7 @@ void StmtBlock::Print(ostream& o, int offset) const
     for (vector<SyntaxNode*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
         (*it)->Print(o, offset + 1);
     PrintSpaces(o, offset);
-    o << "end";
+    o << "end\n";
 }
 
 //---StmtExpression---
@@ -272,7 +272,8 @@ void StmtFor::Print(ostream& o, int offset) const
     o << "for " << (inc ? "to \n" : "downto \n");
     index->PrintAsNode(o, offset + 1);
     init_val->Print(o, offset + 1);
-    last_val->Print(o, offset + 1);    
+    last_val->Print(o, offset + 1);
+    body->Print(o, offset);
 }
 
 //---StmtWhile---
@@ -289,7 +290,6 @@ void StmtWhile::Print(ostream& o, int offset) const
     o << "while\n";
     condition->Print(o, offset + 1);
     body->Print(o, offset + 1);
-    o << ";\n";
 }
 
 //---StmtUntil---
@@ -306,7 +306,6 @@ void StmtUntil::Print(ostream& o, int offset) const
     o << "until\n";
     condition->Print(o, offset + 1);
     body->Print(o, offset + 1);
-    o << ";\n";
 }
 
 //---StmtIf---
@@ -329,7 +328,7 @@ void StmtIf::Print(ostream& o, int offset) const
     if (else_branch != NULL)
     {
         PrintSpaces(o, offset);
-        o << "else\n"
+        o << "else\n";
         else_branch->Print(o, offset + 1);
     }
 }

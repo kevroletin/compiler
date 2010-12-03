@@ -319,7 +319,7 @@ NodeStatement* Parser::ParseForStatement()
     if (scan.GetToken().GetValue() != TOK_DO) Error("'do' expected");
     scan.NextToken();
     NodeStatement* body = ParseStatement();
-    if (body = NULL) Error("statement expected");
+    if (body == NULL) Error("statement expected");
     return new StmtFor(index, first, second, is_inc, body);
 }
 

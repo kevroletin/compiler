@@ -11,3 +11,17 @@
 * TODO разобраться с мелкими функциями вроде PrintSpaces, которые разбросаны где попало
 * TODO переименовать scanner.h -"-.cpp на scaner.h -"-.cpp
 * TODO переименовать Parser::ParseVarDefinitions на -"-Declarations
+* TODO заменить последовательность PrintSpaces(..); o << " "; на одну конструкцию
+* TODO внести процедуры приведения типов в класс Parser
+* TODO разнести Parser::ParseType на мелкие процедуры
+* TODO вынести в Parser::ParseFunctionDefinition разбор параметров подопрограммы в отдельную процедуру
+* TODO в классе Parser вынести
+  GetRelationalExpr(); 
+  if (first == NULL) Error("expression expected"); 
+  if (cond->GetSymType() != top_type_int) Error("integer exppression expected");
+  //TryToConvertTypeOrDie(first, top_type_int, scan.GetToken());
+* TODO [#A] разнести Parser::GetTerm() на мелкие процедуры
+* TODO добавить проверки на валидность аргументов в конструкторы SyntaxNode-ов
+* TODO [#A] привести в порядок тесты
+* TODO [#B] Генерация кода
+* TODO [#C] Перенос тестирующих скриптов под Win

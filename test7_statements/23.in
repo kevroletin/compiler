@@ -1,0 +1,12 @@
+var
+    i: Integer;
+begin
+    if (1) then
+	begin
+	    i := 10;
+	end
+    else
+	begin
+	    i := 20;
+	end;
+end.
