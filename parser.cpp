@@ -447,29 +447,90 @@ SyntaxNode* Parser::GetIntExprOrDie()
     return res;
 }
 
+
+SyntaxNode* Parser::ParseFunctionCall(SymProc* funct_name)
+{
+    NodeCall* funct = new NodeCall(funct_name);
+    if (scan.NextToken().GetValue() == TOK_BRACKETS_LEFT)
+    {
+        scan.NextToken();
+        while (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
+        {
+            Token err_pos_tok = scan.GetToken();
+            SyntaxNode* arg = ParseRelationalExpr();
+            if (arg == NULL) Error("illegal expression");
+            if (scan.GetToken().GetValue() == TOK_COMMA)
+                scan.NextToken();
+            else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
+                Error(", expected");
+            if (funct->GetCurrentArgType() == NULL) Error("too many actual parameters", err_pos_tok);
+            TryToConvertTypeOrDie(arg, funct->GetCurrentArgType(), err_pos_tok);
+            if (funct->IsCurrentArfByRef() && !arg->IsLValue()) Error("lvalue expected", err_pos_tok);
+            funct->AddArg(arg);
+        }
+        scan.NextToken();
+    }
+    if (funct->GetCurrentArgType() != NULL) Error("not enough actual parameters");
+    return funct;
+}
+
+SyntaxNode* Parser::ParseConstants()
+{
+    Token token = scan.GetToken();
+    SymType* type = NULL;
+    if (token.GetType() == INT_CONST) type = top_type_int;
+    else if (token.GetType() == REAL_CONST) type = top_type_real;
+    else Error("operations on string const not implemented");
+    scan.NextToken();
+    return new NodeVar(new SymVarConst(token, type));
+}
+
+SyntaxNode* Parser::ParseRecordAccess(SyntaxNode* record)
+{
+    CheckTokOrDie(TOK_DOT);
+    Token field = scan.GetToken();
+    if (field.GetType() != IDENTIFIER) Error("identifier expected after '.'");
+    scan.NextToken();
+    return new NodeRecordAccess(record, field);
+}
+
+SyntaxNode* Parser::ParseArrayAccess(SyntaxNode* array)
+{
+    Token err_tok = scan.GetToken();
+    CheckTokOrDie(TOK_BRACKETS_SQUARE_LEFT);
+    while (true)
+    {
+        SyntaxNode* index = ParseRelationalExpr();
+        if (index == NULL) Error("illegal expression");
+        array = new NodeArrayAccess(array, index, err_tok);
+        if (scan.GetToken().GetValue() == TOK_COMMA) scan.NextToken();
+        else if (scan.GetToken().GetValue() == TOK_BRACKETS_SQUARE_RIGHT)
+        {
+            if (scan.NextToken().GetValue() == TOK_BRACKETS_SQUARE_LEFT)
+                scan.NextToken();
+            else
+                break;
+        }
+        else Error("illegal expression");
+    }
+    return array;
+}
+
 SyntaxNode* Parser::ParseFactor()
 {
     SyntaxNode* left = NULL;
-    if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
+    if (scan.GetToken().IsConst())
+    {
+        return ParseConstants();
+    }
+    else if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
     {
         scan.NextToken();
         left = ParseRelationalExpr();
         if (left == NULL) Error("illegal expression");
-        if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
-            Error("expected )");
-        scan.NextToken();
+        CheckTokOrDie(TOK_BRACKETS_RIGHT);
     }
-    if (scan.GetToken().IsConst())
-    {
-        Token token = scan.GetToken();
-        SymType* type = NULL;
-        if (token.GetType() == INT_CONST) type = top_type_int;
-        else if (token.GetType() == REAL_CONST) type = top_type_real;
-        else Error("operations on string const not implemented");
-        scan.NextToken();
-        return new NodeVar(new SymVarConst(token, type));
-    }
-    if (left == NULL)
+    else
     {
         if (scan.GetToken().GetType() != IDENTIFIER) return NULL;
         const Symbol* sym = FindSymbolOrDie(scan.GetToken(), SymbolClass(SYM_VAR | SYM_PROC), "identifier not found");
@@ -480,65 +541,16 @@ SyntaxNode* Parser::ParseFactor()
         }
         else if (sym->GetClassName() & SYM_PROC)
         {
-            NodeCall* funct = new NodeCall((SymProc*)sym);
-            if (scan.NextToken().GetValue() == TOK_BRACKETS_LEFT)
-            {
-                scan.NextToken();
-                while (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
-                {
-                    Token err_pos_tok = scan.GetToken();
-                    SyntaxNode* arg = ParseRelationalExpr();
-                    if (arg == NULL) Error("illegal expression");
-                    if (scan.GetToken().GetValue() == TOK_COMMA)
-                        scan.NextToken();
-                    else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
-                        Error(", expected");
-                    if (funct->GetCurrentArgType() == NULL) Error("too many actual parameters", err_pos_tok);
-                    TryToConvertTypeOrDie(arg, funct->GetCurrentArgType(), err_pos_tok);
-                    if (funct->IsCurrentArfByRef() && !arg->IsLValue()) Error("lvalue expected", err_pos_tok);
-                    funct->AddArg(arg);
-                }
-                scan.NextToken();
-                left = funct;
-            }
-            if (funct->GetCurrentArgType() != NULL) Error("not enough actual parameters");
-            left = funct;
+            left = ParseFunctionCall((SymProc*)sym);
         }
         else Error("identifier expected");
     }
-    Token op = scan.GetToken();
-    while (op.IsFactorOp())
+    while (scan.GetToken().IsFactorOp())
     {
-        if (op.GetValue() == TOK_DOT)
-        {
-            while (op.GetValue() == TOK_DOT)
-            {
-                Token field = scan.NextToken();
-                if (scan.GetToken().GetType() != IDENTIFIER) Error("identifier expected after '.'");
-                left = new NodeRecordAccess((NodeVar*)left, field);
-                op = scan.NextToken();
-            }
-        }
-        else if (op.GetValue() == TOK_BRACKETS_SQUARE_LEFT)
-        {
-            scan.NextToken();
-            while (true) {
-                SyntaxNode* index = ParseRelationalExpr();
-                if (index == NULL) Error("illegal expression");
-                left = new NodeArrayAccess(left, index, op);
-                op = scan.GetToken();
-                if (op.GetValue() == TOK_COMMA) scan.NextToken();
-                else if (op.GetValue() == TOK_BRACKETS_SQUARE_RIGHT)
-                {
-                    if (scan.NextToken().GetValue() == TOK_BRACKETS_SQUARE_LEFT)
-                        scan.NextToken();
-                    else
-                        break;
-                }
-                else Error("illegal expression");
-            }
-        }
-        op = scan.GetToken();
+        if (scan.GetToken().GetValue() == TOK_DOT)
+            left = ParseRecordAccess(left);
+        else
+            left = ParseArrayAccess(left);
     }
     return left;
 }

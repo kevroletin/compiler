@@ -1,3 +1,1 @@
-begin
-(5 + 4 ( + 6 );
-end.
+2:8 ERROR at '(': ')' expected

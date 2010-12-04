@@ -1,1 +1,1 @@
-2:8 ERROR at '(': expected )
+1:1 ERROR at '2': 'begin' expected
