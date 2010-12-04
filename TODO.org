@@ -25,3 +25,4 @@
 * TODO [#B] Генерация кода
 * TODO [#C] Перенос тестирующих скриптов под Win
 * TODO протестировать str_hex_to_i в scanner.cpp 
+* TODO перенести добавление переменной Result в конструктор SymFunction
