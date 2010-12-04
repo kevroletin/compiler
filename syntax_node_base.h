@@ -13,7 +13,4 @@ public:
     virtual bool IsLValue() const;  
 };
 
-extern void Error(string msg, Token token);
-extern ostream& PrintSpaces(ostream& o, int offset);
-
 #endif

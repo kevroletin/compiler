@@ -20,6 +20,14 @@ int hex_str_to_i(char* str)
     }
 }
 
+ostream& PrintSpaces(ostream& o, int offset)
+{
+    for (int i = 0; i < offset; ++i)
+        o << "  ";
+    return o;
+}
+
+
 const char* const TOKEN_DESCRIPTION[] =
 {
     "IDENTIFIER",

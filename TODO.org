@@ -1,6 +1,5 @@
 * DONE заменить bool Token.IsConst() на bool Token.IsParam()
 * DONE заменить название bool Token.IsTermOper() и Parser::GetTermOper() на что ни-будь более подходящее
-* TODO заменить имя SymbolClass на более подходящее
 * DONE заменить последовательность вызовов Get-"-Oper на вызов одной функции с передачей функции сравнения (в начале parser.cpp имеются заготовки на этот счёт)
 * DONE привести в порядок сесты
 * DONE переименовать syn_table_stack на sym_table_stack
@@ -8,11 +7,10 @@
 * DONE sym_var_param используется вместо sym_var_const. Исправить
 * DONE в разборе процедуры по честному разобрать объявления (все объявления переменных и объявления типов)
 * DONE сдалать проверку соответствия типов передаваемых параметров формальным параметрам функции
-* TODO разобраться с мелкими функциями вроде PrintSpaces, которые разбросаны где попало
-* TODO переименовать scanner.h -"-.cpp на scaner.h -"-.cpp
-* TODO переименовать Parser::ParseVarDefinitions на -"-Declarations
+* DONE разобраться с мелкими функциями вроде PrintSpaces, которые разбросаны где попало
+* DONE переименовать Parser::ParseVarDefinitions на -"-Declarations
 * DONE заменить последовательность PrintSpaces(..); o << " "; на одну конструкцию
-* TODO внести процедуры приведения типов в класс Parser
+* DONE внести процедуры приведения типов в класс Parser
 * DONE разнести Parser::ParseType на мелкие процедуры
 * DONE вынести в Parser::ParseFunctionDefinition разбор параметров подопрограммы в отдельную процедуру
 * DONE в классе Parser вынести  
@@ -22,7 +20,7 @@
   if (cond->GetSymType() != top_type_int) Error("integer exppression expected");
   //TryToConvertTypeOrDie(first, top_type_int, scan.GetToken());
 * DONE [#A] разнести Parser::GetTerm() на мелкие процедуры
-* TODO добавить проверки на валидность аргументов в конструкторы SyntaxNode-ов
+* DONE (сделал в точности наоборот) добавить проверки на валидность аргументов в конструкторы SyntaxNode-ов
 * DONE [#A] привести в порядок тесты
 * TODO [#B] Генерация кода
 * TODO [#C] Перенос тестирующих скриптов под Win

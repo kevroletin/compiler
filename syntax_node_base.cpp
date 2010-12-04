@@ -16,19 +16,3 @@ bool SyntaxNode::IsLValue() const
     return false;
 }
 
-//---Mix---
-
-void Error(string msg, Token token)
-{
-    stringstream s;
-    s << token.GetLine() << ':' << token.GetPos() << " ERROR at '" << token.GetName() << "': " << msg;
-    throw( CompilerException(s.str()) );
-}
-
-ostream& PrintSpaces(ostream& o, int offset)
-{
-    for (int i = 0; i < offset; ++i)
-        o << "  ";
-    return o;
-}
-

@@ -1,5 +1,12 @@
 #include "syntax_node.h"
 
+static void Error(string msg, Token token)
+{
+    stringstream s;
+    s << token.GetLine() << ':' << token.GetPos() << " ERROR at '" << token.GetName() << "': " << msg;
+    throw( CompilerException(s.str()) );
+}
+
 //---NodeCall---
 
 NodeCall::NodeCall(const SymProc* funct_):
@@ -8,7 +15,7 @@ NodeCall::NodeCall(const SymProc* funct_):
 }
     
 void NodeCall::AddArg(SyntaxNode* arg)
-{ 
+{
     args.push_back(arg);
 }
 
@@ -134,12 +141,10 @@ bool NodeVar::IsLValue() const
 
 //---NodeArrayAccess----
 
-NodeArrayAccess::NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_, Token tok):
+NodeArrayAccess::NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_):
     arr(arr_),
     index(index_)
 {
-    if (!(arr->GetSymType()->GetClassName() & SYM_TYPE_ARRAY)) Error("array expected before '[' token", tok);
-    if (index->GetSymType() != top_type_int) Error("index of array must be integer", tok);
 }
 
 void NodeArrayAccess::Print(ostream& o, int offset) const 
@@ -166,8 +171,6 @@ bool NodeArrayAccess::IsLValue() const
 NodeRecordAccess::NodeRecordAccess(SyntaxNode* record_, Token field_):
     record(record_)
 {
-    if (!(record_->GetSymType()->GetClassName() & SYM_TYPE_RECORD))
-        Error("illegal qualifier", field_);
     const SymVar* var = ((SymTypeRecord*)record_->GetSymType())->FindField(field_);
     if (var == NULL) Error("unknown record field identifier", field_);
     field = var;
@@ -194,12 +197,10 @@ bool NodeRecordAccess::IsLValue() const
 
 //---StmtAssgn---
 
-StmtAssign::StmtAssign(Token& op, SyntaxNode* left_, SyntaxNode* right_):
+StmtAssign::StmtAssign(SyntaxNode* left_, SyntaxNode* right_):
     left(left_),
     right(right_)
 {
-    if (left->GetSymType() != right->GetSymType()) Error("incompatible types", op);
-    if (!(left->IsLValue())) Error("l-value expected", op);
 }
 
 const SyntaxNode* StmtAssign::GetLeft() const

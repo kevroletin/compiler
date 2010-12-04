@@ -1,6 +1,8 @@
 #include "parser.h"
 
-SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type)
+//---Parser---
+
+SyntaxNode* Parser::ConvertType(SyntaxNode* node, const SymType* type)
 {
     if (node->GetSymType() == type) return node;
     if (node->GetSymType() == top_type_int && type == top_type_real)
@@ -8,7 +10,7 @@ SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type)
     return NULL;
 }
 
-void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second)
+void Parser::TryToConvertType(SyntaxNode*& first, SyntaxNode*& second)
 {
     if (first->GetSymType() == second->GetSymType()) return;
     SyntaxNode* tmp = ConvertType(first, second->GetSymType());
@@ -21,7 +23,7 @@ void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second)
     if (tmp != NULL) second = tmp;
 }
 
-void TryToConvertType(SyntaxNode*& expr, const SymType* type)
+void Parser::TryToConvertType(SyntaxNode*& expr, const SymType* type)
 {
     if (expr->GetSymType() == type) return;
     SyntaxNode* tmp = ConvertType(expr, type);
@@ -30,7 +32,7 @@ void TryToConvertType(SyntaxNode*& expr, const SymType* type)
     return;
 }
 
-void TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err)
+void Parser::TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err)
 {
     TryToConvertType(first, second);
     if (first->GetSymType() != second->GetSymType()) 
@@ -44,7 +46,7 @@ void TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_er
     }
 }
 
-void TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err)
+void Parser::TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err)
 {
     TryToConvertType(expr, type);
     if (expr->GetSymType() != type) 
@@ -57,8 +59,6 @@ void TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err
         Error(s.str(), tok_err);
     }
 }
-
-//---Parser---
 
 void Parser::PrintSyntaxTree(ostream& o)
 {
@@ -112,7 +112,7 @@ SymType* Parser::ParseRecordType()
 {
     CheckTokOrDie(TOK_RECORD);
     sym_table_stack.push_back(new SynTable);
-    ParseVarDefinitions(false);
+    ParseVarDeclarations(false);
     SymType* res = new SymTypeRecord(sym_table_stack.back());
     sym_table_stack.pop_back();
     CheckTokOrDie(TOK_END);
@@ -150,7 +150,7 @@ SymType* Parser::ParseType()
     }
 }
 
-void Parser::ParseVarDefinitions(bool is_global)
+void Parser::ParseVarDeclarations(bool is_global)
 {
     while (scan.GetToken().IsVar())
     {
@@ -175,7 +175,7 @@ void Parser::ParseVarDefinitions(bool is_global)
     }
 }
 
-void Parser::ParseTypeDefinitions()
+void Parser::ParseTypeDeclarations()
 {
     while (scan.GetToken().IsVar())
     {
@@ -201,12 +201,12 @@ void Parser::ParseDeclarations(bool is_global)
             case TOK_VAR:
                 scan.NextToken();
                 if (!scan.GetToken().IsVar()) Error("identifier expected");
-                ParseVarDefinitions(is_global);
+                ParseVarDeclarations(is_global);
             break;
             case TOK_TYPE:
                 scan.NextToken();
                 if (!scan.GetToken().IsVar()) Error("identifier expected");
-                ParseTypeDefinitions();
+                ParseTypeDeclarations();
             break;
             default:
                 loop = false;
@@ -379,7 +379,8 @@ NodeStatement* Parser::ParseAssignStatement()
     SyntaxNode* right = ParseRelationalExpr();
     if (right == NULL) Error("expression expected");
     TryToConvertTypeOrDie(right, left->GetSymType(), op);
-    return new StmtAssign(op, left, right);    
+    if (!(left->IsLValue())) Error("l-value expected", op);
+    return new StmtAssign(left, right);    
 }
 
 const Symbol* Parser::FindSymbol(Symbol* sym)
@@ -491,6 +492,7 @@ SyntaxNode* Parser::ParseRecordAccess(SyntaxNode* record)
     Token field = scan.GetToken();
     if (field.GetType() != IDENTIFIER) Error("identifier expected after '.'");
     scan.NextToken();
+    if (!(record->GetSymType()->GetClassName() & SYM_TYPE_RECORD)) Error("illegal qualifier", field);
     return new NodeRecordAccess(record, field);
 }
 
@@ -500,9 +502,9 @@ SyntaxNode* Parser::ParseArrayAccess(SyntaxNode* array)
     CheckTokOrDie(TOK_BRACKETS_SQUARE_LEFT);
     while (true)
     {
-        SyntaxNode* index = ParseRelationalExpr();
-        if (index == NULL) Error("illegal expression");
-        array = new NodeArrayAccess(array, index, err_tok);
+        SyntaxNode* index = GetIntExprOrDie();
+        if (!(array->GetSymType()->GetClassName() & SYM_TYPE_ARRAY)) Error("array expected before '[' token", err_tok);
+        array = new NodeArrayAccess(array, index);
         if (scan.GetToken().GetValue() == TOK_COMMA) scan.NextToken();
         else if (scan.GetToken().GetValue() == TOK_BRACKETS_SQUARE_RIGHT)
         {

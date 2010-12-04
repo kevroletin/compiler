@@ -13,12 +13,6 @@
 
 #include <ostream>
 
-extern SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type);
-extern void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second);
-extern void TryToConvertType(SyntaxNode*& expr, const SymType* type);
-extern void TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err);
-extern void TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err);
-
 class Parser{
 private:
     SyntaxNode* syntax_tree;
@@ -26,6 +20,11 @@ private:
     SynTable top_sym_table;
     SymType* top_type_bool;
     std::vector<SynTable*> sym_table_stack;
+    SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type);
+    void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second);
+    void TryToConvertType(SyntaxNode*& expr, const SymType* type);
+    void TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err);
+    void TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err);
     void CheckTokOrDie(TokenValue tok_val);
     void CheckNextTokOrDie(TokenValue tok_val);    
     SyntaxNode* GetIntExprOrDie();
@@ -44,8 +43,8 @@ private:
     SymType* ParseRecordType();
     SymType* ParsePointerType();
     SymType* ParseType();
-    void ParseVarDefinitions(bool is_global = true);
-    void ParseTypeDefinitions();
+    void ParseVarDeclarations(bool is_global = true);
+    void ParseTypeDeclarations();
     void ParseDeclarations(bool is_global = true);
     void ParseFunctionParameters(SymProc* funct);
     void ParseFunctionDefinition();    

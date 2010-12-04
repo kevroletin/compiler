@@ -67,7 +67,7 @@ private:
     SyntaxNode* arr;
     SyntaxNode* index;
 public:
-    NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_, Token tok);
+    NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;    
     virtual bool IsLValue() const;
@@ -91,7 +91,7 @@ private:
     SyntaxNode* left;
     SyntaxNode* right;
 public:
-    StmtAssign(Token& op, SyntaxNode* left_, SyntaxNode* right_);
+    StmtAssign(SyntaxNode* left_, SyntaxNode* right_);
     const SyntaxNode* GetLeft() const;
     const SyntaxNode* GetRight() const;
     virtual void Print(ostream& o, int offset = 0) const;

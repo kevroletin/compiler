@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
                         Scanner scan(in);
                         for (Token t; t.GetType() != END_OF_FILE;)
                         {
-                            cout << ( t = scan.NextToken() );
+                           cout << ( t = scan.NextToken() );
                         }
                     }
                     break;

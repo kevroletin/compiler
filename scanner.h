@@ -4,6 +4,7 @@
 #include <istream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
 #include <map>
 #include <string.h>
 #include <sstream>
@@ -87,6 +88,11 @@ enum TokenValue{
 };
 
 extern const string TOKEN_TO_STR[];
+extern std::ostream& PrintSpaces(std::ostream& o, int offset);
+
+class Token;
+
+ostream& operator<<(ostream& out, const Token& token);
 
 class ReservedWords{
 private:
@@ -126,8 +132,6 @@ public:
     void NameToLowerCase();
     int GetIntValue() const;
 };
-
-ostream& operator<<(ostream& out, const Token& token);
 
 class Scanner{
 public:
