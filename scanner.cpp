@@ -5,6 +5,21 @@ bool ishexnum(char c)
     return isdigit(c) || ('a' <= tolower(c)  && tolower(c) <= 'f');
 }
 
+int hex_str_to_i(char* str)
+{
+    int res = 0;
+    int pow = 1;
+    int i = strlen(str) - 1;
+    while (i >= 0)
+    {
+        int tmp;
+        if (isdigit(str[i])) tmp = str[i] - '0';
+        else tmp = str[i] = tolower(str[i]) - 'a' + 10;
+        res += tmp * pow;
+        pow *= 16;
+    }
+}
+
 const char* const TOKEN_DESCRIPTION[] =
 {
     "IDENTIFIER",
@@ -290,6 +305,12 @@ void Token::NameToLowerCase()
     int i = -1;
     while (name[++i]) 
         name[i] = tolower(name[i]);
+}
+
+int Token::GetIntValue() const
+{    
+    if (name[0] != '$') return atoi(name);
+    return hex_str_to_i(name);    
 }
 
 //---Scanner---

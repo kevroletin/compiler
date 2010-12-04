@@ -52,6 +52,11 @@ void Symbol::PrintVerbose(ostream& o, int offset) const
 
 //---SymType---
 
+SymType::SymType():
+    Symbol(Token())
+{
+}
+
 SymType::SymType(Token name):
     Symbol(name)
 {
@@ -274,8 +279,7 @@ SymbolClass SymTypeReal::GetClassName() const
 
 //---SymTypeArray---
 
-SymTypeArray::SymTypeArray(Token name, SymType* elem_type_, int low_, int high_):
-    SymType(name),
+SymTypeArray::SymTypeArray(SymType* elem_type_, int low_, int high_):
     elem_type(elem_type_),
     low(low_),
     high(high_)
@@ -315,8 +319,7 @@ void SymTypeArray::PrintVerbose(ostream& o, int offset) const
 
 //---SymTypeRecord---
 
-SymTypeRecord::SymTypeRecord(Token name, SynTable* syn_table_):
-    SymType(name),
+SymTypeRecord::SymTypeRecord(SynTable* syn_table_):
     syn_table(syn_table_)
 {
 }
@@ -379,8 +382,7 @@ const SymType* SymTypeAlias::GetActualType() const
 
 //---SymTypePointer---
 
-SymTypePointer::SymTypePointer(Token name, SymType* ref_type_):
-    SymType(name),
+SymTypePointer::SymTypePointer(SymType* ref_type_):
     ref_type(ref_type_)
 {  
 }

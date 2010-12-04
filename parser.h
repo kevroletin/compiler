@@ -26,7 +26,9 @@ private:
     SynTable top_sym_table;
     SymType* top_type_bool;
     std::vector<SynTable*> sym_table_stack;
-    void NextToken();
+    void CheckTokOrDie(TokenValue tok_val);
+    void CheckNextTokOrDie(TokenValue tok_val);    
+    SyntaxNode* GetIntExprOrDie();
     SyntaxNode* ParseFactor();
     SyntaxNode* ParseAddingExpr();
     SyntaxNode* ParseMultiplyingExpr();
@@ -34,11 +36,14 @@ private:
     SyntaxNode* ParseRelationalExpr();
     void Error(string msg, Token err_pos_tok);
     void Error(string msg);
+    SymType* ParseArrayType();
+    SymType* ParseRecordType();
+    SymType* ParsePointerType();
     SymType* ParseType();
     void ParseVarDefinitions(bool is_global = true);
     void ParseTypeDefinitions();
     void ParseDeclarations(bool is_global = true);
-    void ParseFunctionDefinition();
+    void ParseFunctionDefinition();    
     NodeStatement* ParseBlockStatement();
     NodeStatement* ParseStatement();
     NodeStatement* ParseForStatement();

@@ -49,6 +49,8 @@ public:
 };
 
 class SymType: public Symbol{
+protected:
+    SymType();
 public:
     SymType(Token token);
     virtual SymbolClass GetClassName() const;
@@ -126,7 +128,7 @@ private:
     int low;
     int high;
 public:
-    SymTypeArray(Token name, SymType* elem_type_, int low_, int high_);
+    SymTypeArray(SymType* elem_type_, int low_, int high_);
     int GetLow();
     int GetHigh();
     const SymType* GetElemType();
@@ -139,7 +141,7 @@ class SymTypeRecord: public SymType{
 private:
     SynTable* syn_table;
 public:
-    SymTypeRecord(Token name, SynTable* syn_table_);
+    SymTypeRecord(SynTable* syn_table_);
     const SymVar* FindField(Token& field_name);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
@@ -161,7 +163,7 @@ class SymTypePointer: public SymType{
 private:
     SymType* ref_type;
 public:
-    SymTypePointer(Token name, SymType* ref_type_);
+    SymTypePointer(SymType* ref_type_);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual SymbolClass GetClassName() const;    
 };

@@ -84,58 +84,66 @@ Parser::Parser(Scanner& scanner):
     Parse();
 }
 
+SymType* Parser::ParseArrayType()
+{
+    std::vector<std::pair<Token, Token> > bounds;
+    CheckTokOrDie(TOK_ARRAY);
+    CheckTokOrDie(TOK_BRACKETS_SQUARE_LEFT);
+    bool was_comma = true;
+    while (was_comma)
+    {
+        Token low = scan.GetToken();
+        CheckNextTokOrDie(TOK_DOUBLE_DOT);
+        Token high = scan.GetToken();
+        if (low.GetType() != INT_CONST || high.GetType() != INT_CONST)
+            Error("non-integer array bounds is not implemented");
+        bounds.push_back(std::pair<Token, Token>(low, high));
+        if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA)) scan.NextToken();
+    }
+    CheckTokOrDie(TOK_BRACKETS_SQUARE_RIGHT);
+    CheckTokOrDie(TOK_OF);
+    SymType* res = ParseType();
+    for (std::vector<std::pair<Token, Token> >::reverse_iterator it = bounds.rbegin(); it != bounds.rend(); ++it)
+        res = new SymTypeArray(res, it->first.GetIntValue(), it->second.GetIntValue());
+    return res;
+}
+
+SymType* Parser::ParseRecordType()
+{
+    CheckTokOrDie(TOK_RECORD);
+    sym_table_stack.push_back(new SynTable);
+    ParseVarDefinitions(false);
+    SymType* res = new SymTypeRecord(sym_table_stack.back());
+    sym_table_stack.pop_back();
+    CheckTokOrDie(TOK_END);
+    return res;
+}
+
+SymType* Parser::ParsePointerType()
+{
+    Error("pointers was not implemented");
+    CheckTokOrDie(TOK_CAP);
+    if (!scan.GetToken().IsVar()) Error("identifier expected");
+    const Symbol* ref_type = FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
+    scan.NextToken();
+    return new SymTypePointer((SymType*)ref_type);    
+}
+
 SymType* Parser::ParseType()
 {
     Token name = scan.GetToken();
     switch (name.GetValue()) {
         case TOK_ARRAY: {
-            std::vector<std::pair<Token, Token> > bounds;
-            if (scan.NextToken().GetValue() != TOK_BRACKETS_SQUARE_LEFT) Error("'[' expected");
-            bool was_comma = true;
-            while (was_comma)
-            {
-                Token low = scan.NextToken();
-                if (scan.NextToken().GetValue() != TOK_DOUBLE_DOT) Error("'..' expected");
-                Token high = scan.NextToken();
-                if (low.GetType() != INT_CONST || high.GetType() != INT_CONST)
-		    Error("non-integer array bounds is not implemented");
-                bounds.push_back(std::pair<Token, Token>(low, high));
-                was_comma = (scan.NextToken().GetValue() == TOK_COMMA);
-            }
-            if (scan.GetToken().GetValue() != TOK_BRACKETS_SQUARE_RIGHT) Error("']' expected");
-            if (scan.NextToken().GetValue() != TOK_OF) Error("'of' expected");
-            scan.NextToken();
-            SymType* res = ParseType();
-            for (std::vector<std::pair<Token, Token> >::reverse_iterator it = bounds.rbegin(); it != bounds.rend(); ++it)
-            {
-                res = new SymTypeArray(name, res, atoi(it->first.GetName()), atoi(it->second.GetName()));
-            }
-            return res;
+            return ParseArrayType();
         } break;
         case TOK_RECORD: {
-            sym_table_stack.push_back(new SynTable);
-            scan.NextToken();
-            ParseVarDefinitions();
-            SymType* res = new SymTypeRecord(name, sym_table_stack.back());
-            sym_table_stack.pop_back();
-            if (scan.GetToken().GetValue() != TOK_END) Error("'end' expected");
-            scan.NextToken();
-            return res;
+            return ParseRecordType();
         } break;
         case TOK_CAP: {
-            Error("pointers was not implemented");
-            Token name = scan.NextToken();
-            if (!name.IsVar()) Error("identifier expected");
-            const Symbol* ref_type = sym_table_stack.back()->Find(name);
-            if (ref_type == NULL) Error("identifier not found");
-            if (!(ref_type->GetClassName() && SYM_TYPE)) Error("type identifier expected");
-            scan.NextToken();
-            return new SymTypePointer(name, (SymType*)ref_type);
+            return ParsePointerType(); 
         } break;
         default: {            
-            const Symbol* res = FindSymbol(scan.GetToken());
-            if (res == NULL) Error("identifier not found");
-            if (!(res->GetClassName() && SYM_TYPE)) Error("type identifier expected");
+            const Symbol* res = FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
             scan.NextToken();
             return (SymType*)res;
         }
@@ -156,16 +164,14 @@ void Parser::ParseVarDefinitions(bool is_global)
             if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA))
                 scan.NextToken();
         }
-        if (scan.GetToken().GetValue() != TOK_COLON) Error("':' expected");
-        scan.NextToken();
+        CheckTokOrDie(TOK_COLON);
         SymType* type = ParseType();
         for (std::vector<Token>::iterator it = vars.begin(); it != vars.end(); ++it)
             if (is_global)
                 sym_table_stack.back()->Add(new SymVarGlobal(*it, type));
             else
                 sym_table_stack.back()->Add(new SymVarLocal(*it, type));
-        if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
-        scan.NextToken();
+        CheckTokOrDie(TOK_SEMICOLON);
     }
 }
 
@@ -175,12 +181,10 @@ void Parser::ParseTypeDefinitions()
     {
         Token name = scan.GetToken();
         if (FindSymbol(name) != NULL) Error("duplicate declaration");
-        if (scan.NextToken().GetValue() != TOK_EQUAL) Error("'=' expected");
-        scan.NextToken();
+        CheckNextTokOrDie(TOK_EQUAL);
         SymType* type = ParseType();
         sym_table_stack.back()->Add(new SymTypeAlias(name, type));
-        if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
-        scan.NextToken();
+        CheckTokOrDie(TOK_SEMICOLON);
     }
 }
 
@@ -208,7 +212,6 @@ void Parser::ParseDeclarations(bool is_global)
                 loop = false;
         }      
     }
-
 }
 
 void Parser::ParseFunctionDefinition()
@@ -316,17 +319,11 @@ NodeStatement* Parser::ParseForStatement()
     if (index->GetVarType() != top_type_int) Error("integer varible expected");
     if (scan.NextToken().GetValue() != TOK_ASSIGN) Error("':=' expected");
     scan.NextToken();
-    Token err_tok = scan.GetToken();
-    SyntaxNode* first = ParseRelationalExpr();
-    if (first == NULL) Error("expression expected");
-    TryToConvertTypeOrDie(first, top_type_int, err_tok);
+    SyntaxNode* first = GetIntExprOrDie();
     bool is_inc = (scan.GetToken().GetValue() == TOK_TO);
     if (!is_inc && scan.GetToken().GetValue() != TOK_DOWNTO) Error("'to' or 'downto' expected");
     scan.NextToken();
-    err_tok = scan.GetToken();
-    SyntaxNode* second = ParseRelationalExpr();
-    if (second == NULL) Error("expression expected");
-    TryToConvertTypeOrDie(second, top_type_int, err_tok);
+    SyntaxNode* second = GetIntExprOrDie();
     if (scan.GetToken().GetValue() != TOK_DO) Error("'do' expected");
     scan.NextToken();
     NodeStatement* body = ParseStatement();
@@ -439,6 +436,32 @@ void Parser::Parse()
     if (scan.GetToken().GetValue() != TOK_BEGIN) Error("'begin' expected");
     syntax_tree = ParseStatement();
     if (scan.GetToken().GetValue() != TOK_DOT) Error("'.' expected");
+}
+
+void Parser::CheckTokOrDie(TokenValue tok_val)
+{
+    if (scan.GetToken().GetValue() != tok_val)
+    {
+        stringstream str;
+        str << "'" <<  TOKEN_VALUE_DESCRIPTION[tok_val] << "' expected";
+        Error(str.str());
+    }        
+    scan.NextToken();
+}
+
+void Parser::CheckNextTokOrDie(TokenValue tok_val)
+{
+    scan.NextToken();
+    CheckTokOrDie(tok_val);
+}
+
+SyntaxNode* Parser::GetIntExprOrDie()
+{
+    Token err_tok = scan.GetToken();
+    SyntaxNode* res = ParseRelationalExpr();
+    if (res == NULL) Error("expression expected");
+    if (res->GetSymType() != top_type_int) Error("integer exppression expected", err_tok);
+    return res;
 }
 
 SyntaxNode* Parser::ParseFactor()

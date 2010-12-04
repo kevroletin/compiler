@@ -3,6 +3,7 @@
 
 #include <istream>
 #include <stdio.h>
+#include <stdlib.h>
 #include <map>
 #include <string.h>
 #include <sstream>
@@ -85,6 +86,8 @@ enum TokenValue{
     TOK_REAL
 };
 
+extern const string TOKEN_VALUE_DESCRIPTION[];
+
 class ReservedWords{
 private:
     map<string, pair<TokenType, TokenValue> > words;
@@ -121,6 +124,7 @@ public:
     int GetPos() const;
     int GetLine() const;
     void NameToLowerCase();
+    int GetIntValue() const;
 };
 
 ostream& operator<<(ostream& out, const Token& token);
