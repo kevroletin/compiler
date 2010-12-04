@@ -43,6 +43,7 @@ private:
     void ParseVarDefinitions(bool is_global = true);
     void ParseTypeDefinitions();
     void ParseDeclarations(bool is_global = true);
+    void ParseFunctionParameters(SymProc* funct);
     void ParseFunctionDefinition();    
     NodeStatement* ParseBlockStatement();
     NodeStatement* ParseStatement();

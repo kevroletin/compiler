@@ -86,7 +86,7 @@ enum TokenValue{
     TOK_REAL
 };
 
-extern const string TOKEN_VALUE_DESCRIPTION[];
+extern const string TOKEN_TO_STR[];
 
 class ReservedWords{
 private:

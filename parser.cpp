@@ -214,6 +214,36 @@ void Parser::ParseDeclarations(bool is_global)
     }
 }
 
+void Parser::ParseFunctionParameters(SymProc* funct)
+{
+    CheckTokOrDie(TOK_BRACKETS_LEFT);
+    if (scan.GetToken().GetValue() == TOK_BRACKETS_RIGHT) Error("empty formal parameters list");
+    bool was_semicolon = true;
+    while (was_semicolon)
+    {
+        bool by_ref = false;
+        if (by_ref = (scan.GetToken().GetValue() == TOK_VAR)) scan.NextToken();
+        vector<Token> v;
+        bool was_comma = true;
+        while (was_comma)
+        {
+            if (!scan.GetToken().IsVar()) Error("identifier expected");
+            v.push_back(scan.GetToken());
+            if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA)) scan.NextToken();
+        }
+        CheckTokOrDie(TOK_COLON);
+        const SymType* type = (SymType*)FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
+        for (vector<Token>::iterator it = v.begin(); it != v.end(); ++it)
+        {
+            SymVarParam* param = new SymVarParam(*it, type, by_ref);
+            sym_table_stack.back()->Add(param);
+            funct->AddParam(param);
+        }
+        if (was_semicolon = (scan.NextToken().GetValue() == TOK_SEMICOLON)) scan.NextToken();
+    }
+    CheckTokOrDie(TOK_BRACKETS_RIGHT);
+}
+
 void Parser::ParseFunctionDefinition()
 {
     SymProc* res = NULL;
@@ -229,53 +259,20 @@ void Parser::ParseFunctionDefinition()
     sym_table_stack.push_back(new SynTable);
     res->AddSymTable(sym_table_stack.back());
     scan.NextToken();
-    if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
-    {
-        scan.NextToken();
-        if (scan.GetToken().GetValue() == TOK_BRACKETS_RIGHT) Error("empty formal parameters list");
-        bool was_semicolon = true;
-        while (was_semicolon || (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT))
-        {
-            bool by_ref = false;
-            if (by_ref = (scan.GetToken().GetValue() == TOK_VAR)) scan.NextToken();
-            vector<Token> v;
-            bool was_comma = true;
-            while (was_comma || (scan.GetToken().GetValue() != TOK_COLON))
-            {
-                if (!scan.GetToken().IsVar()) Error("identifier expected");
-                v.push_back(scan.GetToken());
-                if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA))
-                    scan.NextToken();
-            }
-            if (scan.GetToken().GetValue() != TOK_COLON) Error("':' expected");
-            scan.NextToken();
-            const SymType* type = (SymType*)FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
-            for (vector<Token>::iterator it = v.begin(); it != v.end(); ++it)
-            {
-                SymVarParam* param = new SymVarParam(*it, type, by_ref);
-                sym_table_stack.back()->Add(param);
-                res->AddParam(param);
-            }
-            if (was_semicolon = (scan.NextToken().GetValue() == TOK_SEMICOLON)) scan.NextToken();
-        }
-        if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT) Error("')' expected");
-        scan.NextToken();
-    }
+    if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT) ParseFunctionParameters(res);
     if (op == TOK_FUNCTION)
     {
-        if (scan.GetToken().GetValue() != TOK_COLON) Error("':' expected");
-        const SymType* type = (SymType*)FindSymbolOrDie(scan.NextToken(), SYM_TYPE, "type identifier expected");
+        CheckTokOrDie(TOK_COLON);
+        const SymType* type = (SymType*)FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
+        scan.NextToken();
         ((SymFunct*)res)->AddResultType(type);
         sym_table_stack.back()->Add(new SymVar(Token("Result", IDENTIFIER, TOK_UNRESERVED, -1, -1), type));
-        scan.NextToken();             
     }
-    if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
-    scan.NextToken();
+    CheckTokOrDie(TOK_SEMICOLON);
     ParseDeclarations(false);
     if (scan.GetToken().GetValue() != TOK_BEGIN) Error("'begin' expected");
     res->AddBody(ParseStatement());
-    if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
-    scan.NextToken();
+    CheckTokOrDie(TOK_SEMICOLON);
     sym_table_stack.pop_back();
 }
 
@@ -301,12 +298,11 @@ NodeStatement* Parser::ParseStatement()
 NodeStatement* Parser::ParseBlockStatement()
 {
     StmtBlock* block = new StmtBlock();
-    scan.NextToken();
+    CheckTokOrDie(TOK_BEGIN);
     while (scan.GetToken().GetValue() != TOK_END)
     {
         block->AddStatement(ParseStatement());
-        if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
-        scan.NextToken();
+        CheckTokOrDie(TOK_SEMICOLON);
     }
     scan.NextToken();
     return block;
@@ -314,18 +310,17 @@ NodeStatement* Parser::ParseBlockStatement()
 
 NodeStatement* Parser::ParseForStatement()
 {
-    if (!scan.NextToken().IsVar()) Error("identifier expected");
+    CheckTokOrDie(TOK_FOR);
+    if (!scan.GetToken().IsVar()) Error("identifier expected");
     const SymVar* index = (SymVar*)FindSymbolOrDie(scan.GetToken(), SYM_VAR, "identifier not found");
     if (index->GetVarType() != top_type_int) Error("integer varible expected");
-    if (scan.NextToken().GetValue() != TOK_ASSIGN) Error("':=' expected");
-    scan.NextToken();
+    CheckNextTokOrDie(TOK_ASSIGN);
     SyntaxNode* first = GetIntExprOrDie();
     bool is_inc = (scan.GetToken().GetValue() == TOK_TO);
     if (!is_inc && scan.GetToken().GetValue() != TOK_DOWNTO) Error("'to' or 'downto' expected");
     scan.NextToken();
     SyntaxNode* second = GetIntExprOrDie();
-    if (scan.GetToken().GetValue() != TOK_DO) Error("'do' expected");
-    scan.NextToken();
+    CheckTokOrDie(TOK_DO);
     NodeStatement* body = ParseStatement();
     if (body == NULL) Error("statement expected");
     return new StmtFor(index, first, second, is_inc, body);
@@ -333,13 +328,9 @@ NodeStatement* Parser::ParseForStatement()
 
 NodeStatement* Parser::ParseWhileStatement()
 {
-    scan.NextToken();
-    Token err_tok = scan.GetToken();
-    SyntaxNode* cond = ParseRelationalExpr();
-    if (cond == NULL) Error("expression expected");
-    if (cond->GetSymType() != top_type_int) Error("integer expression expected", err_tok);
-    if (scan.GetToken().GetValue() != TOK_DO) Error("'do' expected");
-    scan.NextToken();
+    CheckTokOrDie(TOK_WHILE);
+    SyntaxNode* cond = GetIntExprOrDie();
+    CheckTokOrDie(TOK_DO);
     NodeStatement* body = ParseStatement();
     if (body == NULL) Error("statement expected");
     return new StmtWhile(cond, body); 
@@ -347,8 +338,8 @@ NodeStatement* Parser::ParseWhileStatement()
 
 NodeStatement* Parser::ParseUntilStatement()
 {
+    CheckTokOrDie(TOK_REPEAT);
     StmtBlock* body = new StmtBlock();
-    scan.NextToken();
     while (scan.GetToken().GetValue() != TOK_UNTIL)
     {
         body->AddStatement(ParseStatement());
@@ -356,22 +347,15 @@ NodeStatement* Parser::ParseUntilStatement()
         scan.NextToken();
     }
     scan.NextToken();
-    Token err_tok = scan.GetToken();
-    SyntaxNode* cond = ParseRelationalExpr();
-    if (cond == NULL) Error("expression expected");
-    if (cond->GetSymType() != top_type_int) Error("integer exppression expected", err_tok);
+    SyntaxNode* cond = GetIntExprOrDie();
     return new StmtUntil(cond, body);
 }
 
 NodeStatement* Parser::ParseIfStatement()
 {
-    scan.NextToken();
-    Token err_tok = scan.GetToken();
-    SyntaxNode* cond = ParseRelationalExpr();
-    if (cond == NULL) Error("expression expected");
-    if (cond->GetSymType() != top_type_int) Error("integer exppression expected", err_tok);
-    if (scan.GetToken().GetValue() != TOK_THEN) Error("'then' expected");
-    scan.NextToken();
+    CheckTokOrDie(TOK_IF);
+    SyntaxNode* cond = GetIntExprOrDie();
+    CheckTokOrDie(TOK_THEN);
     NodeStatement* then_branch = ParseStatement();
     NodeStatement* else_branch = NULL;
     if (then_branch == NULL) Error("statement expected");
@@ -381,7 +365,6 @@ NodeStatement* Parser::ParseIfStatement()
         else_branch = ParseStatement();
         if (else_branch == NULL) Error("statement expected");
     }
-    if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
     return new StmtIf(cond, then_branch, else_branch);
 }
 
@@ -395,7 +378,7 @@ NodeStatement* Parser::ParseAssignStatement()
     scan.NextToken();
     SyntaxNode* right = ParseRelationalExpr();
     if (right == NULL) Error("expression expected");
-    TryToConvertTypeOrDie(right, left->GetSymType(),  op);
+    TryToConvertTypeOrDie(right, left->GetSymType(), op);
     return new StmtAssign(op, left, right);    
 }
 
@@ -443,7 +426,7 @@ void Parser::CheckTokOrDie(TokenValue tok_val)
     if (scan.GetToken().GetValue() != tok_val)
     {
         stringstream str;
-        str << "'" <<  TOKEN_VALUE_DESCRIPTION[tok_val] << "' expected";
+        str << "'" <<  TOKEN_TO_STR[tok_val] << "' expected";
         Error(str.str());
     }        
     scan.NextToken();
@@ -460,7 +443,7 @@ SyntaxNode* Parser::GetIntExprOrDie()
     Token err_tok = scan.GetToken();
     SyntaxNode* res = ParseRelationalExpr();
     if (res == NULL) Error("expression expected");
-    if (res->GetSymType() != top_type_int) Error("integer exppression expected", err_tok);
+    if (res->GetSymType() != top_type_int) Error("integer expression expected", err_tok);
     return res;
 }
 
