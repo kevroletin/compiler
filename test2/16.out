@@ -1,5 +1,7 @@
-+ [integer]
-  2 [integer]
-  - [integer]
-    1 [integer]
-    1 [integer]
+begin
+  + [integer]
+    2 [integer]
+    - [integer]
+      1 [integer]
+      1 [integer]
+end

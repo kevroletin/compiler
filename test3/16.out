@@ -1,9 +1,1 @@
->
-  >
-    >
-      >
-        5
-        str
-      10e10
-    var1
-  $12
+2:5 ERROR at 'var': identifier expected

@@ -1,5 +1,10 @@
-[]
-  arr
-  []
-    arr2
-    index
+arr: array [1..2] of real
+arr2: array [1..2] of integer
+index: integer
+begin
+  [] [real]
+    arr [array]
+    [] [integer]
+      arr2 [array]
+      index [integer]
+end

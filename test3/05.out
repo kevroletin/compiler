@@ -1,6 +1,16 @@
-()
-  Funct
-  .
-    a
-    b
-  5
+a: record
+  b: integer
+end
+procedure funct(a: integer; b: integer);
+var
+  a: integer
+  b: integer
+begin
+end
+begin
+  () funct [untyped]
+    . [integer]
+      a [record]
+      b [integer]
+    5 [integer]
+end

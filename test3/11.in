@@ -1,1 +1,15 @@
-arr[ funct( arr[a].b ) ]
+var
+    a: Integer;
+    arr: array[1..2] of record
+	b: real;
+    end;
+
+function funct(r: Real): Integer;
+begin
+end;
+
+begin
+
+arr[ funct( arr[a].b ) ];
+
+end.

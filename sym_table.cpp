@@ -1,4 +1,4 @@
-#include "syn_table.h"
+#include "sym_table.h"
 
 const string SymbolClassDescription[] = {
     "SYM",
@@ -216,7 +216,11 @@ void SymVar::PrintVerbose(ostream& o, int offset) const
 {
     PrintSpaces(o, offset);
     o << token.GetName() << ": ";
-    type->Print(o, 0);
+    if (type->GetClassName() & SYM_TYPE_ALIAS)
+        type->Print(o, offset + 1);
+    else
+        type->PrintVerbose(o, offset + 1);
+    o << "\n";
 }
 
 const SymType* SymVar::GetVarType() const
@@ -306,7 +310,7 @@ void SymTypeArray::Print(ostream& o, int offset) const
 void SymTypeArray::PrintVerbose(ostream& o, int offset) const
 {
     o << "array [" << low << ".." << high << "] of ";
-    elem_type->Print(o, offset);
+    elem_type->PrintVerbose(o, offset);
 }
 
 //---SymTypeRecord---
@@ -335,7 +339,7 @@ void SymTypeRecord::Print(ostream& o, int offset) const
 
 void SymTypeRecord::PrintVerbose(ostream& o, int offset) const
 {
-    o << "record \n";
+    o << "record\n";
     syn_table->Print(o, offset);
     PrintSpaces(o, offset - 1);
     o << "end";    
@@ -360,6 +364,7 @@ void SymTypeAlias::PrintVerbose(ostream& o, int offset) const
     PrintSpaces(o, offset);
     o << token.GetName() << " = ";
     target->PrintVerbose(o, offset + 1);
+    o << "\n";
 }
 
 SymbolClass SymTypeAlias::GetClassName() const
@@ -475,10 +480,7 @@ void SynTable::Print(ostream& o, int offset) const
     SymbLessComp comp;
     sort(v.begin(), v.end(), comp);
     for (std::vector<Symbol*>::iterator it = v.begin(); it != v.end(); ++it)
-    {
         (*it)->PrintVerbose(o, offset);
-        o << ";\n";
-    }    
 }
 
 bool SynTable::IsEmpty() const

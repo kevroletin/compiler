@@ -123,6 +123,7 @@ SymType* Parser::ParseType()
             return res;
         } break;
         case TOK_CAP: {
+            Error("pointers was not implemented");
             Token name = scan.NextToken();
             if (!name.IsVar()) Error("identifier expected");
             const Symbol* ref_type = sym_table_stack.back()->Find(name);
@@ -189,12 +190,18 @@ void Parser::ParseDeclarations(bool is_global)
     while (loop)
     {
         switch (scan.GetToken().GetValue()) {
+            case TOK_PROCEDURE:
+            case TOK_FUNCTION:
+                ParseFunctionDefinition();
+            break;
             case TOK_VAR:
                 scan.NextToken();
+                if (!scan.GetToken().IsVar()) Error("identifier expected");
                 ParseVarDefinitions(is_global);
             break;
             case TOK_TYPE:
                 scan.NextToken();
+                if (!scan.GetToken().IsVar()) Error("identifier expected");
                 ParseTypeDefinitions();
             break;
             default:
@@ -262,8 +269,10 @@ void Parser::ParseFunctionDefinition()
     if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
     scan.NextToken();
     ParseDeclarations(false);
+    if (scan.GetToken().GetValue() != TOK_BEGIN) Error("'begin' expected");
     res->AddBody(ParseStatement());
     if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
+    scan.NextToken();
     sym_table_stack.pop_back();
 }
 
@@ -307,15 +316,17 @@ NodeStatement* Parser::ParseForStatement()
     if (index->GetVarType() != top_type_int) Error("integer varible expected");
     if (scan.NextToken().GetValue() != TOK_ASSIGN) Error("':=' expected");
     scan.NextToken();
-    SyntaxNode* first = GetRelationalExpr();
+    Token err_tok = scan.GetToken();
+    SyntaxNode* first = ParseRelationalExpr();
     if (first == NULL) Error("expression expected");
-    TryToConvertTypeOrDie(first, top_type_int, scan.GetToken());
+    TryToConvertTypeOrDie(first, top_type_int, err_tok);
     bool is_inc = (scan.GetToken().GetValue() == TOK_TO);
     if (!is_inc && scan.GetToken().GetValue() != TOK_DOWNTO) Error("'to' or 'downto' expected");
     scan.NextToken();
-    SyntaxNode* second = GetRelationalExpr();
+    err_tok = scan.GetToken();
+    SyntaxNode* second = ParseRelationalExpr();
     if (second == NULL) Error("expression expected");
-    TryToConvertTypeOrDie(second, top_type_int, scan.GetToken());
+    TryToConvertTypeOrDie(second, top_type_int, err_tok);
     if (scan.GetToken().GetValue() != TOK_DO) Error("'do' expected");
     scan.NextToken();
     NodeStatement* body = ParseStatement();
@@ -326,9 +337,10 @@ NodeStatement* Parser::ParseForStatement()
 NodeStatement* Parser::ParseWhileStatement()
 {
     scan.NextToken();
-    SyntaxNode* cond = GetRelationalExpr();
+    Token err_tok = scan.GetToken();
+    SyntaxNode* cond = ParseRelationalExpr();
     if (cond == NULL) Error("expression expected");
-    if (cond->GetSymType() != top_type_int) Error("integer expression expected");
+    if (cond->GetSymType() != top_type_int) Error("integer expression expected", err_tok);
     if (scan.GetToken().GetValue() != TOK_DO) Error("'do' expected");
     scan.NextToken();
     NodeStatement* body = ParseStatement();
@@ -347,18 +359,20 @@ NodeStatement* Parser::ParseUntilStatement()
         scan.NextToken();
     }
     scan.NextToken();
-    SyntaxNode* cond = GetRelationalExpr();
+    Token err_tok = scan.GetToken();
+    SyntaxNode* cond = ParseRelationalExpr();
     if (cond == NULL) Error("expression expected");
-    if (cond->GetSymType() != top_type_int) Error("integer exppression expected");
+    if (cond->GetSymType() != top_type_int) Error("integer exppression expected", err_tok);
     return new StmtUntil(cond, body);
 }
 
 NodeStatement* Parser::ParseIfStatement()
 {
     scan.NextToken();
-    SyntaxNode* cond = GetRelationalExpr();
+    Token err_tok = scan.GetToken();
+    SyntaxNode* cond = ParseRelationalExpr();
     if (cond == NULL) Error("expression expected");
-    if (cond->GetSymType() != top_type_int) Error("integer exppression expected");
+    if (cond->GetSymType() != top_type_int) Error("integer exppression expected", err_tok);
     if (scan.GetToken().GetValue() != TOK_THEN) Error("'then' expected");
     scan.NextToken();
     NodeStatement* then_branch = ParseStatement();
@@ -376,13 +390,13 @@ NodeStatement* Parser::ParseIfStatement()
 
 NodeStatement* Parser::ParseAssignStatement()
 {
-    SyntaxNode* left = GetRelationalExpr();
+    SyntaxNode* left = ParseRelationalExpr();
     if (left == NULL) return NULL;
     if (scan.GetToken().GetValue() != TOK_ASSIGN)
         return new StmtExpression(left);
     Token op = scan.GetToken();
     scan.NextToken();
-    SyntaxNode* right = GetRelationalExpr();
+    SyntaxNode* right = ParseRelationalExpr();
     if (right == NULL) Error("expression expected");
     TryToConvertTypeOrDie(right, left->GetSymType(),  op);
     return new StmtAssign(op, left, right);    
@@ -421,41 +435,19 @@ const Symbol* Parser::FindSymbol(const Token& tok)
 
 void Parser::Parse()
 {
-    bool loop = true;
-    while (loop)
-    {
-        switch (scan.GetToken().GetValue()) {
-            case TOK_PROCEDURE:
-            case TOK_FUNCTION:
-                ParseFunctionDefinition();
-            break;
-            case TOK_VAR:
-                scan.NextToken();
-                ParseVarDefinitions();
-            break;
-            case TOK_TYPE:
-                scan.NextToken();
-                ParseTypeDefinitions();
-            break;
-            case TOK_BEGIN:
-            {
-                syntax_tree = ParseStatement();
-                if (scan.GetToken().GetValue() != TOK_DOT) Error("'.' expected");
-                loop = false;
-            }
-            default:
-                loop = false;
-        }      
-    }
+    ParseDeclarations(true);
+    if (scan.GetToken().GetValue() != TOK_BEGIN) Error("'begin' expected");
+    syntax_tree = ParseStatement();
+    if (scan.GetToken().GetValue() != TOK_DOT) Error("'.' expected");
 }
 
-SyntaxNode* Parser::GetTerm()
+SyntaxNode* Parser::ParseFactor()
 {
     SyntaxNode* left = NULL;
     if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
     {
         scan.NextToken();
-        left = GetRelationalExpr();
+        left = ParseRelationalExpr();
         if (left == NULL) Error("illegal expression");
         if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
             Error("expected )");
@@ -488,15 +480,16 @@ SyntaxNode* Parser::GetTerm()
                 scan.NextToken();
                 while (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
                 {
-                    SyntaxNode* arg = GetRelationalExpr();
+                    Token err_pos_tok = scan.GetToken();
+                    SyntaxNode* arg = ParseRelationalExpr();
                     if (arg == NULL) Error("illegal expression");
                     if (scan.GetToken().GetValue() == TOK_COMMA)
                         scan.NextToken();
                     else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
                         Error(", expected");
-                    if (funct->GetCurrentArgType() == NULL) Error("too many actual parameters");
-                    TryToConvertTypeOrDie(arg, funct->GetCurrentArgType(), scan.GetToken());
-                    if (funct->IsCurrentArfByRef() && !arg->IsLValue()) Error("lvalue expected");
+                    if (funct->GetCurrentArgType() == NULL) Error("too many actual parameters", err_pos_tok);
+                    TryToConvertTypeOrDie(arg, funct->GetCurrentArgType(), err_pos_tok);
+                    if (funct->IsCurrentArfByRef() && !arg->IsLValue()) Error("lvalue expected", err_pos_tok);
                     funct->AddArg(arg);
                 }
                 scan.NextToken();
@@ -508,14 +501,14 @@ SyntaxNode* Parser::GetTerm()
         else Error("identifier expected");
     }
     Token op = scan.GetToken();
-    while (op.IsTermOp())
+    while (op.IsFactorOp())
     {
         if (op.GetValue() == TOK_DOT)
         {
             while (op.GetValue() == TOK_DOT)
             {
                 Token field = scan.NextToken();
-                if (scan.GetToken().GetType() != IDENTIFIER) Error("identifier after . expected");
+                if (scan.GetToken().GetType() != IDENTIFIER) Error("identifier expected after '.'");
                 left = new NodeRecordAccess((NodeVar*)left, field);
                 op = scan.NextToken();
             }
@@ -524,7 +517,7 @@ SyntaxNode* Parser::GetTerm()
         {
             scan.NextToken();
             while (true) {
-                SyntaxNode* index = GetRelationalExpr();
+                SyntaxNode* index = ParseRelationalExpr();
                 if (index == NULL) Error("illegal expression");
                 left = new NodeArrayAccess(left, index, op);
                 op = scan.GetToken();
@@ -544,7 +537,7 @@ SyntaxNode* Parser::GetTerm()
     return left;
 }
 
-SyntaxNode* Parser::GetUnaryExpr()
+SyntaxNode* Parser::ParseUnaryExpr()
 {
     std::vector<Token> un;
     while (scan.GetToken().IsUnaryOp())
@@ -552,7 +545,7 @@ SyntaxNode* Parser::GetUnaryExpr()
         un.push_back(scan.GetToken());
         scan.NextToken();
     }
-    SyntaxNode* res = GetTerm();
+    SyntaxNode* res = ParseFactor();
     if (un.size() != 0 && res == NULL) Error("illegal expression");
     if (res != NULL)
     {
@@ -562,15 +555,15 @@ SyntaxNode* Parser::GetUnaryExpr()
     return res;
 }
 
-SyntaxNode* Parser::GetMultiplyingExpr()
+SyntaxNode* Parser::ParseMultiplyingExpr()
 {
-    SyntaxNode* left = GetUnaryExpr();
+    SyntaxNode* left = ParseUnaryExpr();
     if (left == NULL) return NULL;
     Token op = scan.GetToken();
     while (op.IsMultOp())
     {
         scan.NextToken();
-        SyntaxNode* right = GetUnaryExpr();
+        SyntaxNode* right = ParseUnaryExpr();
         if (right == NULL) Error("illegal expression");
         TryToConvertTypeOrDie(left, right, op);
         left = new NodeBinaryOp(op, left, right);
@@ -579,15 +572,15 @@ SyntaxNode* Parser::GetMultiplyingExpr()
     return left;
 }
 
-SyntaxNode* Parser::GetAddingExpr()
+SyntaxNode* Parser::ParseAddingExpr()
 {
-    SyntaxNode* left = GetMultiplyingExpr();
+    SyntaxNode* left = ParseMultiplyingExpr();
     if (left == NULL) return NULL;
     Token op = scan.GetToken();
     while (op.IsAddingOp())
     {
         scan.NextToken();
-        SyntaxNode* right = GetMultiplyingExpr();
+        SyntaxNode* right = ParseMultiplyingExpr();
         if (right == NULL) Error("expression expected");
         TryToConvertTypeOrDie(left, right, op);
         left = new NodeBinaryOp(op, left, right);
@@ -596,15 +589,15 @@ SyntaxNode* Parser::GetAddingExpr()
     return left;
 }
 
-SyntaxNode* Parser::GetRelationalExpr()
+SyntaxNode* Parser::ParseRelationalExpr()
 {
-    SyntaxNode* left = GetAddingExpr();
+    SyntaxNode* left = ParseAddingExpr();
     if (left == NULL) return NULL;
     Token op = scan.GetToken();
     while (op.IsRelationalOp())
     {
         scan.NextToken();
-        SyntaxNode* right = GetAddingExpr();
+        SyntaxNode* right = ParseAddingExpr();
         if (right == NULL) Error("expression expected");
         TryToConvertTypeOrDie(left, right, op);
         left = new NodeBinaryOp(op, left, right);
@@ -615,8 +608,12 @@ SyntaxNode* Parser::GetRelationalExpr()
 
 void Parser::Error(string msg)
 {
+    Error(msg, scan.GetToken());
+}
+
+void Parser::Error(string msg, Token err_pos_tok)
+{
     stringstream s;
-    Token token = scan.GetToken();
-    s << token.GetLine() << ':' << token.GetPos() << " ERROR at '" << token.GetName() << "': " << msg;
+    s << err_pos_tok.GetLine() << ':' << err_pos_tok.GetPos() << " ERROR at '" << err_pos_tok.GetName() << "': " << msg;
     throw( CompilerException(s.str()) );
 }

@@ -1,1 +1,11 @@
-Func ( argument )
+procedure Funct(a: Integer);
+begin
+end;
+
+var
+    argument: Integer;
+begin
+
+    Funct ( argument );
+
+end.

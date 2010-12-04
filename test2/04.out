@@ -1,6 +1,9 @@
-+ [real]
+v: real
+begin
   + [real]
-    IntToReal [real]
-      1 [integer]
-    v [real]
-  33.e32 [real]
+    + [real]
+      IntToReal [real]
+        1 [integer]
+      v [real]
+    33.e32 [real]
+end

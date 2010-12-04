@@ -1,1 +1,1 @@
-1:1 ERROR at '[': end of file expected
+2:2 ERROR at '[': ';' expected

@@ -190,7 +190,7 @@ bool Token::IsUnaryOp() const
     return value == TOK_NOT || value == TOK_PLUS || value == TOK_MINUS;
 }
 
-bool Token::IsTermOp() const
+bool Token::IsFactorOp() const
 {
     return value == TOK_BRACKETS_SQUARE_LEFT || value == TOK_DOT;
 }

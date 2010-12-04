@@ -1,1 +1,12 @@
-a.b.c
+var
+    a: record
+	b: record
+	    c: Integer;
+	end;
+    end;
+
+begin
+
+a.b.c;
+
+end.

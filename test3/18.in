@@ -1,1 +1,7 @@
-call(a > b) = c
+function call(i: Integer): Integer;
+begin
+end;
+
+begin
+    call(5 > 1) = 5;
+end.

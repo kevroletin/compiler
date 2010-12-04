@@ -1,1 +1,10 @@
-arr[ arr2[index]]
+var
+    arr: array[1..2] of Real;
+    arr2: array[1..2] of Integer;
+    index: Integer;
+    
+begin
+
+arr[ arr2[index]];
+
+end.

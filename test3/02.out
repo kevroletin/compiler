@@ -1,3 +1,10 @@
-()
-  Func
-  argument
+argument: integer
+procedure funct(a: integer);
+var
+  a: integer
+begin
+end
+begin
+  () funct [untyped]
+    argument [integer]
+end

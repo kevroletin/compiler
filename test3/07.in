@@ -1,1 +1,8 @@
-a[4]
+var
+    a: array[1..4] of Real;
+
+begin
+
+a[4] ;
+
+end.

@@ -1,1 +1,1 @@
-1:3 ERROR at 'a': end of file expected
+6:3 ERROR at 'a': ';' expected

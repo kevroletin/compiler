@@ -1,1 +1,7 @@
-'hello'.a
+function b: Integer;
+begin
+end;
+
+begin
+b.a;
+end;

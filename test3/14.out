@@ -1,13 +1,1 @@
-()
-  funct
-  []
-    arr
-    i
-  .
-    a
-    b
-  .
-    ()
-      funct2
-      arg
-    c
+11:8 ERROR at '20': lvalue expected

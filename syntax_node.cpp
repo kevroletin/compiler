@@ -27,7 +27,7 @@ bool NodeCall::IsCurrentArfByRef() const
 void NodeCall::Print(ostream& o, int offset) const 
 {
     PrintSpaces(o, offset);
-    o << funct->GetName() << " [";
+    o << "() " << funct->GetName() << " [";
     GetSymType()->Print(o , offset);
     o << "]\n";
     for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++it)

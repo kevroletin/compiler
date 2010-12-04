@@ -1,1 +1,14 @@
-Funct( a.b, 5)
+var
+    a: record
+	b: Integer;
+    end;
+
+procedure Funct(a,b: Integer);
+begin
+end;
+
+begin
+
+Funct( a.b, 5);
+
+end.

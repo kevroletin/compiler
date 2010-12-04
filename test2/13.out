@@ -1,2 +1,4 @@
-+ [integer]
-  1 [integer]
+begin
+  + [integer]
+    1 [integer]
+end

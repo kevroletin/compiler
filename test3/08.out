@@ -1,7 +1,11 @@
-[]
-  arr
-  -
-    *
-      index
-      4
-    2
+arr: array [1..3] of integer
+index: integer
+begin
+  [] [integer]
+    arr [array]
+    - [integer]
+      * [integer]
+        index [integer]
+        4 [integer]
+      2 [integer]
+end

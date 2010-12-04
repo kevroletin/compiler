@@ -1,7 +1,15 @@
-.
-  []
-    arr
-    .
-      a
-      b
-  c
+a: record
+  b: integer
+end
+arr: array [1..2] of record
+  c: real
+end
+begin
+  . [real]
+    [] [record]
+      arr [array]
+      . [integer]
+        a [record]
+        b [integer]
+    c [real]
+end

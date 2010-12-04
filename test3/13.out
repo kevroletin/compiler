@@ -1,5 +1,1 @@
-.
-  +
-    a
-    b
-  c
+6:9 ERROR at 'c': illegal qualifier

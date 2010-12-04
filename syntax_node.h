@@ -3,7 +3,7 @@
 #include "syntax_node_base.h"
 #include "statement_base.h"
 #include "scanner.h"
-#include "syn_table.h"
+#include "sym_table.h"
 #include "exception.h"
 #include <vector>
 

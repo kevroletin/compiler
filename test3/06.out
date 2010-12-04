@@ -1,5 +1,12 @@
-.
-  .
-    a
-    b
-  c
+a: record
+  b: record
+    c: integer
+  end
+end
+begin
+  . [integer]
+    . [record]
+      a [record]
+      b [record]
+    c [integer]
+end

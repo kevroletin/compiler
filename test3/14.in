@@ -1,1 +1,13 @@
-funct( arr[i], a.b, funct2(arg).c)
+procedure funct(var a, b: Integer);
+begin
+end;
+
+function funct2: Integer;
+begin
+end;
+
+begin
+
+funct( 20, funct2(10));
+
+end.

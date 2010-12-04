@@ -1,3 +1,8 @@
-.
-  a
-  b
+a: record
+  b: integer
+end
+begin
+  . [integer]
+    a [record]
+    b [integer]
+end

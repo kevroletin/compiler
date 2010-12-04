@@ -1,1 +1,1 @@
-1:8 ERROR at '.': end of file expected
+6:3 ERROR at 'a': illegal qualifier

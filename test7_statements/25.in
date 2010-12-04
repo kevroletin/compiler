@@ -1,0 +1,5 @@
+begin
+    while 5.5 do
+	begin
+	end;
+end.

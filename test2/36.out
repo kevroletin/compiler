@@ -1,4 +1,7 @@
-+ [integer]
+a: integer
+begin
   + [integer]
-    not [integer]
-      a [integer]
+    + [integer]
+      not [integer]
+        a [integer]
+end

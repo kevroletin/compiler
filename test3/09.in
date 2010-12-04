@@ -1,1 +1,13 @@
-arr[a.b].c
+var
+    arr: array[1..2] of record
+	c: Real;
+    end;
+    a: record
+	b: Integer;
+    end;
+
+begin
+
+arr[a.b].c ;
+
+end.

@@ -1,1 +1,8 @@
-5 > 'str' > 10e10 > var1 > $12
+var
+    var: Integer;
+    
+begin
+
+5 > 10e10 > var1 > $12;
+
+end.

@@ -1,1 +1,8 @@
-5.a
+var
+    a: Integer;
+    
+begin
+
+5.a  ;
+
+end.

@@ -1,1 +1,8 @@
-(a + b).c
+var
+    a, b, c: Integer;
+
+begin
+
+(a + b).c;
+
+end.

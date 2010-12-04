@@ -1,5 +1,9 @@
-+ [integer]
+t = integer
+variable: t
+begin
   + [integer]
-    589 [integer]
-    variable [t]
-  389 [integer]
+    + [integer]
+      589 [integer]
+      variable [t]
+    389 [integer]
+end

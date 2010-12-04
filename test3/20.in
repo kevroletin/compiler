@@ -1,1 +1,2 @@
-arr[i][j]
+var
+    a: Integer;

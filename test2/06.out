@@ -1,5 +1,10 @@
-+ [integer]
+var1: integer
+var2: integer
+var3: integer
+begin
   + [integer]
-    var1 [integer]
-    var2 [integer]
-  var3 [integer]
+    + [integer]
+      var1 [integer]
+      var2 [integer]
+    var3 [integer]
+end

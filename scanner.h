@@ -106,7 +106,7 @@ public:
     bool IsAddingOp() const;
     bool IsMultOp() const;
     bool IsUnaryOp() const;
-    bool IsTermOp() const;
+    bool IsFactorOp() const;
     bool IsConst() const;
     bool IsVar() const;
     bool IsConstVar() const;

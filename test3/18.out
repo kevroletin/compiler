@@ -1,7 +1,14 @@
-=
-  ()
-    call
-    >
-      a
-      b
-  c
+function call(i: integer): integer;
+var
+  i: integer
+  result: integer
+begin
+end
+begin
+  = [integer]
+    () call [integer]
+      > [integer]
+        5 [integer]
+        1 [integer]
+    5 [integer]
+end

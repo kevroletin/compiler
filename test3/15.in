@@ -1,1 +1,16 @@
-a > b
+procedure funct(var a, b: Integer);
+begin
+end;
+
+function funct2(a: Integer): Integer;
+begin
+end;
+
+var
+    a: Integer;
+
+begin
+
+funct( a, funct2);
+
+end.

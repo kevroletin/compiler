@@ -1,15 +1,1 @@
-[]
-  []
-    []
-      []
-        []
-          []
-            arr
-            1
-          $1
-        str
-      1e1
-    a1
-  +
-    -
-      expression
+5:1 ERROR at 'a': 'begin' expected

@@ -1,3 +1,6 @@
-[]
-  a
-  4
+a: array [1..4] of real
+begin
+  [] [real]
+    a [array]
+    4 [integer]
+end

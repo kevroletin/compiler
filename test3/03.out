@@ -1,10 +1,18 @@
-()
-  Funct1
-  1
-  str
-  varible
-  10.e33
-  $1
-  +
-    1
-    expression
+procedure funct1(a: integer; b: integer; r: real; i: integer);
+var
+  a: integer
+  b: integer
+  i: integer
+  r: real
+begin
+end
+variable: integer
+begin
+  () funct1 [untyped]
+    1 [integer]
+    variable [integer]
+    10.e33 [real]
+    + [integer]
+      $1 [integer]
+      1 [integer]
+end

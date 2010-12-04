@@ -1,1 +1,4 @@
-variable [integer]
+variable: integer
+begin
+  variable [integer]
+end

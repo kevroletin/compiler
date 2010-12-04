@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include "scanner.h"
-#include "syn_table.h"
+#include "sym_table.h"
 #include "syntax_node.h"
 #include "exception.h"
 #include <string.h>
@@ -27,12 +27,13 @@ private:
     SymType* top_type_bool;
     std::vector<SynTable*> sym_table_stack;
     void NextToken();
-    SyntaxNode* GetTerm();
-    SyntaxNode* GetAddingExpr();
-    SyntaxNode* GetMultiplyingExpr();
-    SyntaxNode* GetUnaryExpr();
-    SyntaxNode* GetRelationalExpr();
-    void Error(string msgn);
+    SyntaxNode* ParseFactor();
+    SyntaxNode* ParseAddingExpr();
+    SyntaxNode* ParseMultiplyingExpr();
+    SyntaxNode* ParseUnaryExpr();
+    SyntaxNode* ParseRelationalExpr();
+    void Error(string msg, Token err_pos_tok);
+    void Error(string msg);
     SymType* ParseType();
     void ParseVarDefinitions(bool is_global = true);
     void ParseTypeDefinitions();

@@ -1,4 +1,6 @@
-- [integer]
-  + [integer]
-    not [integer]
-      5 [integer]
+begin
+  - [integer]
+    + [integer]
+      not [integer]
+        5 [integer]
+end

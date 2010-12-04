@@ -1,1 +1,8 @@
-arr[,]
+var
+    arr: array[1..2, 1..4] of Integer;
+    
+begin
+
+arr[,];
+
+end.

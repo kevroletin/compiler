@@ -1,11 +1,15 @@
-- [integer]
-  + [integer]
-    / [integer]
-      3 [integer]
-      a [integer]
-    * [integer]
-      b [integer]
+a: integer
+b: integer
+begin
+  - [integer]
+    + [integer]
+      / [integer]
+        3 [integer]
+        a [integer]
+      * [integer]
+        b [integer]
+        4 [integer]
+    div [integer]
+      5 [integer]
       4 [integer]
-  div [integer]
-    5 [integer]
-    4 [integer]
+end

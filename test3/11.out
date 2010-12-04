@@ -1,9 +1,20 @@
-[]
-  arr
-  ()
-    funct
-    .
-      []
-        arr
-        a
-      b
+a: integer
+arr: array [1..2] of record
+  b: real
+end
+function funct(r: real): integer;
+var
+  r: real
+  result: integer
+begin
+end
+begin
+  [] [record]
+    arr [array]
+    () funct [integer]
+      . [real]
+        [] [record]
+          arr [array]
+          a [integer]
+        b [real]
+end
