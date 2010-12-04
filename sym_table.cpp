@@ -41,8 +41,7 @@ SymbolClass Symbol::GetClassName() const
 
 void Symbol::Print(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
-    o << token.GetName();
+    PrintSpaces(o, offset) << token.GetName();
 }
 
 void Symbol::PrintVerbose(ostream& o, int offset) const
@@ -85,7 +84,7 @@ void SymProc::PrintPrototype(ostream& o, int offset) const
     if (params.size() > 0)
     {
         o << "(";
-        (*params.begin())->Print(o, 0);
+        params.front()->Print(o, 0);
         for (vector<SymVarParam*>::const_iterator it = ++params.begin(); it != params.end(); ++it)
         {
             o << "; ";
@@ -219,8 +218,7 @@ void SymVar::Print(ostream& o, int offset) const
 
 void SymVar::PrintVerbose(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
-    o << token.GetName() << ": ";
+    PrintSpaces(o, offset) << token.GetName() << ": ";
     if (type->GetClassName() & SYM_TYPE_ALIAS)
         type->Print(o, offset + 1);
     else
@@ -235,8 +233,7 @@ const SymType* SymVar::GetVarType() const
 
 void SymVar::PrintAsNode(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
-    o << token.GetName() << " [";
+    PrintSpaces(o, offset) << token.GetName() << " [";
     type->Print(o, 0);
     o << "]\n";
 }
@@ -344,8 +341,7 @@ void SymTypeRecord::PrintVerbose(ostream& o, int offset) const
 {
     o << "record\n";
     syn_table->Print(o, offset);
-    PrintSpaces(o, offset - 1);
-    o << "end";    
+    PrintSpaces(o, offset - 1) << "end";    
 }
 
 //---SymTypeAlias---
@@ -364,8 +360,7 @@ void SymTypeAlias::Print(ostream& o, int offset) const
 
 void SymTypeAlias::PrintVerbose(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
-    o << token.GetName() << " = ";
+    PrintSpaces(o, offset) << token.GetName() << " = ";
     target->PrintVerbose(o, offset + 1);
     o << "\n";
 }

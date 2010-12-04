@@ -25,9 +25,10 @@ void Error(string msg, Token token)
     throw( CompilerException(s.str()) );
 }
 
-void PrintSpaces(ostream& o, int offset)
+ostream& PrintSpaces(ostream& o, int offset)
 {
     for (int i = 0; i < offset; ++i)
         o << "  ";
+    return o;
 }
 

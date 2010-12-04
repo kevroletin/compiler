@@ -26,8 +26,7 @@ bool NodeCall::IsCurrentArfByRef() const
 
 void NodeCall::Print(ostream& o, int offset) const 
 {
-    PrintSpaces(o, offset);
-    o << "() " << funct->GetName() << " [";
+    PrintSpaces(o, offset) << "() " << funct->GetName() << " [";
     GetSymType()->Print(o , offset);
     o << "]\n";
     for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++it)
@@ -52,8 +51,7 @@ NodeBinaryOp::NodeBinaryOp(const Token& name, SyntaxNode* left_, SyntaxNode* rig
 
 void NodeBinaryOp::Print(ostream& o, int offset) const 
 {
-    PrintSpaces(o, offset);
-    o << token.GetName() << " [";
+    PrintSpaces(o, offset) << token.GetName() << " [";
     GetSymType()->Print(o , offset);
     o << "]\n";
     left->Print(o, offset + 1);
@@ -75,8 +73,7 @@ NodeUnaryOp::NodeUnaryOp(const Token& name, SyntaxNode* child_):
 
 void NodeUnaryOp::Print(ostream& o, int offset) const 
 {
-    PrintSpaces(o, offset);
-    o << token.GetName() << " [";
+    PrintSpaces(o, offset) << token.GetName() << " [";
     GetSymType()->Print(o , offset);
     o << "]\n";
     child->Print(o, offset + 1);
@@ -97,8 +94,7 @@ NodeIntToRealConv::NodeIntToRealConv(SyntaxNode* child_, SymType* real_type_):
 
 void NodeIntToRealConv::Print(ostream& o, int offset) const 
 {
-    PrintSpaces(o, offset);
-    o << "IntToReal [";
+    PrintSpaces(o, offset) << "IntToReal [";
     real_type->Print(o, 0);
     o << "]\n";
     child->Print(o, offset + 1);
@@ -148,8 +144,7 @@ NodeArrayAccess::NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_, Token tok
 
 void NodeArrayAccess::Print(ostream& o, int offset) const 
 {
-    PrintSpaces(o, offset);
-    o << "[] [";
+    PrintSpaces(o, offset) << "[] [";
     GetSymType()->Print(o, offset);
     o << "]\n";
     arr->Print(o, offset+1);
@@ -180,8 +175,7 @@ NodeRecordAccess::NodeRecordAccess(SyntaxNode* record_, Token field_):
 
 void NodeRecordAccess::Print(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
-    o << ". [";
+    PrintSpaces(o, offset) << ". [";
     GetSymType()->Print(o , offset);
     o << "]\n";
     record->Print(o, offset + 1);
@@ -220,8 +214,7 @@ const SyntaxNode* StmtAssign::GetRight() const
 
 void StmtAssign::Print(ostream& o, int offset) const 
 {
-    PrintSpaces(o, offset);
-    o << ":= \n";
+    PrintSpaces(o, offset) << ":= \n";
     left->Print(o, offset + 1);
     right->Print(o, offset + 1);
 }
@@ -235,12 +228,10 @@ void StmtBlock::AddStatement(SyntaxNode* new_stmt)
 
 void StmtBlock::Print(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
-    o << "begin\n";
+    PrintSpaces(o, offset) << "begin\n";
     for (vector<SyntaxNode*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
         (*it)->Print(o, offset + 1);
-    PrintSpaces(o, offset);
-    o << "end\n";
+    PrintSpaces(o, offset) << "end\n";
 }
 
 //---StmtExpression---
@@ -268,8 +259,7 @@ StmtFor::StmtFor(const SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_
 
 void StmtFor::Print(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
-    o << "for " << (inc ? "to \n" : "downto \n");
+    PrintSpaces(o, offset) << "for " << (inc ? "to \n" : "downto \n");
     index->PrintAsNode(o, offset + 1);
     init_val->Print(o, offset + 1);
     last_val->Print(o, offset + 1);
@@ -286,8 +276,7 @@ StmtWhile::StmtWhile(SyntaxNode* condition_, NodeStatement* body_):
     
 void StmtWhile::Print(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
-    o << "while\n";
+    PrintSpaces(o, offset) << "while\n";
     condition->Print(o, offset + 1);
     body->Print(o, offset + 1);
 }
@@ -302,8 +291,7 @@ StmtUntil::StmtUntil(SyntaxNode* condition_, NodeStatement* body_):
 
 void StmtUntil::Print(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
-    o << "until\n";
+    PrintSpaces(o, offset) << "until\n";
     condition->Print(o, offset + 1);
     body->Print(o, offset + 1);
 }
@@ -319,16 +307,13 @@ StmtIf::StmtIf(SyntaxNode* condition_, NodeStatement* then_branch_, NodeStatemen
 
 void StmtIf::Print(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset);
-    o << "if\n";
+    PrintSpaces(o, offset) << "if\n";
     condition->Print(o, offset + 1);
-    PrintSpaces(o, offset);
-    o << "then\n";
+    PrintSpaces(o, offset) << "then\n";
     then_branch->Print(o, offset + 1);
     if (else_branch != NULL)
     {
-        PrintSpaces(o, offset);
-        o << "else\n";
+        PrintSpaces(o, offset) << "else\n";
         else_branch->Print(o, offset + 1);
     }
 }

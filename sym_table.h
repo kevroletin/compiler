@@ -54,7 +54,7 @@ protected:
 public:
     SymType(Token token);
     virtual SymbolClass GetClassName() const;
-    void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetActualType() const;
 };
 

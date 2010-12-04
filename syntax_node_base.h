@@ -14,6 +14,6 @@ public:
 };
 
 extern void Error(string msg, Token token);
-extern void PrintSpaces(ostream& o, int offset);
+extern ostream& PrintSpaces(ostream& o, int offset);
 
 #endif
