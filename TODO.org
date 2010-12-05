@@ -28,3 +28,4 @@
 * TODO перенести добавление переменной Result в конструктор SymFunction
 * TODO убрать SymbCompLess из заголовочного файла sym_table.h
 * TODO исправить: арифмитические выражения, не присвоенные переменной портят стек
+* TODO получить label в SymVarGlobal::GenerateDeclaration

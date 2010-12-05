@@ -15,6 +15,7 @@ const string REG_TO_STR[] =
 const string ASM_CMD_TO_STR[] =
 {
     "add",
+    "call",
     "div",
     "idiv",
     "imul",
@@ -23,10 +24,18 @@ const string ASM_CMD_TO_STR[] =
     "mul",
     "pop",
     "push",
+    "ret",
     "sub",
     "xor"
 };
 
+const string ASM_DATA_TYPE_TO_STR[] = 
+{
+    ".space",
+    ".long",
+    ".float",
+    ".string"
+};
 
 //---AsmCmd---
 
@@ -42,16 +51,18 @@ void AsmCmd::Print(ostream& o) const
 
 //---AsmData---
 
-AsmData::AsmData(string name_, unsigned size_):
+AsmData::AsmData(string name_, string value_, AsmDataType type):
     name(strcpy(new char[name_.size() + 1], name_.c_str())),
-    size(size_)
+    value(strcpy(new char[value_.size() + 1], value_.c_str())),
+    type(type)
 {
-
 }
 
 void AsmData::Print(ostream& o) const
 {
-    o << name << ": .space " << size;
+    o << name << ": " << ASM_DATA_TYPE_TO_STR[type] << ' ';
+    if (type == DATA_STR) o << '\"' << value << '\"';
+    else o << value;
 }
 
 //---AsmCmd1---
@@ -112,11 +123,11 @@ void AsmRegister::Print(ostream& o) const
 //---AsmImmidiate---
 
 AsmImmidiate::AsmImmidiate():
-    value(strcpy(new char[1], ""))
+    value(strcpy(new char[2], ""))
 {
 }
 
-AsmImmidiate::AsmImmidiate(string value_):
+AsmImmidiate::AsmImmidiate(const string& value_):
     value(strcpy(new char[value_.size() + 1], value_.c_str()))
 {
 }
@@ -129,7 +140,7 @@ AsmImmidiate::AsmImmidiate(unsigned num)
 
 AsmImmidiate::AsmImmidiate(const AsmImmidiate& src)
 {
-    delete(value);
+    if (value != NULL) delete(value);
     value = strcpy(new char[strlen(src.value) + 1], src.value);
 }
 
@@ -153,8 +164,8 @@ AsmMemory::AsmMemory(AsmOperandBase* base_, unsigned disp_, unsigned index_, uns
 {
 }
 
-AsmMemory::AsmMemory(AsmImmidiate base, unsigned disp_, unsigned index_, unsigned scale_):
-    base(new AsmImmidiate(base)),
+AsmMemory::AsmMemory(AsmImmidiate base_, unsigned disp_, unsigned index_, unsigned scale_):
+    base(new AsmImmidiate(base_)),
     disp(disp_),
     index(index_),
     scale(scale_)
@@ -181,14 +192,34 @@ void AsmMemory::Print(ostream& o) const
 
 //---AsmCode---
 
+AsmCode::AsmCode()
+//    format_str_real(AddData("format_str_f", "%d", DATA_STR))
+//    format_str_int(AddData("format_str_d", "%d", DATA_STR))
+//    funct_write(AsmMemory(AsmImmidiate("printf")))
+{
+    AddData(ChangeName("format_str_f"), "%d", DATA_STR);
+    AddData(ChangeName("format_str_d"), "%d", DATA_STR);
+//    AsmMemory(AsmImmidiate("printf"));
+}
+
 AsmImmidiate AsmCode::LabelByStr(string str)
 {
-    return AsmImmidiate(str);
+    return AsmImmidiate(ChangeName(str));
+}
+
+string AsmCode::ChangeName(string str)
+{
+    return str;
 }
 
 void AsmCode::AddCmd(AsmCmd* cmd)
 {
     commands.push_back(cmd);
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory mem)
+{
+    commands.push_back(new AsmCmd1(cmd, new AsmMemory(mem)));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest)
@@ -265,11 +296,17 @@ void AsmCode::AddData(AsmData* new_data)
     data.push_back(new_data);
 }
 
-AsmImmidiate AsmCode::AddData(string label, unsigned size)
+void AsmCode::AddData(string label, string value, AsmDataType type)
 {
-    AsmImmidiate imm = LabelByStr(label);
-    data.push_back(new AsmData(imm.GetValue(), size));
-    return imm;
+    string new_name = ChangeName(label); 
+    data.push_back(new AsmData(new_name, value, type));
+}
+
+void AsmCode::AddData(string label, unsigned size)
+{
+    char buff[15];
+    sprintf(buff, "%u", size);
+    data.push_back(new AsmData(ChangeName(label), buff));
 }
 
 void AsmCode::Print(ostream& o) const
@@ -290,4 +327,18 @@ void AsmCode::Print(ostream& o) const
         o << '\n';
     }
     o << "\tret\n";
+}
+
+void AsmCode::CallWriteForInt()
+{
+ //   AddCmd(ASM_PUSH, format_str_int);
+ //   AddCmd(ASM_CALL, funct_write);
+ //   AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
+}
+
+void AsmCode::CallWriteForReal()
+{
+ //   AddCmd(ASM_PUSH, format_str_real);
+ //   AddCmd(ASM_CALL, funct_write);
+ //   AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
 }

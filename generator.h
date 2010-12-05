@@ -25,6 +25,7 @@ extern const string REG_TO_STR[];
 
 enum AsmCmdName{
     ASM_ADD,
+    ASM_CALL,
     ASM_DIV,
     ASM_IDIV,
     ASM_IMUL,
@@ -33,11 +34,21 @@ enum AsmCmdName{
     ASM_MUL,
     ASM_POP,
     ASM_PUSH,
+    ASM_RET,
     ASM_SUB,
     ASM_XOR
 };
 
 extern const string ASM_CMD_TO_STR[];
+
+enum AsmDataType{
+    DATA_UNTYPED,
+    DATA_INT,
+    DATA_FLOAT,
+    DATA_STR
+};
+
+extern const string ASM_DATA_TYPE_TO_STR[];
 
 class AsmCmd{
 protected:
@@ -50,9 +61,10 @@ public:
 class AsmData{
 private:
     char* name;
-    unsigned size;
+    char* value;
+    AsmDataType type;
 public:
-    AsmData(string name_, unsigned size_);
+    AsmData(string name_, string value, AsmDataType type = DATA_UNTYPED);
     virtual void Print(ostream& o) const;    
 };
 
@@ -96,7 +108,7 @@ private:
     char* value;
 public:
     AsmImmidiate();
-    AsmImmidiate(string value_);
+    AsmImmidiate(const string& value_);
     AsmImmidiate(unsigned num);
     AsmImmidiate(const AsmImmidiate& src);
     string GetValue();
@@ -118,14 +130,20 @@ public:
 
 class AsmCode{
 private:
+    AsmImmidiate format_str_real;
+    AsmImmidiate format_str_int;
+//    AsmMemory funct_write; 
     vector<AsmCmd*> commands;
     vector<AsmData*> data;
-    AsmImmidiate LabelByStr(string str); 
+    AsmImmidiate LabelByStr(string str);
+    string ChangeName(string str);
 public:
+    AsmCode();
     void AddCmd(AsmCmd* cmd);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper);
     void AddCmd(AsmCmdName cmd, RegisterName reg);
     void AddCmd(AsmCmdName cmd, AsmMemory* mem);
+    void AddCmd(AsmCmdName cmd, AsmMemory mem);
     void AddCmd(AsmCmdName cmd, AsmImmidiate* imm);
     void AddCmd(AsmCmdName cmd, AsmImmidiate imm);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2);
@@ -137,8 +155,11 @@ public:
     void AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem);
     void AddData(AsmData* new_data);
-    AsmImmidiate AddData(string label, unsigned size);
+    void AddData(string label, string value, AsmDataType type = DATA_UNTYPED);
+    void AddData(string label, unsigned size);
     virtual void Print(ostream& o) const;
+    void CallWriteForInt();
+    void CallWriteForReal();
 };
 
 #endif

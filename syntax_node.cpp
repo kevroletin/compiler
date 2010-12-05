@@ -47,6 +47,38 @@ const SymType* NodeCall::GetSymType() const
     return funct->GetResultType();
 }
 
+//---NodeWriteCall---
+
+void NodeWriteCall::GenerateForInt(AsmCode& asm_code) const
+{
+}
+
+void NodeWriteCall::GenerateForReal(AsmCode& asm_code) const
+{
+}
+
+void NodeWriteCall::AddArg(SyntaxNode* arg)
+{
+    args.push_back(arg);
+}
+
+void NodeWriteCall::GenerateValue(AsmCode& asm_code) const
+{
+    for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++it)
+    {
+        (*it)->GenerateValue(asm_code);
+        if ((*it)->GetSymType() == top_type_int)
+            asm_code.CallWriteForInt();
+        else
+            asm_code.CallWriteForReal();
+    }
+}
+
+const SymType* NodeWriteCall::GetSymType() const
+{
+    return top_type_untyped;
+}
+
 //---NodeBinaryOp---
 
 void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const

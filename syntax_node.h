@@ -17,7 +17,18 @@ public:
     const SymType* GetCurrentArgType() const;
     bool IsCurrentArfByRef() const;
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual const SymType* GetSymType() const;    
+    virtual const SymType* GetSymType() const;
+};
+
+class NodeWriteCall: public SyntaxNode{
+private:
+    std::vector<SyntaxNode*> args;
+    void GenerateForInt(AsmCode& asm_code) const;
+    void GenerateForReal(AsmCode& asm_code) const;    
+public:
+    void AddArg(SyntaxNode* arg);
+    virtual void GenerateValue(AsmCode& asm_code) const;
+    virtual const SymType* GetSymType() const;
 };
 
 class NodeBinaryOp: public SyntaxNode{

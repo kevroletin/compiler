@@ -491,7 +491,7 @@ SymbolClass SymVarGlobal::GetClassName() const
 
 void SymVarGlobal::GenerateDeclaration(AsmCode& asm_code)
 {
-    label = asm_code.AddData(token.GetName(), type->GetSize());
+    asm_code.AddData(token.GetName(), type->GetSize());
 }
 
 void SymVarGlobal::GenerateLValue(AsmCode& asm_code) const
