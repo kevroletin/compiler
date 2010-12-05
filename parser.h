@@ -11,16 +11,16 @@
 #include <vector>
 #include <utility>
 #include <stack>
-
 #include <ostream>
 
 class Parser{
 private:
     SyntaxNode* syntax_tree;
     Scanner& scan;
-    SynTable top_sym_table;
+    SymTable top_sym_table;
     SymType* top_type_bool;
-    std::vector<SynTable*> sym_table_stack;
+    std::vector<SymTable*> sym_table_stack;
+    AsmCode asm_code;
     SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type);
     void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second);
     void TryToConvertType(SyntaxNode*& expr, const SymType* type);
@@ -65,6 +65,7 @@ public:
     Parser(Scanner& scanner);
     void PrintSyntaxTree(ostream& o);
     void PrintSymTable(ostream& o);
+    void Generate(ostream& o);
 };
 
 #endif

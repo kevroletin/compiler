@@ -76,6 +76,12 @@ const SymType* SymType::GetActualType() const
     return this;
 }
 
+unsigned SymType::GetSize() const
+{
+    return 4;
+}
+
+
 //---SymProc---
 
 void SymProc::PrintPrototype(ostream& o, int offset) const
@@ -101,7 +107,7 @@ SymProc::SymProc(Token name):
 {
 }
 
-void SymProc::AddSymTable(SynTable* syn_table_)
+void SymProc::AddSymTable(SymTable* syn_table_)
 {
     sym_table = syn_table_;
 }
@@ -126,7 +132,7 @@ void SymProc::AddBody(NodeStatement* body_)
     body = body_;
 }
 
-SymProc::SymProc(Token token, SynTable* syn_table_):
+SymProc::SymProc(Token token, SymTable* syn_table_):
     Symbol(token),
     sym_table(syn_table_)
 {
@@ -162,7 +168,7 @@ void SymProc::Print(ostream& o, int offset) const
 
 //---SymFunct---
 
-SymFunct::SymFunct(Token token_, SynTable* syn_table, const SymType* result_type_):
+SymFunct::SymFunct(Token token_, SymTable* syn_table, const SymType* result_type_):
     SymProc(token, syn_table),
     result_type(result_type_)
 {
@@ -236,6 +242,14 @@ void SymVar::PrintAsNode(ostream& o, int offset) const
     PrintSpaces(o, offset) << token.GetName() << " [";
     type->Print(o, 0);
     o << "]\n";
+}
+
+void SymVar::GeneratetLValue(AsmCode& asm_code) const
+{
+}
+
+void SymVar::GenerateValue(AsmCode& asm_code) const
+{
 }
 
 //---SymTypeScalar---
@@ -314,16 +328,21 @@ void SymTypeArray::PrintVerbose(ostream& o, int offset) const
     elem_type->PrintVerbose(o, offset);
 }
 
+unsigned SymTypeArray::GetSise() const
+{
+    return elem_type->GetSize() * (high - low);
+}
+
 //---SymTypeRecord---
 
-SymTypeRecord::SymTypeRecord(SynTable* syn_table_):
-    syn_table(syn_table_)
+SymTypeRecord::SymTypeRecord(SymTable* sym_table_):
+    sym_table(sym_table_)
 {
 }
 
 const SymVar* SymTypeRecord::FindField(Token& field_name)
 {
-    const Symbol* res = syn_table->Find(field_name);
+    const Symbol* res = sym_table->Find(field_name);
     return (const SymVar*)res;
 }
 
@@ -340,8 +359,13 @@ void SymTypeRecord::Print(ostream& o, int offset) const
 void SymTypeRecord::PrintVerbose(ostream& o, int offset) const
 {
     o << "record\n";
-    syn_table->Print(o, offset);
+    sym_table->Print(o, offset);
     PrintSpaces(o, offset - 1) << "end";    
+}
+
+unsigned SymTypeRecord::GetSise() const
+{
+    return sym_table->GetSize();
 }
 
 //---SymTypeAlias---
@@ -375,6 +399,11 @@ const SymType* SymTypeAlias::GetActualType() const
     return target->GetActualType();
 }
 
+unsigned SymTypeAlias::GetSise() const
+{
+    return target->GetSize();
+}
+
 //---SymTypePointer---
 
 SymTypePointer::SymTypePointer(SymType* ref_type_):
@@ -406,6 +435,21 @@ SymbolClass SymVarConst::GetClassName() const
     return SymbolClass(SYM | SYM_VAR | SYM_VAR_CONST);
 }
 
+void SymVarConst::GeneratetLValue(AsmCode& asm_code) const
+{
+    throw("cant get const l-value");
+}
+
+void SymVarConst::GenerateValue(AsmCode& asm_code) const
+{
+    if (token.GetType() == INT_CONST)
+    {
+        asm_code.AddCmd(ASM_PUSH, AsmImmidiate(token.GetName()));
+    }
+    else
+        throw("float const generation stil not implemented");
+}
+
 //---SymVarParam---
 
 SymVarParam::SymVarParam(Token name, const SymType* type, bool by_ref_):
@@ -431,9 +475,29 @@ SymVarGlobal::SymVarGlobal(Token name, const SymType* type):
 {
 }
 
+void SymVarGlobal::GetLabel(AsmImmidiate& new_label)
+{
+    label = new_label;
+}
+
+AsmImmidiate SymVarGlobal::SetLabel()
+{
+}
+
 SymbolClass SymVarGlobal::GetClassName() const
 {
     return SymbolClass(SYM | SYM_VAR | SYM_VAR_GLOBAL);
+}
+
+void SymVarGlobal::GenerateDeclaration(AsmCode& asm_code)
+{
+    label = asm_code.AddData(token.GetName(), type->GetSize());
+}
+
+void SymVarGlobal::Generate(AsmCode& asm_code)
+{
+    asm_code.AddCmd(ASM_MOV, label, REG_EAX);
+    asm_code.AddCmd(ASM_PUSH, REG_EAX);
 }
 
 //---SymVarLocal---
@@ -448,28 +512,28 @@ SymbolClass SymVarLocal::GetClassName() const
     return SymbolClass(SYM | SYM_VAR | SYM_VAR_GLOBAL);
 }
 
-//---SynTable---
+//---SymTable---
 
-void SynTable::Add(Symbol* sym)
+void SymTable::Add(Symbol* sym)
 {
     table.insert(sym);
 }
 
 #include <iostream>
 
-const Symbol* SynTable::Find(Symbol* sym) const
+const Symbol* SymTable::Find(Symbol* sym) const
 {
     return (table.find(sym) != table.end()) ? *table.find(sym) : NULL;
 }
 
-const Symbol* SynTable::Find(const Token& tok) const
+const Symbol* SymTable::Find(const Token& tok) const
 {
     Symbol sym(tok);
     Symbol* res = table.find(&sym) != table.end() ? *table.find(&sym) : NULL; // fix
     return res;
 }
  
-void SynTable::Print(ostream& o, int offset) const
+void SymTable::Print(ostream& o, int offset) const
 {
     std::vector<Symbol*> v;    
     for (std::set<Symbol*, SymbLessComp>::iterator it = table.begin(); it != table.end(); ++it)
@@ -480,7 +544,29 @@ void SynTable::Print(ostream& o, int offset) const
         (*it)->PrintVerbose(o, offset);
 }
 
-bool SynTable::IsEmpty() const
+bool SymTable::IsEmpty() const
 {
     return table.empty();
+}
+
+unsigned SymTable::GetSize() const
+{
+    unsigned res = 0;
+    for (std::set<Symbol*, SymbLessComp>::const_iterator it = table.begin(); it != table.end(); ++it)
+        if ((*it)->GetClassName() & SYM_TYPE)
+        {
+            SymType* tmp = (SymType*)*it;
+            res += tmp->GetSize();
+        }
+    return res;
+}
+
+void SymTable::GenerateDeclarations(AsmCode& asm_code) const
+{
+    for (std::set<Symbol*, SymbLessComp>::const_iterator it = table.begin(); it != table.end(); ++it)
+        if ((*it)->GetClassName() & SYM_VAR_GLOBAL)
+        {
+            SymVarGlobal* tmp = (SymVarGlobal*)*it;
+            tmp->GenerateDeclaration(asm_code);
+        }    
 }

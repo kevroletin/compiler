@@ -10,14 +10,14 @@ using namespace std;
 class AsmOperand;
 
 enum RegisterName{
-    EAX,
-    EBX,
-    ECX,
-    EDX,
-    EDI,
-    ESI,
-    EBP,
-    ESP
+    REG_EAX,
+    REG_EBX,
+    REG_ECX,
+    REG_EDX,
+    REG_EDI,
+    REG_ESI,
+    REG_EBP,
+    REG_ESP
 };
 
 extern const string REG_TO_STR[];
@@ -91,7 +91,10 @@ class AsmImmidiate: public AsmOperandBase{
 private:
     char* value;
 public:
+    AsmImmidiate();
     AsmImmidiate(string value_);
+    AsmImmidiate(const AsmImmidiate& src);
+    string GetValue();
     virtual void Print(ostream& o) const;
 };
 
@@ -110,17 +113,23 @@ class AsmCode{
 private:
     vector<AsmCmd*> commands;
     vector<AsmData*> data;
+    AsmImmidiate LabelByStr(string str); 
 public:
     void AddCmd(AsmCmd* cmd);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper);
     void AddCmd(AsmCmdName cmd, RegisterName reg);
     void AddCmd(AsmCmdName cmd, AsmMemory* mem);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate* imm);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate imm);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest);
+    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate dest);
     void AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName oper1);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate src, RegisterName oper1);
     void AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem);
     void AddData(AsmData* new_data);
+    AsmImmidiate AddData(string label, unsigned size);
     virtual void Print(ostream& o) const;
 };
 

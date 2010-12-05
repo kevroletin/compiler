@@ -60,6 +60,7 @@ public:
     virtual const SymType* GetSymType() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual bool IsLValue() const;
+    virtual void Generate(AsmCode& asm_code) const;
 };
 
 class NodeArrayAccess: public SyntaxNode{
@@ -102,7 +103,8 @@ private:
     std::vector<SyntaxNode*> statements;
 public:
     void AddStatement(SyntaxNode* new_stmt);
-    virtual void Print(ostream& o, int offset = 0) const;    
+    virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Generate(AsmCode& asm_code) const;
 };
 
 class StmtExpression: public NodeStatement{
@@ -111,6 +113,7 @@ private:
 public:
     StmtExpression(SyntaxNode* expression);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Generate(AsmCode& asm_code) const;
 };
 
 class StmtFor: public NodeStatement{

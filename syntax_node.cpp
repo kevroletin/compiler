@@ -139,6 +139,11 @@ bool NodeVar::IsLValue() const
     return !(var->GetClassName() & SYM_VAR_CONST);
 }
 
+void NodeVar::Generate(AsmCode& asm_code) const
+{
+    var->GenerateValue(asm_code);
+}
+
 //---NodeArrayAccess----
 
 NodeArrayAccess::NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_):
@@ -235,6 +240,13 @@ void StmtBlock::Print(ostream& o, int offset) const
     PrintSpaces(o, offset) << "end\n";
 }
 
+void StmtBlock::Generate(AsmCode& asm_code) const
+{
+    for (vector<SyntaxNode*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
+        (*it)->Generate(asm_code);
+}
+
+
 //---StmtExpression---
 
 StmtExpression::StmtExpression(SyntaxNode* expression):
@@ -245,6 +257,11 @@ StmtExpression::StmtExpression(SyntaxNode* expression):
 void StmtExpression::Print(ostream& o, int offset) const
 {
     expr->Print(o, offset);
+}
+
+void StmtExpression::Generate(AsmCode& asm_code) const
+{
+    expr->Generate(asm_code);
 }
 
 //---StmtFor---

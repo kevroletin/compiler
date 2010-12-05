@@ -67,9 +67,16 @@ void Parser::PrintSyntaxTree(ostream& o)
 
 void Parser::PrintSymTable(ostream& o)
 {
-//    for (std::vector<SynTable*>::const_iterator it = sym_table_stack.begin(); it != sym_table_stack.end(); ++it)
+//    for (std::vector<SymTable*>::const_iterator it = sym_table_stack.begin(); it != sym_table_stack.end(); ++it)
 //        (*it)->Print(o);
     sym_table_stack.back()->Print(o, 0);
+}
+
+void Parser::Generate(ostream& o)
+{
+    sym_table_stack.back()->GenerateDeclarations(asm_code);
+    syntax_tree->Generate(asm_code);
+    asm_code.Print(o);
 }
 
 Parser::Parser(Scanner& scanner):
@@ -80,7 +87,7 @@ Parser::Parser(Scanner& scanner):
     top_sym_table.Add(top_type_int);
     top_sym_table.Add(top_type_real);
     sym_table_stack.push_back(&top_sym_table);
-    sym_table_stack.push_back(new SynTable());
+    sym_table_stack.push_back(new SymTable());
     Parse();
 }
 
@@ -111,7 +118,7 @@ SymType* Parser::ParseArrayType()
 SymType* Parser::ParseRecordType()
 {
     CheckTokOrDie(TOK_RECORD);
-    sym_table_stack.push_back(new SynTable);
+    sym_table_stack.push_back(new SymTable);
     ParseVarDeclarations(false);
     SymType* res = new SymTypeRecord(sym_table_stack.back());
     sym_table_stack.pop_back();
@@ -256,7 +263,7 @@ void Parser::ParseFunctionDefinition()
     else
         res = new SymFunct(name);
     sym_table_stack.back()->Add(res);
-    sym_table_stack.push_back(new SynTable);
+    sym_table_stack.push_back(new SymTable);
     res->AddSymTable(sym_table_stack.back());
     scan.NextToken();
     if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT) ParseFunctionParameters(res);
@@ -386,7 +393,7 @@ NodeStatement* Parser::ParseAssignStatement()
 const Symbol* Parser::FindSymbol(Symbol* sym)
 {
     const Symbol* res = NULL;
-    for (std::vector<SynTable*>::const_reverse_iterator it = sym_table_stack.rbegin();
+    for (std::vector<SymTable*>::const_reverse_iterator it = sym_table_stack.rbegin();
          it != sym_table_stack.rend() && res == NULL; ++it)
     {
         res = (*it)->Find(sym);

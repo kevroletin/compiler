@@ -107,14 +107,30 @@ void AsmRegister::Print(ostream& o) const
 
 //---AsmImmidiate---
 
+AsmImmidiate::AsmImmidiate():
+    value(strcpy(new char[1], ""))
+{
+}
+
 AsmImmidiate::AsmImmidiate(string value_):
     value(strcpy(new char[value_.size() + 1], value_.c_str()))
 {
 }
 
+AsmImmidiate::AsmImmidiate(const AsmImmidiate& src)
+{
+    delete(value);
+    value = strcpy(new char[strlen(src.value) + 1], src.value);
+}
+
 void AsmImmidiate::Print(ostream& o) const
 {
-    o << value;
+    o << '$' << value;
+}
+
+string AsmImmidiate::GetValue()
+{
+    return value;
 }
 
 //---AsmMemory---
@@ -139,6 +155,11 @@ void AsmMemory::Print(ostream& o) const
 
 //---AsmCode---
 
+AsmImmidiate AsmCode::LabelByStr(string str)
+{
+    return AsmImmidiate(str);
+}
+
 void AsmCode::AddCmd(AsmCmd* cmd)
 {
     commands.push_back(cmd);
@@ -159,6 +180,17 @@ void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory* mem)
     commands.push_back(new AsmCmd1(cmd, mem));
 }
 
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* imm)
+{
+    commands.push_back(new AsmCmd1(cmd, imm));
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate imm)
+{
+    AsmImmidiate* tmp = new AsmImmidiate(imm);
+    commands.push_back(new AsmCmd1(cmd, tmp));
+}
+
 void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2)
 {
     commands.push_back(new AsmCmd2(cmd, oper1, oper2));
@@ -168,10 +200,23 @@ void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest)
 {
     commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), dest));
 }
-                       
+
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate dest)
+{
+    AsmImmidiate* imm = new AsmImmidiate(dest);
+    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), imm));
+}
+
 void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName reg)
 {
     commands.push_back(new AsmCmd2(cmd, src, new AsmRegister(reg)));
+}
+
+
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate src, RegisterName reg)
+{
+    AsmImmidiate* imm = new AsmImmidiate(src);
+    commands.push_back(new AsmCmd2(cmd, imm, new AsmRegister(reg)));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg)
@@ -189,12 +234,27 @@ void AsmCode::AddData(AsmData* new_data)
     data.push_back(new_data);
 }
 
+AsmImmidiate AsmCode::AddData(string label, unsigned size)
+{
+    AsmImmidiate imm = LabelByStr(label);
+    data.push_back(new AsmData(imm.GetValue(), size));
+    return imm;
+}
+
 void AsmCode::Print(ostream& o) const
 {
     o << ".data\n";
-    for (vector<AsmCmd*>::const_iterator it = commands.begin(); it != commands.end(); ++it)
-        (*it)->Print(o);
-    o << ".text\n";
     for (vector<AsmData*>::const_iterator it = data.begin(); it != data.end(); ++it)
+    {
+        o << '\t';
         (*it)->Print(o);
+        o << '\n';
+    }
+    o << ".text\n";
+    for (vector<AsmCmd*>::const_iterator it = commands.begin(); it != commands.end(); ++it)
+    {
+        o << '\t';
+        (*it)->Print(o);
+        o << '\n';
+    }
 }

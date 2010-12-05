@@ -28,7 +28,7 @@ enum SymbolClass{
     SYM_VAR_LOCAL = 8192
 };
 
-class SynTable;
+class SymTable;
 class SymType;
 class SymVarParam;
 
@@ -56,18 +56,19 @@ public:
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetActualType() const;
+    virtual unsigned GetSize() const;
 };
 
 class SymProc: public Symbol{
 protected:
     vector<SymVarParam*> params;
-    SynTable* sym_table;
+    SymTable* sym_table;
     NodeStatement* body;
     void PrintPrototype(ostream& o, int offset) const;
 public:
-    SymProc(Token token_, SynTable* syn_table_);
+    SymProc(Token token_, SymTable* syn_table_);
     SymProc(Token name);
-    void AddSymTable(SynTable* syn_table_);
+    void AddSymTable(SymTable* syn_table_);
     void AddParam(SymVarParam* param);
     int GetArgsCount() const;
     const SymVarParam* GetArg(int arg_num) const;
@@ -82,7 +83,7 @@ class SymFunct: public SymProc{
 private:
     const SymType* result_type;
 public:
-    SymFunct(Token token_, SynTable* syn_table, const SymType* result_type_);
+    SymFunct(Token token_, SymTable* syn_table, const SymType* result_type_);
     SymFunct(Token name);
     void AddResultType(const SymType* result_type_);
     virtual SymbolClass GetClassName() const;
@@ -91,7 +92,7 @@ public:
 };
 
 class SymVar: public Symbol{
-private:
+protected:
     const SymType* type;
 public:
     SymVar(Token token, const SymType* type_);
@@ -100,6 +101,8 @@ public:
     virtual void PrintVerbose(ostream& o, int offset) const;
     const SymType* GetVarType() const;
     void PrintAsNode(ostream& o, int offset = 0) const;
+    virtual void GeneratetLValue(AsmCode& asm_code) const;
+    virtual void GenerateValue(AsmCode& asm_code) const;
 };
 
 //---SymType descendants---
@@ -135,17 +138,19 @@ public:
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void PrintVerbose(ostream& o, int offset) const;
+    virtual unsigned GetSise() const;    
 };
 
 class SymTypeRecord: public SymType{
 private:
-    SynTable* syn_table;
+    SymTable* sym_table;
 public:
-    SymTypeRecord(SynTable* syn_table_);
+    SymTypeRecord(SymTable* sym_table_);
     const SymVar* FindField(Token& field_name);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void PrintVerbose(ostream& o, int offset) const;
+    virtual unsigned GetSise() const;
 };
 
 class SymTypeAlias: public SymType{
@@ -157,6 +162,7 @@ public:
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetActualType() const;
+    virtual unsigned GetSise() const;
 };
 
 class SymTypePointer: public SymType{
@@ -174,6 +180,8 @@ class SymVarConst: public SymVar{
 public:
     SymVarConst(Token name, const SymType* type);
     virtual SymbolClass GetClassName() const;
+    virtual void GeneratetLValue(AsmCode& asm_code) const;
+    virtual void GenerateValue(AsmCode& asm_code) const;
 };
 
 class SymVarParam: public SymVar{
@@ -182,13 +190,19 @@ private:
 public:
     SymVarParam(Token name, const SymType* type, bool by_ref_);
     bool IsByRef() const;
-    virtual SymbolClass GetClassName() const;    
+    virtual SymbolClass GetClassName() const;
 };
 
 class SymVarGlobal: public SymVar{
+private:
+    AsmImmidiate label;
 public:
     SymVarGlobal(Token name, const SymType* type);
-    virtual SymbolClass GetClassName() const;    
+    void GetLabel(AsmImmidiate& new_label);
+    AsmImmidiate SetLabel();
+    virtual SymbolClass GetClassName() const;
+    void GenerateDeclaration(AsmCode& asm_code);
+    void Generate(AsmCode& asm_code);
 };
 
 class SymVarLocal: public SymVar{
@@ -197,16 +211,15 @@ public:
     virtual SymbolClass GetClassName() const;    
 };
 
-//---SynTable---
+//---SymTable---
 
 #include <iostream>
 
-class SynTable{
+class SymTable{
 private:
     struct SymbLessComp{
         bool operator () (Symbol* a, Symbol* b) const
         {
-            //std::cout << "compare: " << a->GetName() << " - " << b->GetName() << " res: " << (strcmp(a->GetName(), b->GetName()) < 0 )<< "\n";
             return strcmp(a->GetName(), b->GetName()) < 0;
         }
     };
@@ -217,6 +230,8 @@ public:
     const Symbol* Find(const Token& tok) const;
     void Print(ostream& o, int offset = 0) const;
     bool IsEmpty() const;
+    unsigned GetSize() const;
+    void GenerateDeclarations(AsmCode& asm_code) const;
 };
 
 #endif
