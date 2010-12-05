@@ -6,6 +6,7 @@
 #include <string.h>
 #include <iostream>
 #include <stdio.h>
+#include <sstream>
 using namespace std;
 
 class AsmOperand;
@@ -60,8 +61,8 @@ public:
 
 class AsmData{
 private:
-    char* name;
-    char* value;
+    string name;
+    string value;
     AsmDataType type;
 public:
     AsmData(string name_, string value, AsmDataType type = DATA_UNTYPED);
@@ -105,7 +106,7 @@ public:
 
 class AsmImmidiate: public AsmOperandBase{
 private:
-    char* value;
+    string value;
 public:
     AsmImmidiate();
     AsmImmidiate(const string& value_);
@@ -155,8 +156,8 @@ public:
     void AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem);
     void AddData(AsmData* new_data);
-    void AddData(string label, string value, AsmDataType type = DATA_UNTYPED);
-    void AddData(string label, unsigned size);
+    AsmImmidiate AddData(string label, string value, AsmDataType type = DATA_UNTYPED);
+    AsmImmidiate AddData(string label, unsigned size);
     virtual void Print(ostream& o) const;
     void CallWriteForInt();
     void CallWriteForReal();

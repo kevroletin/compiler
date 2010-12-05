@@ -51,10 +51,10 @@ void AsmCmd::Print(ostream& o) const
 
 //---AsmData---
 
-AsmData::AsmData(string name_, string value_, AsmDataType type):
-    name(strcpy(new char[name_.size() + 1], name_.c_str())),
-    value(strcpy(new char[value_.size() + 1], value_.c_str())),
-    type(type)
+AsmData::AsmData(string name_, string value_, AsmDataType type_):
+    name(name_),
+    value(value_),
+    type(type_)
 {
 }
 
@@ -122,26 +122,25 @@ void AsmRegister::Print(ostream& o) const
 
 //---AsmImmidiate---
 
-AsmImmidiate::AsmImmidiate():
-    value(strcpy(new char[2], ""))
+AsmImmidiate::AsmImmidiate()
 {
 }
 
 AsmImmidiate::AsmImmidiate(const string& value_):
-    value(strcpy(new char[value_.size() + 1], value_.c_str()))
+    value(value_)
 {
 }
 
 AsmImmidiate::AsmImmidiate(unsigned num)
 {
-    value = new char[15];
-    sprintf(value, "%u", num);
+    stringstream s;
+    s << num;
+    value += s.str();
 }
 
 AsmImmidiate::AsmImmidiate(const AsmImmidiate& src)
 {
-    if (value != NULL) delete(value);
-    value = strcpy(new char[strlen(src.value) + 1], src.value);
+    value.assign(src.value);
 }
 
 void AsmImmidiate::Print(ostream& o) const
@@ -197,7 +196,7 @@ AsmCode::AsmCode()
 //    format_str_int(AddData("format_str_d", "%d", DATA_STR))
 //    funct_write(AsmMemory(AsmImmidiate("printf")))
 {
-    AddData(ChangeName("format_str_f"), "%d", DATA_STR);
+    AddData(ChangeName("format_str_f"), "%f", DATA_STR);
     AddData(ChangeName("format_str_d"), "%d", DATA_STR);
 //    AsmMemory(AsmImmidiate("printf"));
 }
@@ -274,7 +273,6 @@ void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName reg)
     commands.push_back(new AsmCmd2(cmd, src, new AsmRegister(reg)));
 }
 
-
 void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate src, RegisterName reg)
 {
     AsmImmidiate* imm = new AsmImmidiate(src);
@@ -296,17 +294,20 @@ void AsmCode::AddData(AsmData* new_data)
     data.push_back(new_data);
 }
 
-void AsmCode::AddData(string label, string value, AsmDataType type)
+AsmImmidiate AsmCode::AddData(string label, string value, AsmDataType type)
 {
     string new_name = ChangeName(label); 
     data.push_back(new AsmData(new_name, value, type));
+    return AsmImmidiate(new_name);
 }
 
-void AsmCode::AddData(string label, unsigned size)
+AsmImmidiate AsmCode::AddData(string label, unsigned size)
 {
-    char buff[15];
-    sprintf(buff, "%u", size);
-    data.push_back(new AsmData(ChangeName(label), buff));
+    string new_name = ChangeName(label);
+    stringstream s;
+    s << size;
+    data.push_back(new AsmData(new_name, s.str()));
+    return AsmImmidiate(new_name);
 }
 
 void AsmCode::Print(ostream& o) const
