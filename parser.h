@@ -5,6 +5,7 @@
 #include "scanner.h"
 #include "sym_table.h"
 #include "syntax_node.h"
+#include "generator.h"
 #include "exception.h"
 #include <string.h>
 #include <vector>

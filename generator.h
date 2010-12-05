@@ -74,7 +74,7 @@ public:
     virtual void Print(ostream& o) const;    
 };
 
-class AsmOperandBase{
+class AsmOperandBase: public AsmOperand{
 public:
     virtual void Print(ostream& o) const;
 };
@@ -112,6 +112,14 @@ private:
     vector<AsmData*> data;
 public:
     void AddCmd(AsmCmd* cmd);
+    void AddCmd(AsmCmdName cmd, AsmOperand* oper);
+    void AddCmd(AsmCmdName cmd, RegisterName reg);
+    void AddCmd(AsmCmdName cmd, AsmMemory* mem);
+    void AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2);
+    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName oper1);
+    void AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg);
+    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem);
     void AddData(AsmData* new_data);
     virtual void Print(ostream& o) const;
 };

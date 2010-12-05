@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "scanner.h"
+#include "generator.h"
 
 class SymType;
 

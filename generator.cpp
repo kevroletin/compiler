@@ -34,7 +34,7 @@ AsmCmd::AsmCmd(AsmCmdName cmd):
 
 void AsmCmd::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << ' ';
+    o << ASM_CMD_TO_STR[command] << "l ";
 }
 
 //---AsmData---
@@ -61,7 +61,7 @@ AsmCmd1::AsmCmd1(AsmCmdName cmd, AsmOperand* oper_):
 
 void AsmCmd1::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << ' ';
+    o << ASM_CMD_TO_STR[command] << "l ";
     oper->Print(o);
 }
 
@@ -76,7 +76,7 @@ AsmCmd2::AsmCmd2(AsmCmdName cmd, AsmOperand* src_, AsmOperand* dest_):
 
 void AsmCmd2::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << ' ';
+    o << ASM_CMD_TO_STR[command] << "l ";
     src->Print(o);
     dest->Print(o);
 }
@@ -142,6 +142,46 @@ void AsmMemory::Print(ostream& o) const
 void AsmCode::AddCmd(AsmCmd* cmd)
 {
     commands.push_back(cmd);
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper)
+{
+    commands.push_back(new AsmCmd1(cmd, oper));
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg)
+{
+    commands.push_back(new AsmCmd1(cmd, new AsmRegister(reg)));
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory* mem)
+{
+    commands.push_back(new AsmCmd1(cmd, mem));
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2)
+{
+    commands.push_back(new AsmCmd2(cmd, oper1, oper2));
+}
+        
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest)
+{
+    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), dest));
+}
+                       
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName reg)
+{
+    commands.push_back(new AsmCmd2(cmd, src, new AsmRegister(reg)));
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg)
+{
+    commands.push_back(new AsmCmd2(cmd, mem, new AsmRegister(reg)));
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem)
+{
+    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), mem));
 }
 
 void AsmCode::AddData(AsmData* new_data)
