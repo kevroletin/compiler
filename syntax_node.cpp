@@ -49,6 +49,44 @@ const SymType* NodeCall::GetSymType() const
 
 //---NodeBinaryOp---
 
+void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
+{
+    left->GenerateValue(asm_code);
+    right->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_POP, REG_EBX);
+    switch (token.GetValue())
+    {
+        case TOK_PLUS:
+            asm_code.AddCmd(ASM_ADD, REG_EBX, REG_EAX);
+            asm_code.AddCmd(ASM_PUSH, REG_EAX);
+        break;
+        case TOK_MINUS:
+            asm_code.AddCmd(ASM_SUB, REG_EBX, REG_EAX);
+            asm_code.AddCmd(ASM_PUSH, REG_EAX);
+        break;
+        case TOK_MULT:
+            asm_code.AddCmd(ASM_XOR, REG_EDX, REG_EDX);
+            asm_code.AddCmd(ASM_IMUL, REG_EBX);
+            asm_code.AddCmd(ASM_PUSH, REG_EAX);
+        break;
+        case TOK_DIV:
+            asm_code.AddCmd(ASM_XOR, REG_EDX, REG_EDX);
+            asm_code.AddCmd(ASM_IDIV, REG_EBX);            
+            asm_code.AddCmd(ASM_PUSH, REG_EAX);
+        break;
+        case TOK_MOD:
+            asm_code.AddCmd(ASM_XOR, REG_EDX, REG_EDX);
+            asm_code.AddCmd(ASM_IDIV, REG_EBX);            
+            asm_code.AddCmd(ASM_PUSH, REG_EDX);
+    }
+}
+
+void NodeBinaryOp::GenerateForReal(AsmCode& asm_code) const
+{
+//TODO
+}
+
 NodeBinaryOp::NodeBinaryOp(const Token& name, SyntaxNode* left_, SyntaxNode* right_):
     token(name),
     left(left_),
@@ -68,6 +106,12 @@ void NodeBinaryOp::Print(ostream& o, int offset) const
 const SymType* NodeBinaryOp::GetSymType() const
 {
     return left->GetSymType();
+}
+
+void NodeBinaryOp::GenerateValue(AsmCode& asm_code) const
+{
+    if (GetSymType() == top_type_int) GenerateForInt(asm_code);
+    else GenerateForReal(asm_code);
 }
 
 //---NodeUnaryOp---
@@ -139,7 +183,12 @@ bool NodeVar::IsLValue() const
     return !(var->GetClassName() & SYM_VAR_CONST);
 }
 
-void NodeVar::Generate(AsmCode& asm_code) const
+void NodeVar::GenerateLValue(AsmCode& asm_code) const
+{
+    var->GenerateLValue(asm_code);
+}
+
+void NodeVar::GenerateValue(AsmCode& asm_code) const
 {
     var->GenerateValue(asm_code);
 }
@@ -171,12 +220,22 @@ bool NodeArrayAccess::IsLValue() const
     return true;
 }
 
+void NodeArrayAccess::GenerateLValue(AsmCode& asm_code) const
+{
+    throw("array access gen l-value not implemented");
+}
+
+void NodeArrayAccess::GenerateValue(AsmCode& asm_code) const
+{
+    throw("array access gen value not implemented");
+}
+
 //---NodeRecordAccess---
 
 NodeRecordAccess::NodeRecordAccess(SyntaxNode* record_, Token field_):
     record(record_)
 {
-    const SymVar* var = ((SymTypeRecord*)record_->GetSymType())->FindField(field_);
+    const SymVarLocal* var = ((SymTypeRecord*)record_->GetSymType())->FindField(field_);
     if (var == NULL) Error("unknown record field identifier", field_);
     field = var;
 }
@@ -198,6 +257,24 @@ const SymType* NodeRecordAccess::GetSymType() const
 bool NodeRecordAccess::IsLValue() const
 {
     return true;
+}
+
+void NodeRecordAccess::GenerateLValue(AsmCode& asm_code) const
+{
+    record->GenerateLValue(asm_code);
+    unsigned offset = field->GetOffset();
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_ADD, REG_EAX, AsmImmidiate(offset));
+    asm_code.AddCmd(ASM_PUSH, REG_EAX);
+}
+
+void NodeRecordAccess::GenerateValue(AsmCode& asm_code) const
+{
+    record->GenerateLValue(asm_code);
+    unsigned offset = field->GetOffset();
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_ADD, REG_EAX, AsmImmidiate(offset));
+    asm_code.AddCmd(ASM_PUSH, REG_EAX);
 }
 
 //---StmtAssgn---
@@ -225,9 +302,18 @@ void StmtAssign::Print(ostream& o, int offset) const
     right->Print(o, offset + 1);
 }
 
+void StmtAssign::Generate(AsmCode& asm_code) const
+{
+    left->GenerateLValue(asm_code);
+    right->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_POP, REG_EBX);
+    asm_code.AddCmd(ASM_MOV, REG_EAX, new AsmMemory(REG_EBX));
+}
+
 //---StmtBlock---
 
-void StmtBlock::AddStatement(SyntaxNode* new_stmt)
+void StmtBlock::AddStatement(NodeStatement* new_stmt)
 {
     statements.push_back(new_stmt);
 }
@@ -235,14 +321,14 @@ void StmtBlock::AddStatement(SyntaxNode* new_stmt)
 void StmtBlock::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << "begin\n";
-    for (vector<SyntaxNode*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
+    for (vector<NodeStatement*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
         (*it)->Print(o, offset + 1);
     PrintSpaces(o, offset) << "end\n";
 }
 
 void StmtBlock::Generate(AsmCode& asm_code) const
 {
-    for (vector<SyntaxNode*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
+    for (vector<NodeStatement*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
         (*it)->Generate(asm_code);
 }
 
@@ -261,7 +347,7 @@ void StmtExpression::Print(ostream& o, int offset) const
 
 void StmtExpression::Generate(AsmCode& asm_code) const
 {
-    expr->Generate(asm_code);
+    expr->GenerateValue(asm_code);
 }
 
 //---StmtFor---

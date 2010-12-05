@@ -62,25 +62,25 @@ void Parser::TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token
 
 void Parser::PrintSyntaxTree(ostream& o)
 {
-    if (syntax_tree != NULL) syntax_tree->Print(o, 0);
+    body->Print(o, 0);
 }
 
 void Parser::PrintSymTable(ostream& o)
 {
 //    for (std::vector<SymTable*>::const_iterator it = sym_table_stack.begin(); it != sym_table_stack.end(); ++it)
 //        (*it)->Print(o);
-    sym_table_stack.back()->Print(o, 0);
+    if (body != NULL) sym_table_stack.back()->Print(o, 0);
 }
 
 void Parser::Generate(ostream& o)
 {
     sym_table_stack.back()->GenerateDeclarations(asm_code);
-    syntax_tree->Generate(asm_code);
+    body->Generate(asm_code);
     asm_code.Print(o);
 }
 
 Parser::Parser(Scanner& scanner):
-    syntax_tree(NULL),
+    body(NULL),
     scan(scanner)
 {
     scan.NextToken();
@@ -177,7 +177,7 @@ void Parser::ParseVarDeclarations(bool is_global)
             if (is_global)
                 sym_table_stack.back()->Add(new SymVarGlobal(*it, type));
             else
-                sym_table_stack.back()->Add(new SymVarLocal(*it, type));
+                sym_table_stack.back()->Add(new SymVarLocal(*it, type, sym_table_stack.back()->GetSize()));
         CheckTokOrDie(TOK_SEMICOLON);
     }
 }
@@ -425,7 +425,7 @@ void Parser::Parse()
 {
     ParseDeclarations(true);
     if (scan.GetToken().GetValue() != TOK_BEGIN) Error("'begin' expected");
-    syntax_tree = ParseStatement();
+    body = ParseStatement();
     if (scan.GetToken().GetValue() != TOK_DOT) Error("'.' expected");
 }
 

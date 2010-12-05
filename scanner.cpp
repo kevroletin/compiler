@@ -375,8 +375,7 @@ int Token::GetLine() const
 void Token::NameToLowerCase()
 {
     int i = -1;
-    while (name[++i]) 
-        name[i] = tolower(name[i]);
+    while (name[++i]) name[i] = tolower(name[i]);
 }
 
 int Token::GetIntValue() const

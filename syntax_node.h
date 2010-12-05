@@ -25,10 +25,13 @@ private:
     Token token;
     SyntaxNode* left;
     SyntaxNode* right;
+    void GenerateForInt(AsmCode& asm_code) const;
+    void GenerateForReal(AsmCode& asm_code) const;
 public:
     NodeBinaryOp(const Token& name, SyntaxNode* left_, SyntaxNode* right_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual const SymType* GetSymType() const;    
+    virtual const SymType* GetSymType() const;
+    virtual void GenerateValue(AsmCode& asm_code) const;
 };
 
 class NodeUnaryOp: public SyntaxNode{
@@ -60,7 +63,8 @@ public:
     virtual const SymType* GetSymType() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual bool IsLValue() const;
-    virtual void Generate(AsmCode& asm_code) const;
+    virtual void GenerateLValue(AsmCode& asm_code) const;
+    virtual void  GenerateValue(AsmCode& asm_code) const;
 };
 
 class NodeArrayAccess: public SyntaxNode{
@@ -72,17 +76,21 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;    
     virtual bool IsLValue() const;
+    virtual void GenerateLValue(AsmCode& asm_code) const;
+    virtual void GenerateValue(AsmCode& asm_code) const; 
 };
 
 class NodeRecordAccess: public SyntaxNode{
 private:
     const SyntaxNode* record;
-    const SymVar* field;
+    const SymVarLocal* field;
 public:
     NodeRecordAccess(SyntaxNode* record_, Token field_);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;    
     virtual bool IsLValue() const;
+    virtual void GenerateLValue(AsmCode& asm_code) const;
+    virtual void GenerateValue(AsmCode& asm_code) const; 
 };
 
 //---Statements---
@@ -96,13 +104,14 @@ public:
     const SyntaxNode* GetLeft() const;
     const SyntaxNode* GetRight() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Generate(AsmCode& asm_code) const;
 };
  
 class StmtBlock: public NodeStatement{
 private:
-    std::vector<SyntaxNode*> statements;
+    std::vector<NodeStatement*> statements;
 public:
-    void AddStatement(SyntaxNode* new_stmt);
+    void AddStatement(NodeStatement* new_stmt);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code) const;
 };

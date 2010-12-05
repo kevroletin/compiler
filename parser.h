@@ -15,7 +15,7 @@
 
 class Parser{
 private:
-    SyntaxNode* syntax_tree;
+    NodeStatement* body;
     Scanner& scan;
     SymTable top_sym_table;
     SymType* top_type_bool;

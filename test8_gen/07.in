@@ -1,0 +1,8 @@
+var
+    r: record
+	a, b: Integer;
+    end;
+begin
+    r.a := 5;
+    r.b := 5;
+end.

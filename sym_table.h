@@ -31,6 +31,7 @@ enum SymbolClass{
 class SymTable;
 class SymType;
 class SymVarParam;
+class SymVarLocal;
 
 extern SymType* top_type_int;
 extern SymType* top_type_real;
@@ -101,7 +102,7 @@ public:
     virtual void PrintVerbose(ostream& o, int offset) const;
     const SymType* GetVarType() const;
     void PrintAsNode(ostream& o, int offset = 0) const;
-    virtual void GeneratetLValue(AsmCode& asm_code) const;
+    virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
 };
 
@@ -138,7 +139,7 @@ public:
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void PrintVerbose(ostream& o, int offset) const;
-    virtual unsigned GetSise() const;    
+    virtual unsigned GetSize() const;    
 };
 
 class SymTypeRecord: public SymType{
@@ -146,11 +147,11 @@ private:
     SymTable* sym_table;
 public:
     SymTypeRecord(SymTable* sym_table_);
-    const SymVar* FindField(Token& field_name);
+    const SymVarLocal* FindField(Token& field_name);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void PrintVerbose(ostream& o, int offset) const;
-    virtual unsigned GetSise() const;
+    virtual unsigned GetSize() const;
 };
 
 class SymTypeAlias: public SymType{
@@ -162,7 +163,7 @@ public:
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetActualType() const;
-    virtual unsigned GetSise() const;
+    virtual unsigned GetSize() const;
 };
 
 class SymTypePointer: public SymType{
@@ -202,13 +203,20 @@ public:
     AsmImmidiate SetLabel();
     virtual SymbolClass GetClassName() const;
     void GenerateDeclaration(AsmCode& asm_code);
-    void Generate(AsmCode& asm_code);
+    virtual void GenerateLValue(AsmCode& asm_code) const;
+    virtual void GenerateValue(AsmCode& asm_code) const;
 };
 
 class SymVarLocal: public SymVar{
+private:
+    unsigned offset;
 public:
-    SymVarLocal(Token name, const SymType* type);
-    virtual SymbolClass GetClassName() const;    
+    SymVarLocal(Token name, const SymType* type, unsigned offset_);
+    virtual SymbolClass GetClassName() const;
+    //virtual void GenerateLValue(AsmCode& asm_code) const;
+    //virtual void GenerateValue(AsmCode& asm_code) const;
+    unsigned GetOffset() const;
+    void SetOffset(unsigned offset_);
 };
 
 //---SymTable---
@@ -224,7 +232,9 @@ private:
         }
     };
     std::set<Symbol*, SymbLessComp> table;
+    unsigned size;
 public:
+    SymTable();
     void Add(Symbol* sym);
     const Symbol* Find(Symbol* sym) const;
     const Symbol* Find(const Token& tok) const;

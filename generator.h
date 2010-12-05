@@ -5,6 +5,7 @@
 #include <string>
 #include <string.h>
 #include <iostream>
+#include <stdio.h>
 using namespace std;
 
 class AsmOperand;
@@ -25,12 +26,15 @@ extern const string REG_TO_STR[];
 enum AsmCmdName{
     ASM_ADD,
     ASM_DIV,
+    ASM_IDIV,
+    ASM_IMUL,
     ASM_LEA,
     ASM_MOV,
     ASM_MUL,
     ASM_POP,
     ASM_PUSH,
-    ASM_SUB
+    ASM_SUB,
+    ASM_XOR
 };
 
 extern const string ASM_CMD_TO_STR[];
@@ -93,6 +97,7 @@ private:
 public:
     AsmImmidiate();
     AsmImmidiate(string value_);
+    AsmImmidiate(unsigned num);
     AsmImmidiate(const AsmImmidiate& src);
     string GetValue();
     virtual void Print(ostream& o) const;
@@ -105,7 +110,9 @@ private:
     unsigned index;
     unsigned scale;
 public:
-    AsmMemory(AsmOperandBase* base, unsigned disp_ = 0, unsigned index_ = 0, unsigned scale_ = 0);
+    AsmMemory(AsmOperandBase* base_, unsigned disp_ = 0, unsigned index_ = 0, unsigned scale_ = 0);
+    AsmMemory(AsmImmidiate base, unsigned disp_ = 0, unsigned index_ = 0, unsigned scale_ = 0);
+    AsmMemory(RegisterName reg, unsigned disp_ = 0, unsigned index_ = 0, unsigned scale_ = 0);
     virtual void Print(ostream& o) const;
 };
 
@@ -122,6 +129,7 @@ public:
     void AddCmd(AsmCmdName cmd, AsmImmidiate* imm);
     void AddCmd(AsmCmdName cmd, AsmImmidiate imm);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2);
+    void AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate dest);
     void AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName oper1);

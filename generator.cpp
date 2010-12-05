@@ -16,12 +16,15 @@ const string ASM_CMD_TO_STR[] =
 {
     "add",
     "div",
+    "idiv",
+    "imul",
     "lea",
     "mov",
     "mul",
     "pop",
     "push",
-    "sub"
+    "sub",
+    "xor"
 };
 
 
@@ -34,7 +37,7 @@ AsmCmd::AsmCmd(AsmCmdName cmd):
 
 void AsmCmd::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << "l ";
+    o << ASM_CMD_TO_STR[command];
 }
 
 //---AsmData---
@@ -61,7 +64,7 @@ AsmCmd1::AsmCmd1(AsmCmdName cmd, AsmOperand* oper_):
 
 void AsmCmd1::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << "l ";
+    o << ASM_CMD_TO_STR[command] << "l\t";
     oper->Print(o);
 }
 
@@ -76,8 +79,9 @@ AsmCmd2::AsmCmd2(AsmCmdName cmd, AsmOperand* src_, AsmOperand* dest_):
 
 void AsmCmd2::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << "l ";
+    o << ASM_CMD_TO_STR[command] << "l\t";
     src->Print(o);
+    o<< ", ";
     dest->Print(o);
 }
 
@@ -102,7 +106,7 @@ AsmRegister::AsmRegister(RegisterName reg_):
 
 void AsmRegister::Print(ostream& o) const
 {
-    o << REG_TO_STR[reg] << ' ';
+    o << REG_TO_STR[reg];
 }
 
 //---AsmImmidiate---
@@ -115,6 +119,12 @@ AsmImmidiate::AsmImmidiate():
 AsmImmidiate::AsmImmidiate(string value_):
     value(strcpy(new char[value_.size() + 1], value_.c_str()))
 {
+}
+
+AsmImmidiate::AsmImmidiate(unsigned num)
+{
+    value = new char[15];
+    sprintf(value, "%u", num);
 }
 
 AsmImmidiate::AsmImmidiate(const AsmImmidiate& src)
@@ -143,6 +153,22 @@ AsmMemory::AsmMemory(AsmOperandBase* base_, unsigned disp_, unsigned index_, uns
 {
 }
 
+AsmMemory::AsmMemory(AsmImmidiate base, unsigned disp_, unsigned index_, unsigned scale_):
+    base(new AsmImmidiate(base)),
+    disp(disp_),
+    index(index_),
+    scale(scale_)
+{
+}
+
+AsmMemory::AsmMemory(RegisterName reg, unsigned disp_, unsigned index_, unsigned scale_):
+    base(new AsmRegister(reg)),
+    disp(disp_),
+    index(index_),
+    scale(scale_)
+{
+}
+
 void AsmMemory::Print(ostream& o) const
 {
     if (disp) o << disp;
@@ -163,6 +189,11 @@ AsmImmidiate AsmCode::LabelByStr(string str)
 void AsmCode::AddCmd(AsmCmd* cmd)
 {
     commands.push_back(cmd);
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest)
+{
+    commands.push_back(new AsmCmd2(cmd, new AsmRegister(src), new AsmRegister(dest)));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper)
@@ -251,10 +282,12 @@ void AsmCode::Print(ostream& o) const
         o << '\n';
     }
     o << ".text\n";
+    o << ".globl main\nmain:\n";
     for (vector<AsmCmd*>::const_iterator it = commands.begin(); it != commands.end(); ++it)
     {
         o << '\t';
         (*it)->Print(o);
         o << '\n';
     }
+    o << "\tret\n";
 }

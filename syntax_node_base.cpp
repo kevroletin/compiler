@@ -16,6 +16,10 @@ bool SyntaxNode::IsLValue() const
     return false;
 }
 
-void SyntaxNode::Generate(AsmCode& asm_code) const
+void SyntaxNode::GenerateLValue(AsmCode& asm_code) const
+{
+}
+
+void SyntaxNode::GenerateValue(AsmCode& asm_code) const
 {
 }
