@@ -447,7 +447,10 @@ void SymVarConst::GenerateValue(AsmCode& asm_code) const
         asm_code.AddCmd(ASM_PUSH, AsmImmidiate(token.GetName()));
     }
     else
-        throw("float const generation stil not implemented");
+    {
+        AsmImmidiate label = asm_code.AddData(asm_code.GenStrLabel("float"), token.GetName(), DATA_REAL);
+        asm_code.AddCmd(ASM_PUSH, label);
+    }
 }
 
 //---SymVarParam---
@@ -491,17 +494,17 @@ SymbolClass SymVarGlobal::GetClassName() const
 
 void SymVarGlobal::GenerateDeclaration(AsmCode& asm_code)
 {
-    asm_code.AddData(token.GetName(), type->GetSize());
+    label = asm_code.AddData(token.GetName(), type->GetSize());
 }
 
 void SymVarGlobal::GenerateLValue(AsmCode& asm_code) const
 {
-    asm_code.AddCmd(ASM_PUSH, new AsmImmidiate(label));
+    asm_code.AddCmd(ASM_PUSH, label);
 }
 
 void SymVarGlobal::GenerateValue(AsmCode& asm_code) const
 {
-    asm_code.AddCmd(ASM_PUSH, label);
+    asm_code.AddCmd(ASM_PUSH, new AsmMemory(label));
 }
 
 //---SymVarLocal---

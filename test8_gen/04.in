@@ -2,4 +2,5 @@ var
     i: Integer;
 begin
     i := 10;
+    Write(i);
 end.

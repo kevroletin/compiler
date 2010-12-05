@@ -1,0 +1,6 @@
+var
+    f: Real;
+begin
+    f := 5;
+    Write(f);
+end.

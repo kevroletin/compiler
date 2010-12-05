@@ -85,8 +85,8 @@ void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
 {
     left->GenerateValue(asm_code);
     right->GenerateValue(asm_code);
-    asm_code.AddCmd(ASM_POP, REG_EAX);
     asm_code.AddCmd(ASM_POP, REG_EBX);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
     switch (token.GetValue())
     {
         case TOK_PLUS:
@@ -188,6 +188,11 @@ const SymType* NodeIntToRealConv::GetSymType() const
     return real_type;
 }
 
+void NodeIntToRealConv::GenerateValue(AsmCode& asm_code) const
+{
+    child->GenerateValue(asm_code);
+}
+
 //---NodeVar---
 
 NodeVar::NodeVar(SymVar* var_):
@@ -252,14 +257,28 @@ bool NodeArrayAccess::IsLValue() const
     return true;
 }
 
+void NodeArrayAccess::ComputeIndexToEax(AsmCode& asm_code) const
+{
+    arr->GenerateLValue(asm_code);
+    index->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_MOV, GetSymType()->GetSize(), REG_EBX);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_XOR, REG_EDX, REG_EDX);
+    asm_code.AddCmd(ASM_MUL, REG_EBX);
+    asm_code.AddCmd(ASM_POP, REG_EBX);
+    asm_code.AddCmd(ASM_ADD, REG_EBX, REG_EAX);
+}
+
 void NodeArrayAccess::GenerateLValue(AsmCode& asm_code) const
 {
-    throw("array access gen l-value not implemented");
+    ComputeIndexToEax(asm_code);
+    asm_code.AddCmd(ASM_PUSH, REG_EAX);
 }
 
 void NodeArrayAccess::GenerateValue(AsmCode& asm_code) const
 {
-    throw("array access gen value not implemented");
+    ComputeIndexToEax(asm_code);
+    asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EAX));
 }
 
 //---NodeRecordAccess---
@@ -296,7 +315,7 @@ void NodeRecordAccess::GenerateLValue(AsmCode& asm_code) const
     record->GenerateLValue(asm_code);
     unsigned offset = field->GetOffset();
     asm_code.AddCmd(ASM_POP, REG_EAX);
-    asm_code.AddCmd(ASM_ADD, REG_EAX, AsmImmidiate(offset));
+    asm_code.AddCmd(ASM_ADD, AsmImmidiate(offset), REG_EAX);
     asm_code.AddCmd(ASM_PUSH, REG_EAX);
 }
 
@@ -305,8 +324,8 @@ void NodeRecordAccess::GenerateValue(AsmCode& asm_code) const
     record->GenerateLValue(asm_code);
     unsigned offset = field->GetOffset();
     asm_code.AddCmd(ASM_POP, REG_EAX);
-    asm_code.AddCmd(ASM_ADD, REG_EAX, AsmImmidiate(offset));
-    asm_code.AddCmd(ASM_PUSH, REG_EAX);
+    asm_code.AddCmd(ASM_ADD, AsmImmidiate(offset), REG_EAX);
+    asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EAX));
 }
 
 //---StmtAssgn---
@@ -380,6 +399,7 @@ void StmtExpression::Print(ostream& o, int offset) const
 void StmtExpression::Generate(AsmCode& asm_code) const
 {
     expr->GenerateValue(asm_code);
+    if (expr->GetSymType() != top_type_untyped) asm_code.AddCmd(ASM_ADD, 4, REG_ESP);
 }
 
 //---StmtFor---

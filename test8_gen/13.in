@@ -1,0 +1,16 @@
+var
+    r: record
+	a: Integer;
+	rr: record
+	    c: Integer;
+	    rrr: record
+		d: Integer;
+	    end;
+	    e: Integer;
+	end;
+	f: Integer;
+    end;
+begin
+    r.rr.rrr.d := 123;
+    Write(r.rr.rrr.d);
+end.

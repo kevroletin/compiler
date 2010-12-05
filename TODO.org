@@ -27,5 +27,11 @@
 * TODO протестировать str_hex_to_i в scanner.cpp или заменить на sscanf
 * TODO перенести добавление переменной Result в конструктор SymFunction
 * TODO убрать SymbCompLess из заголовочного файла sym_table.h
-* TODO исправить: арифмитические выражения, не присвоенные переменной портят стек
-* TODO получить label в SymVarGlobal::GenerateDeclaration
+* DONE исправить: арифмитические выражения, не присвоенные переменной портят стек
+* DONE получить label в SymVarGlobal::GenerateDeclaration
+* TODO вещественная арифметика
+* TODO поправить генерацию целочисленных констант
+* TODO генерация унарных операций
+* TODO генерация управляющих конструкций
+** TODO разбор break, continue
+* TODO генерация функций

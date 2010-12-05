@@ -482,6 +482,31 @@ SyntaxNode* Parser::ParseFunctionCall(SymProc* funct_name)
     return funct;
 }
 
+SyntaxNode* Parser::ParseWriteFunctCall()
+{
+    CheckTokOrDie(TOK_WRITE);
+    NodeWriteCall* write = new NodeWriteCall();
+    if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
+    {
+        scan.NextToken();
+        while (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
+        {
+            Token err_tok = scan.GetToken();
+            SyntaxNode* arg = ParseRelationalExpr();
+            if (arg == NULL) Error("illegal expression");
+            if (scan.GetToken().GetValue() == TOK_COMMA)
+                scan.NextToken();
+            else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
+                Error(", expected");
+            if (arg->GetSymType() != top_type_int && arg->GetSymType() != top_type_real)
+                Error("cant write variables of this type ", err_tok);
+            write->AddArg(arg);
+        }
+        scan.NextToken();
+    }
+    return write;
+}
+
 SyntaxNode* Parser::ParseConstants()
 {
     Token token = scan.GetToken();
@@ -499,7 +524,8 @@ SyntaxNode* Parser::ParseRecordAccess(SyntaxNode* record)
     Token field = scan.GetToken();
     if (field.GetType() != IDENTIFIER) Error("identifier expected after '.'");
     scan.NextToken();
-    if (!(record->GetSymType()->GetClassName() & SYM_TYPE_RECORD)) Error("illegal qualifier", field);
+    if (!(record->GetSymType()->GetClassName() & SYM_TYPE_RECORD))
+        Error("illegal qualifier", field);
     return new NodeRecordAccess(record, field);
 }
 
@@ -510,7 +536,8 @@ SyntaxNode* Parser::ParseArrayAccess(SyntaxNode* array)
     while (true)
     {
         SyntaxNode* index = GetIntExprOrDie();
-        if (!(array->GetSymType()->GetClassName() & SYM_TYPE_ARRAY)) Error("array expected before '[' token", err_tok);
+        if (!(array->GetSymType()->GetClassName() & SYM_TYPE_ARRAY))
+            Error("array expected before '[' token", err_tok);
         array = new NodeArrayAccess(array, index);
         if (scan.GetToken().GetValue() == TOK_COMMA) scan.NextToken();
         else if (scan.GetToken().GetValue() == TOK_BRACKETS_SQUARE_RIGHT)
@@ -539,8 +566,8 @@ SyntaxNode* Parser::ParseFactor()
         if (left == NULL) Error("illegal expression");
         CheckTokOrDie(TOK_BRACKETS_RIGHT);
     }
-    else
-    {
+    else if (scan.GetToken().GetValue() == TOK_WRITE) left = ParseWriteFunctCall();
+    else {
         if (scan.GetToken().GetType() != IDENTIFIER) return NULL;
         const Symbol* sym = FindSymbolOrDie(scan.GetToken(), SymbolClass(SYM_VAR | SYM_PROC), "identifier not found");
         if (sym->GetClassName() & SYM_VAR)
@@ -641,6 +668,7 @@ void Parser::Error(string msg)
 void Parser::Error(string msg, Token err_pos_tok)
 {
     stringstream s;
-    s << err_pos_tok.GetLine() << ':' << err_pos_tok.GetPos() << " ERROR at '" << err_pos_tok.GetName() << "': " << msg;
+    s << err_pos_tok.GetLine() << ':' << err_pos_tok.GetPos()
+      << " ERROR at '" << err_pos_tok.GetName() << "': " << msg;
     throw( CompilerException(s.str()) );
 }

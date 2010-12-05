@@ -1,3 +1,3 @@
 begin
-    5 div 3;
+    Write(5 div 3);
 end.

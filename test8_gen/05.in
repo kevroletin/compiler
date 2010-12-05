@@ -1,5 +1,6 @@
 var
     i: Integer;
 begin
-    i := 1 + 5;
+    i := 5 - 1;
+    Write(i);
 end.

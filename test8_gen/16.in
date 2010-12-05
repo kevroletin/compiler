@@ -1,0 +1,8 @@
+var
+    a: array[0..4] of record
+	i, j, k: Integer;
+    end;
+begin
+    a[2].j := 77;
+    Write(a[2].j);
+end.

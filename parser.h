@@ -30,7 +30,8 @@ private:
     void CheckNextTokOrDie(TokenValue tok_val);    
     SyntaxNode* GetIntExprOrDie();
     SyntaxNode* ParseConstants();
-    SyntaxNode* ParseFunctionCall(SymProc* funct_name);
+    SyntaxNode* ParseFunctionCall(SymProc* funct_if);
+    SyntaxNode* ParseWriteFunctCall();
     SyntaxNode* ParseRecordAccess(SyntaxNode* record);
     SyntaxNode* ParseArrayAccess(SyntaxNode* array);
     SyntaxNode* ParseFactor();

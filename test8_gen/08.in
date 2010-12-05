@@ -1,0 +1,10 @@
+var
+    r: record
+	a: record
+	    b: Integer;
+	end;
+    end;
+begin
+    r.a.b := 1;
+    Write(r.a.b);
+end.

@@ -4,4 +4,5 @@ var
     end;
 begin
     r.a := 5;
+    Write(r.a);
 end.

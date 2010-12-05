@@ -108,6 +108,10 @@ void AsmOperandBase::Print(ostream& o) const
 {
 }
 
+void AsmOperandBase::PrintBase(ostream& o) const
+{
+}
+
 //---AsmRegister---
 
 AsmRegister::AsmRegister(RegisterName reg_):
@@ -116,6 +120,11 @@ AsmRegister::AsmRegister(RegisterName reg_):
 }
 
 void AsmRegister::Print(ostream& o) const
+{
+    o << REG_TO_STR[reg];
+}
+
+void AsmRegister::PrintBase(ostream& o) const
 {
     o << REG_TO_STR[reg];
 }
@@ -147,6 +156,12 @@ void AsmImmidiate::Print(ostream& o) const
 {
     o << '$' << value;
 }
+
+void AsmImmidiate::PrintBase(ostream& o) const
+{
+    o << value;
+}
+
 
 string AsmImmidiate::GetValue()
 {
@@ -183,7 +198,7 @@ void AsmMemory::Print(ostream& o) const
 {
     if (disp) o << disp;
     o << '(';
-    base->Print(o);
+    base->PrintBase(o);
     if (index) o << ", " << index;
     if (scale) o << ", " << scale;
     o << ')';
@@ -191,14 +206,41 @@ void AsmMemory::Print(ostream& o) const
 
 //---AsmCode---
 
-AsmCode::AsmCode()
+AsmCode::AsmCode():
 //    format_str_real(AddData("format_str_f", "%d", DATA_STR))
 //    format_str_int(AddData("format_str_d", "%d", DATA_STR))
 //    funct_write(AsmMemory(AsmImmidiate("printf")))
+    funct_write(AsmImmidiate("printf")),
+    label_counter(0)
 {
-    AddData(ChangeName("format_str_f"), "%f", DATA_STR);
-    AddData(ChangeName("format_str_d"), "%d", DATA_STR);
-//    AsmMemory(AsmImmidiate("printf"));
+    format_str_real = AddData(ChangeName("format_str_f"), "%f", DATA_STR);
+    format_str_int = AddData(ChangeName("format_str_d"), "%d", DATA_STR);
+}
+
+AsmImmidiate AsmCode::GenLabel()
+{
+    return AsmImmidiate(label_counter++);
+}
+
+string AsmCode::GenStrLabel()
+{
+    stringstream s;
+    s << label_counter++;
+    return s.str();
+}
+
+AsmImmidiate AsmCode::GenLabel(string prefix)
+{
+    stringstream s;
+    s << prefix << '_' << label_counter++;
+    return AsmImmidiate(s.str());
+}
+
+string AsmCode::GenStrLabel(string prefix)
+{
+    stringstream s;
+    s << prefix << '_' << label_counter++;
+    return s.str();
 }
 
 AsmImmidiate AsmCode::LabelByStr(string str)
@@ -310,6 +352,16 @@ AsmImmidiate AsmCode::AddData(string label, unsigned size)
     return AsmImmidiate(new_name);
 }
 
+AsmImmidiate AsmCode::AddData(string value, AsmDataType type)
+{
+    return AddData(GenStrLabel(), value, type);
+}
+
+AsmImmidiate AsmCode::AddData(unsigned size)
+{
+    return AddData(GenStrLabel(), size);
+}
+
 void AsmCode::Print(ostream& o) const
 {
     o << ".data\n";
@@ -332,14 +384,14 @@ void AsmCode::Print(ostream& o) const
 
 void AsmCode::CallWriteForInt()
 {
- //   AddCmd(ASM_PUSH, format_str_int);
- //   AddCmd(ASM_CALL, funct_write);
- //   AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
+    AddCmd(ASM_PUSH, format_str_int);
+    AddCmd(ASM_CALL, funct_write);
+    AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
 }
 
 void AsmCode::CallWriteForReal()
 {
- //   AddCmd(ASM_PUSH, format_str_real);
- //   AddCmd(ASM_CALL, funct_write);
- //   AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
+    AddCmd(ASM_PUSH, format_str_real);
+    AddCmd(ASM_CALL, funct_write);
+    AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
 }

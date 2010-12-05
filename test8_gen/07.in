@@ -3,6 +3,7 @@ var
 	a, b: Integer;
     end;
 begin
-    r.a := 5;
-    r.b := 5;
+    r.a := 1;
+    r.b := 2;
+    Write(r.a, r.b);
 end.

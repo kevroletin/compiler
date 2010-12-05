@@ -1,0 +1,6 @@
+var
+    a: array[1..4] of Integer;
+begin
+    a[2] := 9;
+    Write(a[2]);
+end.

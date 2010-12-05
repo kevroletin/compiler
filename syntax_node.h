@@ -61,7 +61,8 @@ private:
 public:
     NodeIntToRealConv(SyntaxNode* child_, SymType* real_type_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual const SymType* GetSymType() const;    
+    virtual const SymType* GetSymType() const;
+    virtual void GenerateValue(AsmCode& asm_code) const;
 };
 
 class NodeVar: public SyntaxNode{
@@ -75,13 +76,14 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual bool IsLValue() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
-    virtual void  GenerateValue(AsmCode& asm_code) const;
+    virtual void GenerateValue(AsmCode& asm_code) const;
 };
 
 class NodeArrayAccess: public SyntaxNode{
 private:
     SyntaxNode* arr;
     SyntaxNode* index;
+    void ComputeIndexToEax(AsmCode& asm_code) const;
 public:
     NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_);
     virtual void Print(ostream& o, int offset = 0) const;

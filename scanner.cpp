@@ -101,7 +101,8 @@ const string TOKEN_VALUE_DESCRIPTION[] =
     "TOK_NOT_EQUAL",
     "TOK_UNRESERVED",
     "TOK_INTEGER",
-    "TOK_REAL"
+    "TOK_REAL",
+    "TOK_WRITE"
 };
 
 const string TOKEN_TO_STR[] = 
@@ -165,7 +166,8 @@ const string TOKEN_TO_STR[] =
     "<>"
     "UNRESERVED",
     "integer",
-    "real"
+    "real",
+    "write"
 };
 
 //---Reserved words--
@@ -177,9 +179,7 @@ void ReservedWords::Add(string name, TokenType type, TokenValue value)
 
 ReservedWords::ReservedWords()
 {
-//    Add("integer", RESERVED_WORD, TOK_INTEGER);
     Add("integer", IDENTIFIER, TOK_INTEGER);
-//    Add("real", RESERVED_WORD, TOK_REAL);
     Add("real", IDENTIFIER, TOK_REAL);
     Add("and", OPERATION, TOK_AND);
     Add("array", RESERVED_WORD, TOK_ARRAY);
@@ -238,6 +238,7 @@ ReservedWords::ReservedWords()
     Add(">=", OPERATION, TOK_GREATER_OR_EQUAL);
     Add("<=", OPERATION, TOK_LESS_OR_EQUAL);
     Add("<>", OPERATION, TOK_NOT_EQUAL);
+    Add("write", IDENTIFIER, TOK_WRITE);
 }
 
 bool ReservedWords::Identify(string& str, TokenType& returned_type, TokenValue& returned_value)

@@ -1,0 +1,6 @@
+var
+    a: array[0..3, 0..3] of Integer;
+begin
+    a[2, 2] := 99;
+    Write(a[2, 2]);
+end.

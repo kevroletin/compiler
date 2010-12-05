@@ -84,7 +84,8 @@ enum TokenValue{
     TOK_NOT_EQUAL,
     TOK_UNRESERVED,
     TOK_INTEGER, 
-    TOK_REAL
+    TOK_REAL,
+    TOK_WRITE
 };
 
 extern const string TOKEN_TO_STR[];
