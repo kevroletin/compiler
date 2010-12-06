@@ -1,0 +1,18 @@
+procedure Swap(var a, b: Integer);
+var
+    i: integer;
+begin
+    i := a;
+    a := b;
+    b := i;
+end;
+
+var
+    a, b: Integer;
+
+begin
+    a := 5;
+    b := 10;
+    Swap(a, b);
+    Write(a, #13#10 , b);
+end.

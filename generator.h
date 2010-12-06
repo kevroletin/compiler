@@ -10,6 +10,7 @@
 using namespace std;
 
 class AsmOperand;
+class AsmImmidiate;
 
 enum CmdSize{
     SIZE_NONE,
@@ -67,11 +68,33 @@ enum AsmDataType{
 extern const string ASM_DATA_TYPE_TO_STR[];
 
 class AsmCmd{
+public:
+    virtual void Print(ostream& o) const;
+};
+
+class AsmLabel: public AsmCmd{
+    AsmImmidiate* label;
+public:
+    AsmLabel(AsmImmidiate* label);
+    AsmLabel(AsmImmidiate label);
+    AsmLabel(string label);
+    virtual void Print(ostream& o) const;
+};
+
+class AsmRawCmd: public AsmCmd{
+private:
+    string str;
+public:
+    AsmRawCmd(string cmd);
+    virtual void Print(ostream& o) const;
+};
+
+class AsmCmd0: public AsmCmd{
 protected:
     AsmCmdName command;
     CmdSize size;
 public:
-    AsmCmd(AsmCmdName cmd, CmdSize cmd_size = SIZE_LONG);
+    AsmCmd0(AsmCmdName cmd, CmdSize cmd_size = SIZE_LONG);
     virtual void Print(ostream& o) const;
 };
 
@@ -85,7 +108,7 @@ public:
     virtual void Print(ostream& o) const;    
 };
 
-class AsmCmd1: public AsmCmd{
+class AsmCmd1: public AsmCmd0{
 private:
     AsmOperand* oper;
 public:
@@ -93,7 +116,7 @@ public:
     virtual void Print(ostream& o) const;    
 };
 
-class AsmCmd2: public AsmCmd{
+class AsmCmd2: public AsmCmd0{
 private:
     AsmOperand* src;
     AsmOperand* dest;
@@ -128,7 +151,7 @@ private:
 public:
     AsmImmidiate();
     AsmImmidiate(const string& value_);
-    AsmImmidiate(unsigned num);
+    AsmImmidiate(int num);
     AsmImmidiate(const AsmImmidiate& src);
     string GetValue();
     virtual void Print(ostream& o) const;
@@ -138,13 +161,13 @@ public:
 class AsmMemory: public AsmOperand{
 private:
     AsmOperandBase* base;
-    unsigned disp;
-    unsigned index;
+    int disp;
+    int index;
     unsigned scale;
 public:
-    AsmMemory(AsmOperandBase* base_, unsigned disp_ = 0, unsigned index_ = 0, unsigned scale_ = 0);
-    AsmMemory(AsmImmidiate base, unsigned disp_ = 0, unsigned index_ = 0, unsigned scale_ = 0);
-    AsmMemory(RegisterName reg, unsigned disp_ = 0, unsigned index_ = 0, unsigned scale_ = 0);
+    AsmMemory(AsmOperandBase* base_, int disp_ = 0, int index_ = 0, unsigned scale_ = 0);
+    AsmMemory(AsmImmidiate base, int disp_ = 0, int index_ = 0, unsigned scale_ = 0);
+    AsmMemory(RegisterName reg, int disp_ = 0, int index_ = 0, unsigned scale_ = 0);
     virtual void Print(ostream& o) const;
 };
 
@@ -156,7 +179,6 @@ private:
     AsmMemory funct_write; 
     vector<AsmCmd*> commands;
     vector<AsmData*> data;
-    AsmImmidiate LabelByStr(string str);
     string ChangeName(string str);
     unsigned label_counter;
 public:
@@ -165,7 +187,10 @@ public:
     string GenStrLabel();
     AsmImmidiate GenLabel(string prefix);
     string GenStrLabel(string prefix);
+    AsmImmidiate LabelByStr(string str);
     void AddCmd(AsmCmd* cmd);
+    void AddCmd(AsmCmdName cmd);
+    void AddCmd(string raw_cmd);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper);
     void AddCmd(AsmCmdName cmd, RegisterName reg);
     void AddCmd(AsmCmdName cmd, AsmMemory* mem);
@@ -189,6 +214,9 @@ public:
     AsmImmidiate AddData(string label, unsigned size);
     AsmImmidiate AddData(string value, AsmDataType type = DATA_UNTYPED);
     AsmImmidiate AddData(unsigned size);
+    void AddLabel(AsmImmidiate* label);
+    void AddLabel(AsmImmidiate label);
+    void AddLabel(string label);
     virtual void Print(ostream& o) const;
     void CallWriteForInt();
     void CallWriteForReal();

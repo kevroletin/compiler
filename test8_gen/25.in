@@ -1,0 +1,8 @@
+function F(a, b: Integer): Integer;
+begin
+    Result := a + b;
+end;
+
+begin
+    Write(F(5, 1));
+end.

@@ -66,7 +66,8 @@ protected:
     vector<SymVarParam*> params;
     SymTable* sym_table;
     NodeStatement* body;
-    void PrintPrototype(ostream& o, int offset) const;
+    virtual void PrintPrototype(ostream& o, int offset) const;
+    AsmImmidiate label;
 public:
     SymProc(Token token_, SymTable* syn_table_);
     SymProc(Token name);
@@ -79,11 +80,14 @@ public:
     virtual const SymType* GetResultType() const;
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual void Print(ostream& o, int offset = 0) const;
+    void GenerateDeclaration(AsmCode& asm_code);
+    AsmImmidiate GetLabel() const;
 };
 
 class SymFunct: public SymProc{
-private:
+protected:
     const SymType* result_type;
+    virtual void PrintPrototype(ostream& o, int offset) const;
 public:
     SymFunct(Token token_, SymTable* syn_table, const SymType* result_type_);
     SymFunct(Token name);
@@ -182,19 +186,32 @@ class SymVarConst: public SymVar{
 public:
     SymVarConst(Token name, const SymType* type);
     virtual SymbolClass GetClassName() const;
-    virtual void GeneratetLValue(AsmCode& asm_code) const;
+    virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
 };
 
 class SymVarParam: public SymVar{
-private:
+protected:
     bool by_ref;
+    int offset;
+    void GenAdrInStack(AsmCode& asm_code) const;
+    void GenValueInStack(AsmCode& asm_code) const;
+    void GenValueByRef(AsmCode& asm_code) const;
 public:
-    SymVarParam(Token name, const SymType* type, bool by_ref_);
+    SymVarParam(Token name, const SymType* type, bool by_ref_, int offset_);
     bool IsByRef() const;
     virtual SymbolClass GetClassName() const;
+    virtual void GenerateLValue(AsmCode& asm_code) const;
+    virtual void GenerateValue(AsmCode& asm_code) const;
 };
-
+/*
+class SymVarResult: public SymVarParam{
+public:
+    SymVarResult(Token name, const SymType* type, int offset_);
+    virtual void GenerateLValue(AsmCode& asm_code) const;
+    virtual void GenerateValue(AsmCode& asm_code) const;
+}
+*/
 class SymVarGlobal: public SymVar{
 private:
     AsmImmidiate label;
@@ -214,8 +231,8 @@ private:
 public:
     SymVarLocal(Token name, const SymType* type, unsigned offset_);
     virtual SymbolClass GetClassName() const;
-    //virtual void GenerateLValue(AsmCode& asm_code) const;
-    //virtual void GenerateValue(AsmCode& asm_code) const;
+    virtual void GenerateLValue(AsmCode& asm_code) const;
+    virtual void GenerateValue(AsmCode& asm_code) const;
     unsigned GetOffset() const;
     void SetOffset(unsigned offset_);
 };
@@ -234,6 +251,7 @@ private:
     };
     std::set<Symbol*, SymbLessComp> table;
     unsigned size;
+    unsigned locals_size;
 public:
     SymTable();
     void Add(Symbol* sym);
@@ -242,6 +260,8 @@ public:
     void Print(ostream& o, int offset = 0) const;
     bool IsEmpty() const;
     unsigned GetSize() const;
+    unsigned GetLocalsSize() const;
+    unsigned GetParamsSize() const;
     void GenerateDeclarations(AsmCode& asm_code) const;
 };
 

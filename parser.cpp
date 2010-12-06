@@ -75,6 +75,7 @@ void Parser::PrintSymTable(ostream& o)
 void Parser::Generate(ostream& o)
 {
     sym_table_stack.back()->GenerateDeclarations(asm_code);
+    asm_code.AddCmd(".globl main\nmain:\n");
     body->Generate(asm_code);
     asm_code.Print(o);
 }
@@ -177,7 +178,7 @@ void Parser::ParseVarDeclarations(bool is_global)
             if (is_global)
                 sym_table_stack.back()->Add(new SymVarGlobal(*it, type));
             else
-                sym_table_stack.back()->Add(new SymVarLocal(*it, type, sym_table_stack.back()->GetSize()));
+                sym_table_stack.back()->Add(new SymVarLocal(*it, type, sym_table_stack.back()->GetLocalsSize() + 4));
         CheckTokOrDie(TOK_SEMICOLON);
     }
 }
@@ -242,7 +243,7 @@ void Parser::ParseFunctionParameters(SymProc* funct)
         const SymType* type = (SymType*)FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
         for (vector<Token>::iterator it = v.begin(); it != v.end(); ++it)
         {
-            SymVarParam* param = new SymVarParam(*it, type, by_ref);
+            SymVarParam* param = new SymVarParam(*it, type, by_ref, sym_table_stack.back()->GetParamsSize() + 4);
             sym_table_stack.back()->Add(param);
             funct->AddParam(param);
         }
@@ -273,7 +274,6 @@ void Parser::ParseFunctionDefinition()
         const SymType* type = (SymType*)FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
         scan.NextToken();
         ((SymFunct*)res)->AddResultType(type);
-        sym_table_stack.back()->Add(new SymVar(Token("Result", IDENTIFIER, TOK_UNRESERVED, -1, -1), type));
     }
     CheckTokOrDie(TOK_SEMICOLON);
     ParseDeclarations(false);
@@ -478,7 +478,12 @@ SyntaxNode* Parser::ParseFunctionCall(SymProc* funct_name)
         }
         scan.NextToken();
     }
-    if (funct->GetCurrentArgType() != NULL) Error("not enough actual parameters");
+    if (funct_name->GetClassName() & SYM_FUNCT)
+    {
+        if (funct->GetNextArgType() != NULL) Error("not enough actual parameters");
+    }
+    else
+        if (funct->GetCurrentArgType() != NULL) Error("not enough actual parameters");
     return funct;
 }
 

@@ -25,6 +25,12 @@ const SymType* NodeCall::GetCurrentArgType() const
     return funct->GetArg(args.size())->GetVarType();
 }
 
+const SymType* NodeCall::GetNextArgType() const
+{
+    if (args.size() + 1 >= funct->GetArgsCount()) return NULL;
+    return funct->GetArg(args.size() + 1)->GetVarType();
+}
+
 bool NodeCall::IsCurrentArfByRef() const
 {
     if (args.size() >= funct->GetArgsCount()) return NULL;
@@ -45,6 +51,18 @@ void NodeCall::Print(ostream& o, int offset) const
 const SymType* NodeCall::GetSymType() const
 {
     return funct->GetResultType();
+}
+
+void NodeCall::GenerateValue(AsmCode& asm_code) const
+{    
+    if (funct->GetClassName() & SYM_FUNCT)
+        asm_code.AddCmd(ASM_SUB, AsmImmidiate(funct->GetResultType()->GetSize()), REG_ESP);
+    for (int i = 0; i < args.size(); ++i)
+        if (funct->GetArg(i)->IsByRef())
+            args[i]->GenerateLValue(asm_code);
+        else
+            args[i]->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_CALL, AsmMemory(funct->GetLabel()));
 }
 
 //---NodeWriteCall---

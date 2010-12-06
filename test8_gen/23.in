@@ -1,0 +1,9 @@
+procedure Proc(a, b: Integer);
+begin
+    a := 10;
+    b := 20;
+end;
+
+begin
+    Proc(10, 20);
+end.

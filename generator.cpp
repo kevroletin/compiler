@@ -52,13 +52,54 @@ const string ASM_DATA_TYPE_TO_STR[] =
 
 //---AsmCmd---
 
-AsmCmd::AsmCmd(AsmCmdName cmd, CmdSize cmd_size):
+void AsmCmd::Print(ostream& o) const
+{
+}
+
+//---AsmLabel---
+
+AsmLabel::AsmLabel(AsmImmidiate* label_):
+    label(label_)
+{
+}
+
+AsmLabel::AsmLabel(AsmImmidiate label_):
+    label(new AsmImmidiate(label_))
+{
+}
+
+AsmLabel::AsmLabel(string label):
+    label(new AsmImmidiate(label))
+{
+}
+
+void AsmLabel::Print(ostream& o) const
+{
+    label->PrintBase(o);
+    o << ':';
+}
+
+//---AsmRawCmd---
+
+AsmRawCmd::AsmRawCmd(string cmd):
+    str(cmd)
+{
+}
+
+void AsmRawCmd::Print(ostream& o) const
+{
+    o << str;
+}
+
+//---AsmCmd0---
+
+AsmCmd0::AsmCmd0(AsmCmdName cmd, CmdSize cmd_size):
     command(cmd),
     size(cmd_size)
 {
 }
 
-void AsmCmd::Print(ostream& o) const
+void AsmCmd0::Print(ostream& o) const
 {
     o << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size];
 }
@@ -82,7 +123,7 @@ void AsmData::Print(ostream& o) const
 //---AsmCmd1---
 
 AsmCmd1::AsmCmd1(AsmCmdName cmd, AsmOperand* oper_, CmdSize size):
-    AsmCmd(cmd, size),
+    AsmCmd0(cmd, size),
     oper(oper_)
 {
 }
@@ -96,7 +137,7 @@ void AsmCmd1::Print(ostream& o) const
 //---AsmCmd2---
 
 AsmCmd2::AsmCmd2(AsmCmdName cmd, AsmOperand* src_, AsmOperand* dest_, CmdSize size):
-    AsmCmd(cmd, size),
+    AsmCmd0(cmd, size),
     src(src_),
     dest(dest_)
 {
@@ -154,7 +195,7 @@ AsmImmidiate::AsmImmidiate(const string& value_):
 {
 }
 
-AsmImmidiate::AsmImmidiate(unsigned num)
+AsmImmidiate::AsmImmidiate(int num)
 {
     stringstream s;
     s << num;
@@ -184,7 +225,7 @@ string AsmImmidiate::GetValue()
 
 //---AsmMemory---
 
-AsmMemory::AsmMemory(AsmOperandBase* base_, unsigned disp_, unsigned index_, unsigned scale_):
+AsmMemory::AsmMemory(AsmOperandBase* base_, int disp_, int index_, unsigned scale_):
     base(base_),
     disp(disp_),
     index(index_),
@@ -192,7 +233,7 @@ AsmMemory::AsmMemory(AsmOperandBase* base_, unsigned disp_, unsigned index_, uns
 {
 }
 
-AsmMemory::AsmMemory(AsmImmidiate base_, unsigned disp_, unsigned index_, unsigned scale_):
+AsmMemory::AsmMemory(AsmImmidiate base_, int disp_, int index_, unsigned scale_):
     base(new AsmImmidiate(base_)),
     disp(disp_),
     index(index_),
@@ -200,7 +241,7 @@ AsmMemory::AsmMemory(AsmImmidiate base_, unsigned disp_, unsigned index_, unsign
 {
 }
 
-AsmMemory::AsmMemory(RegisterName reg, unsigned disp_, unsigned index_, unsigned scale_):
+AsmMemory::AsmMemory(RegisterName reg, int disp_, int index_, unsigned scale_):
     base(new AsmRegister(reg)),
     disp(disp_),
     index(index_),
@@ -271,6 +312,16 @@ string AsmCode::ChangeName(string str)
 void AsmCode::AddCmd(AsmCmd* cmd)
 {
     commands.push_back(cmd);
+}
+
+void AsmCode::AddCmd(string raw_cmd)
+{
+    commands.push_back(new AsmRawCmd(raw_cmd));
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd)
+{
+    commands.push_back(new AsmCmd0(cmd));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory mem, CmdSize size)
@@ -397,6 +448,21 @@ AsmImmidiate AsmCode::AddData(unsigned size)
     return AddData(GenStrLabel(), size);
 }
 
+void AsmCode::AddLabel(AsmImmidiate* label)
+{
+    commands.push_back(new AsmLabel(label));
+}
+
+void AsmCode::AddLabel(AsmImmidiate label)
+{
+    commands.push_back(new AsmLabel(label));
+}
+
+void AsmCode::AddLabel(string label)
+{
+    commands.push_back(new AsmLabel(label));
+}
+
 void AsmCode::Print(ostream& o) const
 {
     o << ".data\n";
@@ -407,7 +473,6 @@ void AsmCode::Print(ostream& o) const
         o << '\n';
     }
     o << ".text\n";
-    o << ".globl main\nmain:\n";
     for (vector<AsmCmd*>::const_iterator it = commands.begin(); it != commands.end(); ++it)
     {
         o << '\t';

@@ -1,0 +1,12 @@
+procedure P(var a: Integer);
+begin
+    a := 10;
+end;
+
+var
+    a: Integer;
+
+begin
+    P(a);
+    Write(a);
+end.

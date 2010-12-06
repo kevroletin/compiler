@@ -15,9 +15,11 @@ public:
     NodeCall(const SymProc* funct_);
     void AddArg(SyntaxNode* arg);
     const SymType* GetCurrentArgType() const;
+    const SymType* GetNextArgType() const;
     bool IsCurrentArfByRef() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;
+    virtual void GenerateValue(AsmCode& asm_code) const;
 };
 
 class NodeWriteCall: public SyntaxNode{
