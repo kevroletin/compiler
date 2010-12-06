@@ -1,0 +1,3 @@
+r: record
+  a: integer
+end

@@ -59,10 +59,13 @@ void NodeWriteCall::GenerateValue(AsmCode& asm_code) const
     for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++it)
     {
         (*it)->GenerateValue(asm_code);
-        if ((*it)->GetSymType() == top_type_int)
+        const SymType* type = (*it)->GetSymType();
+        if (type == top_type_int)
             asm_code.CallWriteForInt();
-        else
+        else if (type == top_type_real)
             asm_code.CallWriteForReal();
+        else
+            asm_code.CallWriteForStr();
     }
 }
 

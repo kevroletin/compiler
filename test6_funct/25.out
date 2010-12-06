@@ -1,0 +1,8 @@
+procedure proc(r: real);
+var
+  r: real
+begin
+  () proc [untyped]
+    IntToReal [real]
+      10 [integer]
+end

@@ -1,0 +1,17 @@
+i: integer
+begin
+  if
+    1 [integer]
+  then
+    begin
+      := 
+        i [integer]
+        10 [integer]
+    end
+  else
+    begin
+      := 
+        i [integer]
+        20 [integer]
+    end
+end

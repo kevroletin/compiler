@@ -15,12 +15,13 @@ const string SymbolClassDescription[] = {
 SymType* top_type_int = new SymTypeInteger(Token("Integer", RESERVED_WORD, TOK_INTEGER, -1, -1));
 SymType* top_type_real = new SymTypeReal(Token("Real", RESERVED_WORD, TOK_REAL, -1, -1));;
 SymType* top_type_untyped = new SymType(Token("untyped", RESERVED_WORD, TOK_UNRESERVED, -1, -1));
+SymType* top_type_str = new SymType(Token("String", RESERVED_WORD, TOK_STRING, -1, -1));
 
 //---Symbol---
 
 Symbol::Symbol(Token token_)
 {
-    token_.NameToLowerCase();
+    if (token_.GetType() != STR_CONST) token_.NameToLowerCase();
     token = token_;
 }
 
@@ -446,11 +447,17 @@ void SymVarConst::GenerateValue(AsmCode& asm_code) const
     {
         asm_code.AddCmd(ASM_PUSH, AsmImmidiate(token.GetName()));
     }
-    else
+    else if (token.GetType() == REAL_CONST)
     {
         AsmImmidiate label = asm_code.AddData(asm_code.GenStrLabel("float"), token.GetName(), DATA_REAL);
         asm_code.AddCmd(ASM_PUSH, AsmMemory(label));
     }
+    else
+    {
+        AsmImmidiate label = asm_code.AddData(asm_code.GenStrLabel("str"), token.GetName(), DATA_STR);
+        asm_code.AddCmd(ASM_PUSH, label);
+    }
+
 }
 
 //---SymVarParam---

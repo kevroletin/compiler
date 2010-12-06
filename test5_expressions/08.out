@@ -1,0 +1,9 @@
+begin
+  [] [real]
+    arr [array]
+    - [integer]
+      * [integer]
+        index [integer]
+        4 [integer]
+      2 [integer]
+end

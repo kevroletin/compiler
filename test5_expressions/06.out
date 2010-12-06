@@ -1,0 +1,7 @@
+begin
+  . [real]
+    . [record]
+      a [record]
+      b [record]
+    c [real]
+end

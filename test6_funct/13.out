@@ -1,0 +1,7 @@
+function f: real;
+var
+  a: integer
+  b: integer
+  result: real
+begin
+end

@@ -1,0 +1,6 @@
+function funct(a: integer): real;
+var
+  a: integer
+  result: real
+begin
+end

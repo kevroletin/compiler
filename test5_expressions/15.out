@@ -1,0 +1,6 @@
+begin
+  > [real]
+    IntToReal [real]
+      a [integer]
+    b [real]
+end

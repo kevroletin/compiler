@@ -1,0 +1,7 @@
+begin
+  if
+    1 [integer]
+  then
+    begin
+    end
+end

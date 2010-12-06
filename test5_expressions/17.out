@@ -1,0 +1,11 @@
+begin
+  > [integer]
+    [] [integer]
+      arr [array]
+      i [integer]
+    [] [integer]
+      arr [array]
+      + [integer]
+        i [integer]
+        1 [integer]
+end

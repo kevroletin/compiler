@@ -152,6 +152,7 @@ class AsmCode{
 private:
     AsmImmidiate format_str_real;
     AsmImmidiate format_str_int;
+    AsmImmidiate format_str_str;
     AsmMemory funct_write; 
     vector<AsmCmd*> commands;
     vector<AsmData*> data;
@@ -191,6 +192,7 @@ public:
     virtual void Print(ostream& o) const;
     void CallWriteForInt();
     void CallWriteForReal();
+    void CallWriteForStr();
 };
 
 #endif

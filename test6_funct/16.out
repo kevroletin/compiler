@@ -1,0 +1,8 @@
+procedure proc;
+var
+  a: integer
+begin
+  := 
+    a [integer]
+    5 [integer]
+end

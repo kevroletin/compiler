@@ -1,0 +1,7 @@
+begin
+  [] [real]
+    [] [array]
+      arr [array]
+      i [integer]
+    j [integer]
+end

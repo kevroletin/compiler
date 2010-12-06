@@ -1,0 +1,8 @@
+procedure proc(a: integer; b: integer; c: real; d: real);
+var
+  a: integer
+  b: integer
+  c: real
+  d: real
+begin
+end

@@ -23,8 +23,6 @@ public:
 class NodeWriteCall: public SyntaxNode{
 private:
     std::vector<SyntaxNode*> args;
-    void GenerateForInt(AsmCode& asm_code) const;
-    void GenerateForReal(AsmCode& asm_code) const;    
 public:
     void AddArg(SyntaxNode* arg);
     virtual void GenerateValue(AsmCode& asm_code) const;

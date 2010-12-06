@@ -1,0 +1,7 @@
+procedure p(a: integer);
+var
+  a: integer
+begin
+  () p [untyped]
+    a [integer]
+end

@@ -1,0 +1,8 @@
+function f: real;
+var
+  result: real
+begin
+  := 
+    result [real]
+    10.2 [real]
+end

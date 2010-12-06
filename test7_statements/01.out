@@ -1,0 +1,11 @@
+c: integer
+i: integer
+begin
+  for to 
+    i [integer]
+    1 [integer]
+    4 [integer]
+  := 
+    c [integer]
+    0 [integer]
+end

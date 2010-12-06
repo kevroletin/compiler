@@ -1,0 +1,5 @@
+begin
+  := 
+    b [real]
+    1.e10 [real]
+end

@@ -1,0 +1,13 @@
+a: integer
+f: integer
+i: integer
+t: integer
+begin
+  for to 
+    i [integer]
+    f [integer]
+    t [integer]
+  := 
+    a [integer]
+    0 [integer]
+end

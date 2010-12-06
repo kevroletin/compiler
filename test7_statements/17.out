@@ -1,0 +1,14 @@
+i: integer
+begin
+  until
+    > [integer]
+      i [integer]
+      0 [integer]
+    begin
+      := 
+        i [integer]
+        - [integer]
+          i [integer]
+          1 [integer]
+    end
+end

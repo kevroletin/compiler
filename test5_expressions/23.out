@@ -1,0 +1,7 @@
+begin
+  := 
+    . [real]
+      r [record]
+      a [real]
+    0.75 [real]
+end

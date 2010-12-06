@@ -1,0 +1,10 @@
+function f(a: integer): integer;
+var
+  a: integer
+  result: integer
+begin
+  := 
+    result [integer]
+    () f [integer]
+      10 [integer]
+end

@@ -1,0 +1,6 @@
+r: record
+  a: real
+  b: real
+  i: integer
+  j: integer
+end

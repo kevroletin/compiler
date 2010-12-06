@@ -1,0 +1,8 @@
+r: record
+  i: integer
+  j: integer
+  sub_r: record
+    a: real
+    b: real
+  end
+end

@@ -1,0 +1,3 @@
+begin
+    Write('Hellow, world!!!');
+end.

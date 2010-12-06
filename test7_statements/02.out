@@ -1,0 +1,15 @@
+a: integer
+i: integer
+begin
+  for to 
+    i [integer]
+    + [integer]
+      1 [integer]
+      2 [integer]
+    - [integer]
+      5 [integer]
+      4 [integer]
+  := 
+    a [integer]
+    0 [integer]
+end

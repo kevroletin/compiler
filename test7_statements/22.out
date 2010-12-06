@@ -1,0 +1,13 @@
+i: integer
+begin
+  if
+    1 [integer]
+  then
+    := 
+      i [integer]
+      2 [integer]
+  else
+    := 
+      i [integer]
+      3 [integer]
+end

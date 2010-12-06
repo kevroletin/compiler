@@ -1,0 +1,15 @@
+c: integer
+i: integer
+begin
+  while
+    < [integer]
+      i [integer]
+      10 [integer]
+    begin
+      := 
+        c [integer]
+        + [integer]
+          c [integer]
+          1 [integer]
+    end
+end

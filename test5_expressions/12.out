@@ -1,0 +1,12 @@
+begin
+  [] [integer]
+    arr [array]
+    + [integer]
+      + [integer]
+        1 [integer]
+        div [integer]
+          $1 [integer]
+          a1 [t]
+      - [integer]
+        expression [t]
+end

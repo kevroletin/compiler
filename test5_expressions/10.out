@@ -1,0 +1,7 @@
+begin
+  [] [integer]
+    arr [array]
+    [] [integer]
+      arr2 [array]
+      index [integer]
+end

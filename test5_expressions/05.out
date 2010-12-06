@@ -1,0 +1,10 @@
+begin
+  - [real]
+    IntToReal [real]
+      . [integer]
+        a [record]
+        i [integer]
+    . [real]
+      b [record]
+      r [real]
+end

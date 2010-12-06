@@ -1,0 +1,5 @@
+procedure proc;
+var
+  i: integer
+begin
+end

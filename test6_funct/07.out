@@ -1,0 +1,9 @@
+function funct(a: integer; b: integer; var c: real; var d: real): integer;
+var
+  a: integer
+  b: integer
+  c: real
+  d: real
+  result: integer
+begin
+end

@@ -1,0 +1,9 @@
+begin
+  . [real]
+    [] [record]
+      arr [array]
+      . [integer]
+        a [record]
+        b [integer]
+    c [real]
+end

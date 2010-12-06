@@ -1,0 +1,5 @@
+function funct: integer;
+var
+  result: integer
+begin
+end

@@ -1,0 +1,9 @@
+begin
+  := 
+    [] [integer]
+      . [array]
+        r [record]
+        d [arrt]
+      10 [integer]
+    10 [integer]
+end

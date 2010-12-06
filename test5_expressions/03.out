@@ -1,0 +1,7 @@
+begin
+  + [integer]
+    i [integer]
+    . [integer]
+      a [record]
+      b [integer]
+end

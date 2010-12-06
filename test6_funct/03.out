@@ -1,0 +1,5 @@
+procedure proc(a: integer);
+var
+  a: integer
+begin
+end

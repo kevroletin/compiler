@@ -229,6 +229,7 @@ AsmCode::AsmCode():
 {
     format_str_real = AddData(ChangeName("format_str_f"), "%f", DATA_STR);
     format_str_int = AddData(ChangeName("format_str_d"), "%d", DATA_STR);
+    format_str_str = AddData(ChangeName("format_str_s"), "%s", DATA_STR);
 }
 
 AsmImmidiate AsmCode::GenLabel()
@@ -437,11 +438,11 @@ void AsmCode::CallWriteForReal()
     AddCmd(ASM_MOV, format_str_real, AsmMemory(REG_ESP));
     AddCmd(ASM_CALL, funct_write);
     AddCmd(ASM_ADD, AsmImmidiate(12), REG_ESP);
+}
 
-/*    AddCmd(ASM_POP, REG_EAX);
-    AddCmd(ASM_PUSH, AsmImmidiate(0));
-    AddCmd(ASM_PUSH, REG_EAX);
-    AddCmd(ASM_PUSH, format_str_real);
+void AsmCode::CallWriteForStr()
+{
+    AddCmd(ASM_PUSH, format_str_str);
     AddCmd(ASM_CALL, funct_write);
-    AddCmd(ASM_ADD, 12, REG_ESP);*/
+    AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
 }

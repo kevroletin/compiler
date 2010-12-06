@@ -1,0 +1,10 @@
+function f(a: integer; b: real): real;
+var
+  a: integer
+  b: real
+  result: real
+begin
+  () f [real]
+    10 [integer]
+    33.3 [real]
+end

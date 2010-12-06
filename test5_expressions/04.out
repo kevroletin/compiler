@@ -1,0 +1,9 @@
+begin
+  * [integer]
+    . [integer]
+      a [record]
+      c [integer]
+    . [integer]
+      a [record]
+      c [integer]
+end

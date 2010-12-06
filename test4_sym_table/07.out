@@ -1,0 +1,2 @@
+a: t
+t = array [1..4] of array [5..6] of integer

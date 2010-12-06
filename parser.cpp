@@ -498,7 +498,8 @@ SyntaxNode* Parser::ParseWriteFunctCall()
                 scan.NextToken();
             else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
                 Error(", expected");
-            if (arg->GetSymType() != top_type_int && arg->GetSymType() != top_type_real)
+            const SymType* type = arg->GetSymType();
+            if (type != top_type_int && type != top_type_real && type != top_type_str )
                 Error("cant write variables of this type ", err_tok);
             write->AddArg(arg);
         }
@@ -513,7 +514,7 @@ SyntaxNode* Parser::ParseConstants()
     SymType* type = NULL;
     if (token.GetType() == INT_CONST) type = top_type_int;
     else if (token.GetType() == REAL_CONST) type = top_type_real;
-    else Error("operations on string const not implemented");
+    else type = top_type_str;
     scan.NextToken();
     return new NodeVar(new SymVarConst(token, type));
 }

@@ -36,6 +36,7 @@ class SymVarLocal;
 extern SymType* top_type_int;
 extern SymType* top_type_real;
 extern SymType* top_type_untyped;
+extern SymType* top_type_str;
 
 class Symbol{
 protected:

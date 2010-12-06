@@ -1,0 +1,5 @@
+begin
+  . [integer]
+    a [record]
+    c [integer]
+end

@@ -1,0 +1,7 @@
+function funct: real;
+var
+  i: t
+  result: real
+  t = integer
+begin
+end

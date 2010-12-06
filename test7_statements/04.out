@@ -1,0 +1,9 @@
+i: integer
+begin
+  for downto 
+    i [integer]
+    4 [integer]
+    3 [integer]
+  begin
+  end
+end
