@@ -11,6 +11,16 @@ using namespace std;
 
 class AsmOperand;
 
+enum CmdSize{
+    SIZE_NONE,
+    SIZE_BYTE,
+    SIZE_SHORT,
+    SIZE_LONG,
+    SIZE_QUARD
+};
+
+extern const string SIZE_TO_STR[];
+
 enum RegisterName{
     REG_EAX,
     REG_EBX,
@@ -38,6 +48,11 @@ enum AsmCmdName{
     ASM_RET,
     ASM_SUB,
     ASM_XOR
+
+    ,
+    ASM_FILD,
+    ASM_FLD,
+    ASM_FSTP
 };
 
 extern const string ASM_CMD_TO_STR[];
@@ -54,8 +69,9 @@ extern const string ASM_DATA_TYPE_TO_STR[];
 class AsmCmd{
 protected:
     AsmCmdName command;
+    CmdSize size;
 public:
-    AsmCmd(AsmCmdName cmd);
+    AsmCmd(AsmCmdName cmd, CmdSize cmd_size = SIZE_LONG);
     virtual void Print(ostream& o) const;
 };
 
@@ -73,7 +89,7 @@ class AsmCmd1: public AsmCmd{
 private:
     AsmOperand* oper;
 public:
-    AsmCmd1(AsmCmdName cmd, AsmOperand* oper_);
+    AsmCmd1(AsmCmdName cmd, AsmOperand* oper_, CmdSize size = SIZE_LONG);
     virtual void Print(ostream& o) const;    
 };
 
@@ -82,7 +98,7 @@ private:
     AsmOperand* src;
     AsmOperand* dest;
 public:
-    AsmCmd2(AsmCmdName cmd, AsmOperand* src_, AsmOperand* dest_);
+    AsmCmd2(AsmCmdName cmd, AsmOperand* src_, AsmOperand* dest_, CmdSize size = SIZE_LONG);
     virtual void Print(ostream& o) const;
 };
 
@@ -152,7 +168,7 @@ public:
     void AddCmd(AsmCmdName cmd, AsmOperand* oper);
     void AddCmd(AsmCmdName cmd, RegisterName reg);
     void AddCmd(AsmCmdName cmd, AsmMemory* mem);
-    void AddCmd(AsmCmdName cmd, AsmMemory mem);
+    void AddCmd(AsmCmdName cmd, AsmMemory mem, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmImmidiate* imm);
     void AddCmd(AsmCmdName cmd, AsmImmidiate imm);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2);
@@ -162,7 +178,11 @@ public:
     void AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName oper1);
     void AddCmd(AsmCmdName cmd, AsmImmidiate src, RegisterName oper1);
     void AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg);
+    void AddCmd(AsmCmdName cmd, AsmMemory mem, RegisterName reg);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem);
+    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory mem);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate* src, AsmMemory* mem);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate src, AsmMemory mem);    
     void AddData(AsmData* new_data);
     AsmImmidiate AddData(string label, string value, AsmDataType type = DATA_UNTYPED);
     AsmImmidiate AddData(string label, unsigned size);

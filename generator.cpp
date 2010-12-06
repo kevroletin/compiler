@@ -1,5 +1,14 @@
 #include "generator.h"
 
+const string SIZE_TO_STR[] =
+{
+    "",
+    "b",
+    "s",
+    "l",
+    "q"
+};
+
 const string REG_TO_STR[] =
 {
     "%eax",
@@ -27,6 +36,10 @@ const string ASM_CMD_TO_STR[] =
     "ret",
     "sub",
     "xor"
+    ,
+    "fild",
+    "fld",
+    "fstp"
 };
 
 const string ASM_DATA_TYPE_TO_STR[] = 
@@ -39,14 +52,15 @@ const string ASM_DATA_TYPE_TO_STR[] =
 
 //---AsmCmd---
 
-AsmCmd::AsmCmd(AsmCmdName cmd):
-    command(cmd)
+AsmCmd::AsmCmd(AsmCmdName cmd, CmdSize cmd_size):
+    command(cmd),
+    size(cmd_size)
 {
 }
 
 void AsmCmd::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command];
+    o << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size];
 }
 
 //---AsmData---
@@ -67,22 +81,22 @@ void AsmData::Print(ostream& o) const
 
 //---AsmCmd1---
 
-AsmCmd1::AsmCmd1(AsmCmdName cmd, AsmOperand* oper_):
-    AsmCmd(cmd),
+AsmCmd1::AsmCmd1(AsmCmdName cmd, AsmOperand* oper_, CmdSize size):
+    AsmCmd(cmd, size),
     oper(oper_)
 {
 }
 
 void AsmCmd1::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << "l\t";
+    o << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size] << '\t';
     oper->Print(o);
 }
 
 //---AsmCmd2---
 
-AsmCmd2::AsmCmd2(AsmCmdName cmd, AsmOperand* src_, AsmOperand* dest_):
-    AsmCmd(cmd),
+AsmCmd2::AsmCmd2(AsmCmdName cmd, AsmOperand* src_, AsmOperand* dest_, CmdSize size):
+    AsmCmd(cmd, size),
     src(src_),
     dest(dest_)
 {
@@ -90,7 +104,7 @@ AsmCmd2::AsmCmd2(AsmCmdName cmd, AsmOperand* src_, AsmOperand* dest_):
 
 void AsmCmd2::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << "l\t";
+    o << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size] << '\t';
     src->Print(o);
     o<< ", ";
     dest->Print(o);
@@ -258,9 +272,9 @@ void AsmCode::AddCmd(AsmCmd* cmd)
     commands.push_back(cmd);
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory mem)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory mem, CmdSize size)
 {
-    commands.push_back(new AsmCmd1(cmd, new AsmMemory(mem)));
+    commands.push_back(new AsmCmd1(cmd, new AsmMemory(mem), size));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest)
@@ -326,9 +340,29 @@ void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg)
     commands.push_back(new AsmCmd2(cmd, mem, new AsmRegister(reg)));
 }
 
+void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory mem, RegisterName reg)
+{
+    commands.push_back(new AsmCmd2(cmd, new AsmMemory(mem), new AsmRegister(reg)));
+}
+
 void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem)
 {
     commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), mem));
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory mem)
+{
+    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), new AsmMemory(mem)));
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* src, AsmMemory* mem)
+{
+    commands.push_back(new AsmCmd2(cmd, src, mem));
+}
+
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate src, AsmMemory mem)
+{
+    AddCmd(cmd, new AsmImmidiate(src), new AsmMemory(mem));
 }
 
 void AsmCode::AddData(AsmData* new_data)
@@ -391,7 +425,23 @@ void AsmCode::CallWriteForInt()
 
 void AsmCode::CallWriteForReal()
 {
+/*        subl    $12, %esp
+        flds    float_0
+        fstpl   4(%esp)
+        movl    $format_str_f, (%esp)
+        calll   (printf)
+        addl    $12, %esp */
+    AddCmd(ASM_FLD, AsmMemory(REG_ESP), SIZE_SHORT);
+    AddCmd(ASM_SUB, AsmImmidiate(8), REG_ESP);
+    AddCmd(ASM_FSTP, AsmMemory(REG_ESP, 4));
+    AddCmd(ASM_MOV, format_str_real, AsmMemory(REG_ESP));
+    AddCmd(ASM_CALL, funct_write);
+    AddCmd(ASM_ADD, AsmImmidiate(12), REG_ESP);
+
+/*    AddCmd(ASM_POP, REG_EAX);
+    AddCmd(ASM_PUSH, AsmImmidiate(0));
+    AddCmd(ASM_PUSH, REG_EAX);
     AddCmd(ASM_PUSH, format_str_real);
     AddCmd(ASM_CALL, funct_write);
-    AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
+    AddCmd(ASM_ADD, 12, REG_ESP);*/
 }

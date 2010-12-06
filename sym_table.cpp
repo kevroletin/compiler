@@ -449,7 +449,7 @@ void SymVarConst::GenerateValue(AsmCode& asm_code) const
     else
     {
         AsmImmidiate label = asm_code.AddData(asm_code.GenStrLabel("float"), token.GetName(), DATA_REAL);
-        asm_code.AddCmd(ASM_PUSH, label);
+        asm_code.AddCmd(ASM_PUSH, AsmMemory(label));
     }
 }
 

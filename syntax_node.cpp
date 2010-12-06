@@ -49,14 +49,6 @@ const SymType* NodeCall::GetSymType() const
 
 //---NodeWriteCall---
 
-void NodeWriteCall::GenerateForInt(AsmCode& asm_code) const
-{
-}
-
-void NodeWriteCall::GenerateForReal(AsmCode& asm_code) const
-{
-}
-
 void NodeWriteCall::AddArg(SyntaxNode* arg)
 {
     args.push_back(arg);
@@ -191,6 +183,8 @@ const SymType* NodeIntToRealConv::GetSymType() const
 void NodeIntToRealConv::GenerateValue(AsmCode& asm_code) const
 {
     child->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_FILD, AsmMemory(REG_ESP), SIZE_SHORT);
+    asm_code.AddCmd(ASM_FSTP, AsmMemory(REG_ESP), SIZE_SHORT);
 }
 
 //---NodeVar---
