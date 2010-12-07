@@ -528,3 +528,18 @@ void StmtIf::Print(ostream& o, int offset) const
         else_branch->Print(o, offset + 1);
     }
 }
+
+void StmtIf::Generate(AsmCode& asm_code) const
+{
+    AsmImmidiate label_else(asm_code.GenLabel("else"));
+    AsmImmidiate label_fin(asm_code.GenLabel("fin"));
+    condition->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
+    asm_code.AddCmd(ASM_JZ, label_else, SIZE_NONE);
+    then_branch->Generate(asm_code);
+    asm_code.AddLabel(label_else);
+    if (else_branch != NULL) else_branch->Generate(asm_code);
+    asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);
+    asm_code.AddLabel(label_fin);    
+}

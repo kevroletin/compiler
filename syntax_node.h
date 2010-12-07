@@ -177,6 +177,7 @@ private:
 public:
     StmtIf(SyntaxNode* condition_, NodeStatement* then_branch_, NodeStatement* else_branch_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Generate(AsmCode& asm_code) const;
 };
 
 
