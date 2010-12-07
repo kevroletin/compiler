@@ -66,10 +66,9 @@ public:
 
 class NodeVar: public SyntaxNode{
 private:
-    SymVar* var;
+    const SymVar* var;
 public:
-    NodeVar(Symbol* var_);
-    NodeVar(SymVar* var_);
+    NodeVar(const SymVar* var_);
     const SymVar* GetVar();
     virtual const SymType* GetSymType() const;
     virtual void Print(ostream& o, int offset = 0) const;
@@ -147,6 +146,7 @@ private:
 public:
     StmtFor(const SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value, bool is_inc, NodeStatement* body_);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Generate(AsmCode& asm_code) const;
 };
 
 class StmtWhile: public NodeStatement{

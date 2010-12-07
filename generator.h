@@ -38,9 +38,14 @@ extern const string REG_TO_STR[];
 enum AsmCmdName{
     ASM_ADD,
     ASM_CALL,
+    ASM_CMP,
     ASM_DIV,
     ASM_IDIV,
     ASM_IMUL,
+    ASM_JMP,
+    ASM_JNE,
+    ASM_JNZ,
+    ASM_JZ,
     ASM_LEA,
     ASM_MOV,
     ASM_MUL,
@@ -128,6 +133,7 @@ public:
 class AsmOperand{
 public:
     virtual void Print(ostream& o) const;    
+    virtual void PrintBase(ostream& o) const;
 };
 
 class AsmOperandBase: public AsmOperand{
@@ -196,7 +202,7 @@ public:
     void AddCmd(AsmCmdName cmd, AsmMemory* mem);
     void AddCmd(AsmCmdName cmd, AsmMemory mem, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmImmidiate* imm);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate imm);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate imm, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2);
     void AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest);

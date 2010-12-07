@@ -1,0 +1,6 @@
+var
+    i: Integer;
+begin
+    for i := 1 to 4 do
+	Write(i + 2);
+end.

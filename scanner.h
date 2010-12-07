@@ -121,8 +121,9 @@ public:
     bool IsVar() const;
     bool IsConstVar() const;
     Token();
-    Token(const char* name_, TokenType type_, TokenValue value_, int line_, int pos_);
+    Token(const char* name_, TokenType type_, TokenValue value_, int line_ = -1, int pos_ = -1);
     Token(const Token& token);
+    Token(TokenValue val); 
     Token& operator=(const Token& token);
     ~Token();
     TokenType GetType() const;

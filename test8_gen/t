@@ -10,7 +10,6 @@ do
 	if [ -e a.out ] 
 	then 
 	    ./a.out >> $i.res
-	    rm a.out
 	fi
 	tmp=$(diff -q -b $i.out $i.res)
 	if [ -z $1 ] && [ "$1" != "n" ]; then echo "$i: $tmp"; fi

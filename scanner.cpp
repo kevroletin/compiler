@@ -332,6 +332,15 @@ Token::Token(const Token& token):
 {
 }
 
+Token::Token(TokenValue val):
+    name(strcpy(new char[1], "")),
+    type(UNDEFINED),
+    value(val),
+    line(0),
+    pos(0)
+{
+}
+
 Token& Token::operator=(const Token& token)
 {
     if (name != NULL) delete(name);

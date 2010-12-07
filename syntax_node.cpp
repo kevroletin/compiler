@@ -203,7 +203,7 @@ void NodeIntToRealConv::GenerateValue(AsmCode& asm_code) const
 
 //---NodeVar---
 
-NodeVar::NodeVar(SymVar* var_):
+NodeVar::NodeVar(const SymVar* var_):
     var(var_)
 {
 }
@@ -426,6 +426,28 @@ void StmtFor::Print(ostream& o, int offset) const
     init_val->Print(o, offset + 1);
     last_val->Print(o, offset + 1);
     body->Print(o, offset);
+}
+
+void StmtFor::Generate(AsmCode& asm_code) const
+{
+    StmtAssign(new NodeVar(index), init_val).Generate(asm_code);
+    AsmImmidiate start_label(asm_code.GenLabel("for_check"));
+    AsmImmidiate check_label(asm_code.GenLabel("for_check"));
+    AsmImmidiate fin_label(asm_code.GenLabel("for_fin"));
+    last_val->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_JMP, check_label, SIZE_NONE);
+    asm_code.AddLabel(start_label);
+    body->Generate(asm_code);
+    index->GenerateLValue(asm_code);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_ADD, 1, AsmMemory(REG_EAX));
+    asm_code.AddLabel(check_label);
+    index->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_CMP, REG_EAX, AsmMemory(REG_ESP));
+    asm_code.AddCmd(ASM_JNE, start_label, SIZE_NONE);
+    asm_code.AddLabel(fin_label);
+    asm_code.AddCmd(ASM_ADD, 4, REG_ESP);
 }
 
 //---StmtWhile---

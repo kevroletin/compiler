@@ -25,9 +25,14 @@ const string ASM_CMD_TO_STR[] =
 {
     "add",
     "call",
+    "cmp",
     "div",
     "idiv",
     "imul",
+    "jmp",
+    "jne",
+    "jnz",
+    "jz",
     "lea",
     "mov",
     "mul",
@@ -131,7 +136,10 @@ AsmCmd1::AsmCmd1(AsmCmdName cmd, AsmOperand* oper_, CmdSize size):
 void AsmCmd1::Print(ostream& o) const
 {
     o << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size] << '\t';
-    oper->Print(o);
+    if (size == SIZE_NONE)
+        oper->PrintBase(o);
+    else
+        oper->Print(o);
 }
 
 //---AsmCmd2---
@@ -155,6 +163,11 @@ void AsmCmd2::Print(ostream& o) const
 
 void AsmOperand::Print(ostream& o) const
 {
+}
+
+void AsmOperand::PrintBase(ostream& o) const
+{
+    Print(o);
 }
 
 //---AsmOperandBase---
@@ -354,10 +367,10 @@ void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* imm)
     commands.push_back(new AsmCmd1(cmd, imm));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate imm)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate imm, CmdSize size)
 {
     AsmImmidiate* tmp = new AsmImmidiate(imm);
-    commands.push_back(new AsmCmd1(cmd, tmp));
+    commands.push_back(new AsmCmd1(cmd, tmp, size));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2)

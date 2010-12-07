@@ -13,7 +13,7 @@ const string SymbolClassDescription[] = {
 };
 
 SymType* top_type_int = new SymTypeInteger(Token("Integer", RESERVED_WORD, TOK_INTEGER, -1, -1));
-SymType* top_type_real = new SymTypeReal(Token("Real", RESERVED_WORD, TOK_REAL, -1, -1));;
+SymType* top_type_real = new SymTypeReal(Token("Real", RESERVED_WORD, TOK_REAL, -1, -1));
 SymType* top_type_untyped = new SymTypeUntyped();
 SymType* top_type_str = new SymType(Token("String", RESERVED_WORD, TOK_STRING, -1, -1));
 
@@ -81,7 +81,6 @@ unsigned SymType::GetSize() const
 {
     return 4;
 }
-
 
 //---SymProc---
 
