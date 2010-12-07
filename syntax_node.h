@@ -35,6 +35,7 @@ private:
     Token token;
     SyntaxNode* left;
     SyntaxNode* right;
+    void FinGenForRelationalOp(AsmCode& asm_code) const;
     void GenerateForInt(AsmCode& asm_code) const;
     void GenerateForReal(AsmCode& asm_code) const;
 public:

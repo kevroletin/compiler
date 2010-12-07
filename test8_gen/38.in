@@ -1,0 +1,22 @@
+begin
+    if (4 < 5) then Write('1good\n')
+    else Write('1bad\n');
+    if (4 < 4) then Write('2bad\n')
+    else Write('2good\n');
+    if (4 <= 5) then Write('3good\n')
+    else Write('3bad\n');
+    if (4 <= 4) then Write('4good\n')
+    else Write('4bad\n');
+    if (5 > 4) then Write('5good\n')
+    else Write('5bad\n');
+    if (4 > 4) then Write('6bad\n')
+    else Write('6good\n');
+    if (4 = 4) then Write('7good\n')
+    else Write('7bad\n');
+    if (4 = 5) then Write('8bad\n')
+    else Write('8good\n');
+    if (4 <> 5) then Write('9good\n')
+    else Write('9bad\n');
+    if (4 <> 4) then Write('10bad\n')
+    else Write('10good\n');
+end.

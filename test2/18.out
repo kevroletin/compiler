@@ -1,7 +1,10 @@
 begin
-  * [integer]
-    2 [integer]
-    / [integer]
-      1 [integer]
-      1 [integer]
+  * [real]
+    IntToReal [real]
+      2 [integer]
+    / [real]
+      IntToReal [real]
+        1 [integer]
+      IntToReal [real]
+        1 [integer]
 end

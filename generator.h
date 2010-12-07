@@ -23,6 +23,12 @@ enum CmdSize{
 extern const string SIZE_TO_STR[];
 
 enum RegisterName{
+    REG_AL,
+    REG_BL,
+    REG_CL,
+    REG_DL,
+    REG_DI,
+    REG_SI,
     REG_EAX,
     REG_EBX,
     REG_ECX,
@@ -37,6 +43,7 @@ extern const string REG_TO_STR[];
 
 enum AsmCmdName{
     ASM_ADD,
+    ASM_AND,
     ASM_CALL,
     ASM_CMP,
     ASM_DIV,
@@ -53,10 +60,21 @@ enum AsmCmdName{
     ASM_JZ,
     ASM_LEA,
     ASM_MOV,
+    ASM_MOVZB,
     ASM_MUL,
+    ASM_NOT,
+    ASM_OR,
     ASM_POP,
     ASM_PUSH,
     ASM_RET,
+    ASM_SAR,
+    ASM_SAL,
+    ASM_SETG,
+    ASM_SETGE,
+    ASM_SETL,
+    ASM_SETLE,
+    ASM_SETE,
+    ASM_SETNE, 
     ASM_SUB,
     ASM_TEST,
     ASM_XOR
@@ -199,7 +217,7 @@ public:
     void AddCmd(AsmCmdName cmd);
     void AddCmd(string raw_cmd);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper);
-    void AddCmd(AsmCmdName cmd, RegisterName reg);
+    void AddCmd(AsmCmdName cmd, RegisterName reg, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmMemory* mem);
     void AddCmd(AsmCmdName cmd, AsmMemory mem, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmImmidiate* imm);

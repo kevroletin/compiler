@@ -1,11 +1,1 @@
-begin
-  mod [integer]
-    div [integer]
-      / [integer]
-        * [integer]
-          1 [integer]
-          2 [integer]
-        3 [integer]
-      4 [integer]
-    5 [integer]
-end
+2:11 ERROR at 'div': incompatible types: real and integer

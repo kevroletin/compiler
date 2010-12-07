@@ -87,6 +87,40 @@ const SymType* NodeWriteCall::GetSymType() const
 
 //---NodeBinaryOp---
 
+void NodeBinaryOp::FinGenForRelationalOp(AsmCode& asm_code) const
+{
+/*
+      movl    b, %edx
+      movl    c, %eax
+      cmpl    %eax, %edx
+      setg    %al
+      movzbl  %al, %eax
+*/
+    asm_code.AddCmd(ASM_CMP, REG_EBX, REG_EAX); 
+    switch (token.GetValue())
+    {
+        case TOK_GREATER:
+            asm_code.AddCmd(ASM_SETG, REG_AL, SIZE_NONE);
+        break;
+        case TOK_GREATER_OR_EQUAL:
+            asm_code.AddCmd(ASM_SETGE, REG_AL, SIZE_NONE);
+        break;
+        case TOK_LESS:
+            asm_code.AddCmd(ASM_SETL, REG_AL, SIZE_NONE);        
+        break;
+        case TOK_LESS_OR_EQUAL:
+            asm_code.AddCmd(ASM_SETLE, REG_AL, SIZE_NONE);
+        break;
+        case TOK_EQUAL:
+            asm_code.AddCmd(ASM_SETE, REG_AL, SIZE_NONE);
+        break;
+        case TOK_NOT_EQUAL:
+            asm_code.AddCmd(ASM_SETNE, REG_AL, SIZE_NONE);            
+    }
+    asm_code.AddCmd(ASM_MOVZB, REG_AL, REG_EAX);
+    asm_code.AddCmd(ASM_PUSH, REG_EAX);
+}
+
 void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
 {
     left->GenerateValue(asm_code);
@@ -97,27 +131,47 @@ void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
     {
         case TOK_PLUS:
             asm_code.AddCmd(ASM_ADD, REG_EBX, REG_EAX);
-            asm_code.AddCmd(ASM_PUSH, REG_EAX);
         break;
         case TOK_MINUS:
             asm_code.AddCmd(ASM_SUB, REG_EBX, REG_EAX);
-            asm_code.AddCmd(ASM_PUSH, REG_EAX);
         break;
         case TOK_MULT:
             asm_code.AddCmd(ASM_XOR, REG_EDX, REG_EDX);
             asm_code.AddCmd(ASM_IMUL, REG_EBX);
-            asm_code.AddCmd(ASM_PUSH, REG_EAX);
         break;
         case TOK_DIV:
             asm_code.AddCmd(ASM_XOR, REG_EDX, REG_EDX);
             asm_code.AddCmd(ASM_IDIV, REG_EBX);            
-            asm_code.AddCmd(ASM_PUSH, REG_EAX);
         break;
         case TOK_MOD:
             asm_code.AddCmd(ASM_XOR, REG_EDX, REG_EDX);
-            asm_code.AddCmd(ASM_IDIV, REG_EBX);            
+            asm_code.AddCmd(ASM_IDIV, REG_EBX);
             asm_code.AddCmd(ASM_PUSH, REG_EDX);
+            return;
+        case TOK_OR:
+            asm_code.AddCmd(ASM_OR, REG_EBX, REG_EAX);
+        break;
+        case TOK_XOR:
+            asm_code.AddCmd(ASM_XOR, REG_EBX, REG_EAX);
+        break;
+        case TOK_SHR:
+            asm_code.AddCmd(ASM_SAR, REG_EAX, REG_EBX);
+            asm_code.AddCmd(ASM_PUSH, REG_EBX);
+            return;
+        break;
+        case TOK_SHL:
+            asm_code.AddCmd(ASM_SAL, REG_EAX, REG_EBX);
+            asm_code.AddCmd(ASM_PUSH, REG_EBX);
+            return;
+        break;
+        case TOK_NOT:
+            asm_code.AddCmd(ASM_NOT, REG_EBX, REG_EAX);
+        break;
+        default:
+            FinGenForRelationalOp(asm_code);
+            return;
     }
+    asm_code.AddCmd(ASM_PUSH, REG_EAX);
 }
 
 void NodeBinaryOp::GenerateForReal(AsmCode& asm_code) const
@@ -287,7 +341,13 @@ void NodeArrayAccess::GenerateLValue(AsmCode& asm_code) const
 void NodeArrayAccess::GenerateValue(AsmCode& asm_code) const
 {
     ComputeIndexToEax(asm_code);
-    asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EAX));
+    if (GetSymType()->GetSize() == 4) 
+        asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EAX));
+    else
+    {
+        asm_code.AddCmd(ASM_PUSH, REG_EAX);
+        asm_code.PushMemory(GetSymType()->GetSize());
+    }
 }
 
 //---NodeRecordAccess---
@@ -363,9 +423,6 @@ void StmtAssign::Generate(AsmCode& asm_code) const
     right->GenerateValue(asm_code);
     left->GenerateLValue(asm_code);
     asm_code.MoveToMemoryFromStack(left->GetSymType()->GetSize());
-/*    asm_code.AddCmd(ASM_POP, REG_EAX);
-    asm_code.AddCmd(ASM_POP, REG_EBX);
-    asm_code.AddCmd(ASM_MOV, REG_EAX, new AsmMemory(REG_EBX)); */
 }
 
 //---StmtBlock---
@@ -538,6 +595,7 @@ void StmtIf::Generate(AsmCode& asm_code) const
     asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
     asm_code.AddCmd(ASM_JZ, label_else, SIZE_NONE);
     then_branch->Generate(asm_code);
+    asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);
     asm_code.AddLabel(label_else);
     if (else_branch != NULL) else_branch->Generate(asm_code);
     asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);

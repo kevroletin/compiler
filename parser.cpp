@@ -243,7 +243,7 @@ void Parser::ParseFunctionParameters(SymProc* funct)
         const SymType* type = (SymType*)FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
         for (vector<Token>::iterator it = v.begin(); it != v.end(); ++it)
         {
-            SymVarParam* param = new SymVarParam(*it, type, by_ref, sym_table_stack.back()->GetParamsSize() + 4);
+            SymVarParam* param = new SymVarParam(*it, type, by_ref, sym_table_stack.back()->GetParamsSize() + 8);
             sym_table_stack.back()->Add(param);
             funct->AddParam(param);
         }
@@ -620,7 +620,18 @@ SyntaxNode* Parser::ParseMultiplyingExpr()
         scan.NextToken();
         SyntaxNode* right = ParseUnaryExpr();
         if (right == NULL) Error("illegal expression");
-        TryToConvertTypeOrDie(left, right, op);
+        if (op.GetValue() == TOK_DIVISION)
+        {
+            TryToConvertTypeOrDie(left, top_type_real, op);
+            TryToConvertTypeOrDie(right, top_type_real, op);
+        }
+        else if (op.GetValue() == TOK_DIV || op.GetValue() == TOK_MOD)
+        {
+            TryToConvertTypeOrDie(left, top_type_int, op);
+            TryToConvertTypeOrDie(right, top_type_int, op);
+        }
+        else
+            TryToConvertTypeOrDie(left, right, op);       
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }

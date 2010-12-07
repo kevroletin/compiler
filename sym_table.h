@@ -210,7 +210,6 @@ public:
     virtual SymbolClass GetClassName() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
-    unsigned GetParamSize() const;
 };
 /*
 class SymVarResult: public SymVarParam{
@@ -258,6 +257,7 @@ private:
         }
     };
     std::set<Symbol*, SymbLessComp> table;
+    std::vector<SymProc*> proc_decl_order;
     unsigned params_size;
     unsigned locals_size;
 public:

@@ -1,4 +1,7 @@
 begin
     if (0) then Write('bad')
     else Write('good');
+    Write('\n');
+    if (1) then Write('good')
+    else Write('bad');
 end.

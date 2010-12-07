@@ -170,10 +170,12 @@ void SymProc::GenerateDeclaration(AsmCode& asm_code)
 {
     label = asm_code.LabelByStr(token.GetName());
     asm_code.AddLabel(label);
+    asm_code.AddCmd(ASM_PUSH, REG_EBP);
     asm_code.AddCmd(ASM_MOV, REG_ESP, REG_EBP);
     if (sym_table->GetLocalsSize()) asm_code.AddCmd(ASM_SUB, AsmImmidiate(sym_table->GetLocalsSize()), REG_ESP);
     body->Generate(asm_code);    
     asm_code.AddCmd(ASM_MOV, REG_EBP, REG_ESP);
+    asm_code.AddCmd(ASM_POP, REG_EBP);
     asm_code.AddCmd(ASM_RET, AsmImmidiate(sym_table->GetParamsSize() - GetResultType()->GetSize()));
 }
 
@@ -200,7 +202,7 @@ void SymFunct::AddResultType(const SymType* result_type_)
 {
     result_type = result_type_;
     Token tok("Result", IDENTIFIER, TOK_UNRESERVED, -1, -1);
-    SymVarParam* param = new SymVarParam(tok, result_type, false, sym_table->GetParamsSize() + 4);
+    SymVarParam* param = new SymVarParam(tok, result_type, false, sym_table->GetParamsSize() + 8);
     sym_table->Add(param);
 }
 
@@ -506,7 +508,13 @@ void SymVarParam::GenAdrInStack(AsmCode& asm_code) const
 
 void SymVarParam::GenValueInStack(AsmCode& asm_code) const
 {
-    asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EBP, offset));
+    if (by_ref || type->GetSize() == 4)
+        asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EBP, offset));
+    else
+    {
+        GenAdrInStack(asm_code);        
+        asm_code.PushMemory(type->GetSize());
+    }
 }
 
 void SymVarParam::GenValueByRef(AsmCode& asm_code) const
@@ -582,9 +590,9 @@ void SymVarGlobal::GenerateValue(AsmCode& asm_code) const
     {
         GenerateLValue(asm_code);
         asm_code.PushMemory(type->GetSize());
-        return;
     }
-    asm_code.AddCmd(ASM_PUSH, AsmMemory(label));
+    else
+        asm_code.AddCmd(ASM_PUSH, AsmMemory(label));
 }
 
 //---SymVarLocal---
@@ -640,6 +648,10 @@ void SymTable::Add(Symbol* sym)
         else if (sym->GetClassName() & SYM_VAR_LOCAL)
             locals_size += sym_size;
     }
+    else if (sym->GetClassName() & SYM_PROC)
+    {
+        proc_decl_order.push_back((SymProc*)sym);
+    }
 }
 
 const Symbol* SymTable::Find(Symbol* sym) const
@@ -694,9 +706,6 @@ void SymTable::GenerateDeclarations(AsmCode& asm_code) const
             SymVarGlobal* tmp = (SymVarGlobal*)*it;
             tmp->GenerateDeclaration(asm_code);
         }
-        else if ((*it)->GetClassName() & SYM_PROC)
-        {
-            SymProc* tmp = (SymProc*)*it;
-            tmp->GenerateDeclaration(asm_code);
-        }    
+    for (std::vector<SymProc*>::const_iterator it = proc_decl_order.begin(); it != proc_decl_order.end(); ++it)
+        (*it)->GenerateDeclaration(asm_code);
 }

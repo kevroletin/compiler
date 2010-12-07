@@ -11,6 +11,12 @@ const string SIZE_TO_STR[] =
 
 const string REG_TO_STR[] =
 {
+    "%al",
+    "%bl",
+    "%cl",
+    "%dl",
+    "%dl",
+    "%si",
     "%eax",
     "%ebx",
     "%ecx",
@@ -24,6 +30,7 @@ const string REG_TO_STR[] =
 const string ASM_CMD_TO_STR[] =
 {
     "add",
+    "and",
     "call",
     "cmp",
     "div",
@@ -40,10 +47,21 @@ const string ASM_CMD_TO_STR[] =
     "jz",
     "lea",
     "mov",
+    "movzb",
     "mul",
+    "not",
+    "or",
     "pop",
     "push",
     "ret",
+    "sal",
+    "sar",
+    "setg",
+    "setge",
+    "setl",
+    "setle",
+    "sete",
+    "setne",
     "sub",
     "test",
     "xor"
@@ -354,9 +372,9 @@ void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper)
     commands.push_back(new AsmCmd1(cmd, oper));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg)
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, CmdSize size)
 {
-    commands.push_back(new AsmCmd1(cmd, new AsmRegister(reg)));
+    commands.push_back(new AsmCmd1(cmd, new AsmRegister(reg), size));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory* mem)
@@ -533,7 +551,7 @@ void AsmCode::PushMemory(unsigned size)
 //    AddCmd(ASM_SUB, size, REG_ESP);
     for (int i = 0; i < size; i += 4)
     {
-        AddCmd(ASM_MOV, AsmMemory(REG_EBX, i), REG_EAX);
+        AddCmd(ASM_MOV, AsmMemory(REG_EBX, size - i - 4), REG_EAX);
         AddCmd(ASM_PUSH, REG_EAX);
     }
 }
@@ -544,7 +562,7 @@ void AsmCode::MoveToMemoryFromStack(unsigned size)
     for (int i = 0; i < size; i += 4)
     {
         AddCmd(ASM_POP, REG_EAX);
-        AddCmd(ASM_MOV, REG_EAX, AsmMemory(REG_EBX, size - i - 4));
+        AddCmd(ASM_MOV, REG_EAX, AsmMemory(REG_EBX, i));
     }
 }
 
