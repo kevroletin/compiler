@@ -440,12 +440,14 @@ void StmtFor::Generate(AsmCode& asm_code) const
     body->Generate(asm_code);
     index->GenerateLValue(asm_code);
     asm_code.AddCmd(ASM_POP, REG_EAX);
-    asm_code.AddCmd(ASM_ADD, 1, AsmMemory(REG_EAX));
+    if (inc) asm_code.AddCmd(ASM_ADD, 1, AsmMemory(REG_EAX));
+    else asm_code.AddCmd(ASM_SUB, 1, AsmMemory(REG_EAX));
     asm_code.AddLabel(check_label);
     index->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_POP, REG_EAX);
     asm_code.AddCmd(ASM_CMP, REG_EAX, AsmMemory(REG_ESP));
-    asm_code.AddCmd(ASM_JNE, start_label, SIZE_NONE);
+    if (inc) asm_code.AddCmd(ASM_JNL, start_label, SIZE_NONE);
+    else asm_code.AddCmd(ASM_JNG, start_label, SIZE_NONE);
     asm_code.AddLabel(fin_label);
     asm_code.AddCmd(ASM_ADD, 4, REG_ESP);
 }
@@ -465,6 +467,20 @@ void StmtWhile::Print(ostream& o, int offset) const
     body->Print(o, offset + 1);
 }
 
+void StmtWhile::Generate(AsmCode& asm_code) const
+{
+    AsmImmidiate label_check(asm_code.GenLabel("while_check"));
+    AsmImmidiate label_fin(asm_code.GenLabel("while_fin"));
+    asm_code.AddLabel(label_check);
+    condition->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
+    asm_code.AddCmd(ASM_JZ, label_fin, SIZE_NONE);
+    body->Generate(asm_code);
+    asm_code.AddCmd(ASM_JMP, label_check, SIZE_NONE);
+    asm_code.AddLabel(label_fin);
+}
+
 //---StmtUntil---
 
 StmtUntil::StmtUntil(SyntaxNode* condition_, NodeStatement* body_):
@@ -478,6 +494,17 @@ void StmtUntil::Print(ostream& o, int offset) const
     PrintSpaces(o, offset) << "until\n";
     condition->Print(o, offset + 1);
     body->Print(o, offset + 1);
+}
+
+void StmtUntil::Generate(AsmCode& asm_code) const
+{
+    AsmImmidiate label_start(asm_code.GenLabel("until_check"));
+    asm_code.AddLabel(label_start);
+    body->Generate(asm_code);
+    condition->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
+    asm_code.AddCmd(ASM_JZ, label_start, SIZE_NONE);
 }
 
 //---StmtIf---

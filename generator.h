@@ -40,10 +40,15 @@ enum AsmCmdName{
     ASM_CALL,
     ASM_CMP,
     ASM_DIV,
+    ASM_FILD,
+    ASM_FLD,
+    ASM_FSTP,
     ASM_IDIV,
     ASM_IMUL,
     ASM_JMP,
     ASM_JNE,
+    ASM_JNG,
+    ASM_JNL,
     ASM_JNZ,
     ASM_JZ,
     ASM_LEA,
@@ -53,12 +58,8 @@ enum AsmCmdName{
     ASM_PUSH,
     ASM_RET,
     ASM_SUB,
+    ASM_TEST,
     ASM_XOR
-
-    ,
-    ASM_FILD,
-    ASM_FLD,
-    ASM_FSTP
 };
 
 extern const string ASM_CMD_TO_STR[];

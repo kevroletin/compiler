@@ -1,0 +1,10 @@
+var
+    i: Integer;
+begin
+    i := 10;
+    while i do begin
+	i := i - 1;
+	Write(i, '\n');
+    end;
+    Write(i);
+end.

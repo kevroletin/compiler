@@ -27,10 +27,15 @@ const string ASM_CMD_TO_STR[] =
     "call",
     "cmp",
     "div",
+    "fild",
+    "fld",
+    "fstp",
     "idiv",
     "imul",
     "jmp",
     "jne",
+    "jng",
+    "jnl",
     "jnz",
     "jz",
     "lea",
@@ -40,11 +45,8 @@ const string ASM_CMD_TO_STR[] =
     "push",
     "ret",
     "sub",
+    "test",
     "xor"
-    ,
-    "fild",
-    "fld",
-    "fstp"
 };
 
 const string ASM_DATA_TYPE_TO_STR[] = 

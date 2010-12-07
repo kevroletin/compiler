@@ -156,6 +156,7 @@ private:
 public:
     StmtWhile(SyntaxNode* condition_, NodeStatement* body_);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Generate(AsmCode& asm_code) const;
 };
 
 class StmtUntil: public NodeStatement{
@@ -165,6 +166,7 @@ private:
 public:
     StmtUntil(SyntaxNode* condition_, NodeStatement* body);
     virtual void Print(ostream& o, int offset = 0) const;
+    void Generate(AsmCode& asm_code) const;
 };
 
 class StmtIf: public NodeStatement{
