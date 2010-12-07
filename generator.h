@@ -221,6 +221,9 @@ public:
     void CallWriteForInt();
     void CallWriteForReal();
     void CallWriteForStr();
+    void PushMemory(unsigned size);
+    void MoveToMemoryFromStack(unsigned size);
+    void MoveMemory(unsigned size);
 };
 
 #endif

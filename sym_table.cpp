@@ -14,7 +14,7 @@ const string SymbolClassDescription[] = {
 
 SymType* top_type_int = new SymTypeInteger(Token("Integer", RESERVED_WORD, TOK_INTEGER, -1, -1));
 SymType* top_type_real = new SymTypeReal(Token("Real", RESERVED_WORD, TOK_REAL, -1, -1));;
-SymType* top_type_untyped = new SymType(Token("untyped", RESERVED_WORD, TOK_UNRESERVED, -1, -1));
+SymType* top_type_untyped = new SymTypeUntyped();
 SymType* top_type_str = new SymType(Token("String", RESERVED_WORD, TOK_STRING, -1, -1));
 
 //---Symbol---
@@ -172,13 +172,10 @@ void SymProc::GenerateDeclaration(AsmCode& asm_code)
     label = asm_code.LabelByStr(token.GetName());
     asm_code.AddLabel(label);
     asm_code.AddCmd(ASM_MOV, REG_ESP, REG_EBP);
-    asm_code.AddCmd(ASM_SUB, AsmImmidiate(sym_table->GetLocalsSize()), REG_ESP);
+    if (sym_table->GetLocalsSize()) asm_code.AddCmd(ASM_SUB, AsmImmidiate(sym_table->GetLocalsSize()), REG_ESP);
     body->Generate(asm_code);    
     asm_code.AddCmd(ASM_MOV, REG_EBP, REG_ESP);
-    if (GetClassName() & SYM_FUNCT)
-        asm_code.AddCmd(ASM_RET, AsmImmidiate(sym_table->GetParamsSize() - GetResultType()->GetSize()));
-    else
-        asm_code.AddCmd(ASM_RET, AsmImmidiate(sym_table->GetParamsSize()));
+    asm_code.AddCmd(ASM_RET, AsmImmidiate(sym_table->GetParamsSize() - GetResultType()->GetSize()));
 }
 
 AsmImmidiate SymProc::GetLabel() const
@@ -187,23 +184,6 @@ AsmImmidiate SymProc::GetLabel() const
 }
 
 //---SymFunct---
-
-void SymFunct::PrintPrototype(ostream& o, int offset) const
-{
-    o << token.GetName();
-    if (params.size() - 1 > 0)
-    {
-        o << "(";
-        params.front()->Print(o, 0);
-        for (vector<SymVarParam*>::const_iterator it = ++params.begin(); it != --params.end(); ++it)
-        {
-            o << "; ";
-            if ((*it)->IsByRef()) o << "var ";
-            (*it)->Print(o, 0);
-        }
-        o << ")";
-    }
-}
 
 SymFunct::SymFunct(Token token_, SymTable* syn_table, const SymType* result_type_):
     SymProc(token, syn_table),
@@ -222,7 +202,6 @@ void SymFunct::AddResultType(const SymType* result_type_)
     result_type = result_type_;
     Token tok("Result", IDENTIFIER, TOK_UNRESERVED, -1, -1);
     SymVarParam* param = new SymVarParam(tok, result_type, false, sym_table->GetParamsSize() + 4);
-    AddParam(param);
     sym_table->Add(param);
 }
 
@@ -285,11 +264,11 @@ void SymVar::PrintAsNode(ostream& o, int offset) const
     o << "]\n";
 }
 
-void SymVar::GenerateValue(AsmCode& asm_code) const
+void SymVar::GenerateLValue(AsmCode& asm_code) const
 {
 }
 
-void SymVar::GenerateLValue(AsmCode& asm_code) const
+void SymVar::GenerateValue(AsmCode& asm_code) const
 {
 }
 
@@ -328,6 +307,24 @@ SymbolClass SymTypeReal::GetClassName() const
 {
     return SymbolClass(SYM | SYM_TYPE | SYM_TYPE_SCALAR | SYM_TYPE_REAL);
 }
+
+//---SymTypeUntyped
+
+SymTypeUntyped::SymTypeUntyped():
+    SymTypeScalar(Token("untyped", RESERVED_WORD, TOK_UNRESERVED, -1, -1))
+{
+}
+
+SymbolClass SymTypeUntyped::GetClassName() const
+{
+    return SymbolClass(SYM | SYM_TYPE | SYM_TYPE_SCALAR | SYM_TYPE_UNTYPED);
+}
+
+unsigned SymTypeUntyped::GetSize() const
+{
+    return 0;
+}
+
 
 //---SymTypeArray---
 
@@ -371,7 +368,7 @@ void SymTypeArray::PrintVerbose(ostream& o, int offset) const
 
 unsigned SymTypeArray::GetSize() const
 {
-    return elem_type->GetSize() * (high - low);
+    return elem_type->GetSize() * (high - low + 1);
 }
 
 //---SymTypeRecord---
@@ -515,8 +512,8 @@ void SymVarParam::GenValueInStack(AsmCode& asm_code) const
 
 void SymVarParam::GenValueByRef(AsmCode& asm_code) const
 {
-    asm_code.AddCmd(ASM_MOV, AsmMemory(REG_EBP, offset), REG_EAX);
-    asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EAX));
+    asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EBP, offset));
+    asm_code.PushMemory(type->GetSize());
 }
 
 SymVarParam::SymVarParam(Token name, const SymType* type, bool by_ref_, int offset_):
@@ -555,13 +552,14 @@ SymVarGlobal::SymVarGlobal(Token name, const SymType* type):
 {
 }
 
-void SymVarGlobal::GetLabel(AsmImmidiate& new_label)
+void SymVarGlobal::SetLabel(AsmImmidiate& new_label)
 {
     label = new_label;
 }
 
-AsmImmidiate SymVarGlobal::SetLabel()
+AsmImmidiate SymVarGlobal::GetLabel() const
 {
+    return label;
 }
 
 SymbolClass SymVarGlobal::GetClassName() const
@@ -581,7 +579,13 @@ void SymVarGlobal::GenerateLValue(AsmCode& asm_code) const
 
 void SymVarGlobal::GenerateValue(AsmCode& asm_code) const
 {
-    asm_code.AddCmd(ASM_PUSH, new AsmMemory(label));
+    if (type->GetSize() > 4)
+    {
+        GenerateLValue(asm_code);
+        asm_code.PushMemory(type->GetSize());
+        return;
+    }
+    asm_code.AddCmd(ASM_PUSH, AsmMemory(label));
 }
 
 //---SymVarLocal---
@@ -599,13 +603,13 @@ SymbolClass SymVarLocal::GetClassName() const
 
 void SymVarLocal::GenerateLValue(AsmCode& asm_code) const
 {
-    asm_code.AddCmd(ASM_LEA, AsmMemory(REG_EBP, -offset), REG_EAX);
+    asm_code.AddCmd(ASM_LEA, AsmMemory(REG_EBP, -offset - 4), REG_EAX);
     asm_code.AddCmd(ASM_PUSH, REG_EAX);
 }
 
 void SymVarLocal::GenerateValue(AsmCode& asm_code) const
 {
-    asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EBP, -offset));
+    asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EBP, -offset - 4));
 }
 
 unsigned SymVarLocal::GetOffset() const
@@ -621,7 +625,7 @@ void SymVarLocal::SetOffset(unsigned offset_)
 //---SymTable---
 
 SymTable::SymTable():
-    size(0),
+    params_size(0),
     locals_size(0)
 {
 }
@@ -632,8 +636,10 @@ void SymTable::Add(Symbol* sym)
     if (sym->GetClassName() & SYM_VAR)
     {
         unsigned sym_size = ((SymVar*)sym)->GetVarType()->GetSize();
-        size += sym_size;
-        if (sym->GetClassName() & SYM_VAR_LOCAL) locals_size += sym_size;
+        if (sym->GetClassName() & SYM_VAR_PARAM)
+            params_size += ((SymVarParam*)sym)->IsByRef() ? 4 : sym_size;
+        else if (sym->GetClassName() & SYM_VAR_LOCAL)
+            locals_size += sym_size;
     }
 }
 
@@ -668,7 +674,7 @@ bool SymTable::IsEmpty() const
 
 unsigned SymTable::GetSize() const
 {
-    return size;
+    return locals_size + params_size;
 }
 
 unsigned SymTable::GetLocalsSize() const
@@ -678,7 +684,7 @@ unsigned SymTable::GetLocalsSize() const
 
 unsigned SymTable::GetParamsSize() const
 {
-    return size - locals_size;
+    return params_size;
 }
 
 void SymTable::GenerateDeclarations(AsmCode& asm_code) const

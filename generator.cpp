@@ -511,3 +511,36 @@ void AsmCode::CallWriteForStr()
     AddCmd(ASM_CALL, funct_write);
     AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
 }
+
+void AsmCode::PushMemory(unsigned size)
+{
+    AddCmd(ASM_POP, REG_EBX);
+//    AddCmd(ASM_SUB, size, REG_ESP);
+    for (int i = 0; i < size; i += 4)
+    {
+        AddCmd(ASM_MOV, AsmMemory(REG_EBX, i), REG_EAX);
+        AddCmd(ASM_PUSH, REG_EAX);
+    }
+}
+
+void AsmCode::MoveToMemoryFromStack(unsigned size)
+{
+    AddCmd(ASM_POP, REG_EBX);
+    for (int i = 0; i < size; i += 4)
+    {
+        AddCmd(ASM_POP, REG_EAX);
+        AddCmd(ASM_MOV, REG_EAX, AsmMemory(REG_EBX, size - i - 4));
+    }
+}
+
+void AsmCode::MoveMemory(unsigned size)
+{
+    AddCmd(ASM_POP, REG_EBX);
+    AddCmd(ASM_POP, REG_EDX);
+    AddCmd(ASM_SUB, size, REG_ESP);
+    for (int i = 0; i < size; i += 4)
+    {
+        AddCmd(ASM_MOV, AsmMemory(REG_EBX, i), REG_EAX);
+        AddCmd(ASM_MOV, REG_EAX, AsmMemory(REG_EDX, size - i - 4));
+    }
+}

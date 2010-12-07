@@ -1,0 +1,18 @@
+Type T = array[1..2, 1..2] of Integer;
+
+function Copy(a: T):T;
+begin
+    Result := a;
+end;
+
+var
+    a, b: T;
+    
+begin
+    a[1,1] := 11;
+    a[1,2] := 12;
+    a[2,1] := 21;
+    a[2,2] := 22;
+//    b := Copy(a);
+    Write(a[1,1], '\n', a[1,2], '\n', a[2,1], '\n', a[2,2]);
+end.

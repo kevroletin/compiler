@@ -1,0 +1,17 @@
+type
+    T = array[1..3] of Integer;
+
+procedure Fill(var a: T);
+begin
+    a[1] := 0;
+    a[2] := 1;
+    a[3] := 2;
+end;
+
+var
+    a: T;
+
+begin
+    Fill(a);
+    Write(a[1], a[2], a[3]);
+end.

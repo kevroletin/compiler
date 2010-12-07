@@ -1,0 +1,23 @@
+type
+    T = record
+	a, b: Integer;
+    end;
+    
+procedure Swap(var rec: T);
+var
+    tmp: Integer;
+begin
+    tmp := rec.a;
+    rec.a := rec.b;
+    rec.b := tmp;
+end;
+
+var
+    a: T;
+
+begin
+    a.a := 10;
+    a.b := 20;
+    Swap(a);
+    Write(a.a, '\n', a.b);
+end.

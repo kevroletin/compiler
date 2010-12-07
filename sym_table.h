@@ -17,6 +17,7 @@ enum SymbolClass{
     SYM_TYPE_SCALAR = 8,
     SYM_TYPE_INTEGER = 16,
     SYM_TYPE_REAL = 32,
+    SYM_TYPE_UNTYPED = 32768,
     SYM_TYPE_ARRAY = 64,
     SYM_TYPE_RECORD = 16384,
     SYM_TYPE_ALIAS = 128,
@@ -87,7 +88,6 @@ public:
 class SymFunct: public SymProc{
 protected:
     const SymType* result_type;
-    virtual void PrintPrototype(ostream& o, int offset) const;
 public:
     SymFunct(Token token_, SymTable* syn_table, const SymType* result_type_);
     SymFunct(Token name);
@@ -129,6 +129,13 @@ class SymTypeReal: public SymTypeScalar{
 public:
     SymTypeReal(Token name);
     virtual SymbolClass GetClassName() const;
+};
+
+class SymTypeUntyped: public SymTypeScalar{
+public:
+    SymTypeUntyped();
+    virtual SymbolClass GetClassName() const;  
+    virtual unsigned GetSize() const;    
 };
 
 class SymTypeArray: public SymType{
@@ -203,6 +210,7 @@ public:
     virtual SymbolClass GetClassName() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
+    unsigned GetParamSize() const;
 };
 /*
 class SymVarResult: public SymVarParam{
@@ -217,8 +225,8 @@ private:
     AsmImmidiate label;
 public:
     SymVarGlobal(Token name, const SymType* type);
-    void GetLabel(AsmImmidiate& new_label);
-    AsmImmidiate SetLabel();
+    void SetLabel(AsmImmidiate& new_label);
+    AsmImmidiate GetLabel() const;
     virtual SymbolClass GetClassName() const;
     void GenerateDeclaration(AsmCode& asm_code);
     virtual void GenerateLValue(AsmCode& asm_code) const;
@@ -250,7 +258,7 @@ private:
         }
     };
     std::set<Symbol*, SymbLessComp> table;
-    unsigned size;
+    unsigned params_size;
     unsigned locals_size;
 public:
     SymTable();

@@ -178,7 +178,7 @@ void Parser::ParseVarDeclarations(bool is_global)
             if (is_global)
                 sym_table_stack.back()->Add(new SymVarGlobal(*it, type));
             else
-                sym_table_stack.back()->Add(new SymVarLocal(*it, type, sym_table_stack.back()->GetLocalsSize() + 4));
+                sym_table_stack.back()->Add(new SymVarLocal(*it, type, sym_table_stack.back()->GetLocalsSize()));
         CheckTokOrDie(TOK_SEMICOLON);
     }
 }
@@ -478,12 +478,7 @@ SyntaxNode* Parser::ParseFunctionCall(SymProc* funct_name)
         }
         scan.NextToken();
     }
-    if (funct_name->GetClassName() & SYM_FUNCT)
-    {
-        if (funct->GetNextArgType() != NULL) Error("not enough actual parameters");
-    }
-    else
-        if (funct->GetCurrentArgType() != NULL) Error("not enough actual parameters");
+    if (funct->GetCurrentArgType() != NULL) Error("not enough actual parameters");
     return funct;
 }
 

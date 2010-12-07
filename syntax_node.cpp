@@ -25,12 +25,6 @@ const SymType* NodeCall::GetCurrentArgType() const
     return funct->GetArg(args.size())->GetVarType();
 }
 
-const SymType* NodeCall::GetNextArgType() const
-{
-    if (args.size() + 1 >= funct->GetArgsCount()) return NULL;
-    return funct->GetArg(args.size() + 1)->GetVarType();
-}
-
 bool NodeCall::IsCurrentArfByRef() const
 {
     if (args.size() >= funct->GetArgsCount()) return NULL;
@@ -54,9 +48,8 @@ const SymType* NodeCall::GetSymType() const
 }
 
 void NodeCall::GenerateValue(AsmCode& asm_code) const
-{    
-    if (funct->GetClassName() & SYM_FUNCT)
-        asm_code.AddCmd(ASM_SUB, AsmImmidiate(funct->GetResultType()->GetSize()), REG_ESP);
+{
+    if (funct->GetResultType()->GetSize()) asm_code.AddCmd(ASM_SUB, AsmImmidiate(funct->GetResultType()->GetSize()), REG_ESP);
     for (int i = 0; i < args.size(); ++i)
         if (funct->GetArg(i)->IsByRef())
             args[i]->GenerateLValue(asm_code);
@@ -278,6 +271,7 @@ void NodeArrayAccess::ComputeIndexToEax(AsmCode& asm_code) const
     index->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_MOV, GetSymType()->GetSize(), REG_EBX);
     asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_SUB, ((SymTypeArray*)arr->GetSymType())->GetLow(), REG_EAX);
     asm_code.AddCmd(ASM_XOR, REG_EDX, REG_EDX);
     asm_code.AddCmd(ASM_MUL, REG_EBX);
     asm_code.AddCmd(ASM_POP, REG_EBX);
@@ -328,19 +322,15 @@ bool NodeRecordAccess::IsLValue() const
 void NodeRecordAccess::GenerateLValue(AsmCode& asm_code) const
 {
     record->GenerateLValue(asm_code);
-    unsigned offset = field->GetOffset();
     asm_code.AddCmd(ASM_POP, REG_EAX);
-    asm_code.AddCmd(ASM_ADD, AsmImmidiate(offset), REG_EAX);
+    asm_code.AddCmd(ASM_LEA, AsmMemory(REG_EAX, field->GetOffset()), REG_EAX);
     asm_code.AddCmd(ASM_PUSH, REG_EAX);
 }
 
 void NodeRecordAccess::GenerateValue(AsmCode& asm_code) const
 {
-    record->GenerateLValue(asm_code);
-    unsigned offset = field->GetOffset();
-    asm_code.AddCmd(ASM_POP, REG_EAX);
-    asm_code.AddCmd(ASM_ADD, AsmImmidiate(offset), REG_EAX);
-    asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EAX));
+    GenerateLValue(asm_code);
+    asm_code.PushMemory(field->GetVarType()->GetSize());
 }
 
 //---StmtAssgn---
@@ -370,11 +360,12 @@ void StmtAssign::Print(ostream& o, int offset) const
 
 void StmtAssign::Generate(AsmCode& asm_code) const
 {
-    left->GenerateLValue(asm_code);
     right->GenerateValue(asm_code);
-    asm_code.AddCmd(ASM_POP, REG_EAX);
+    left->GenerateLValue(asm_code);
+    asm_code.MoveToMemoryFromStack(left->GetSymType()->GetSize());
+/*    asm_code.AddCmd(ASM_POP, REG_EAX);
     asm_code.AddCmd(ASM_POP, REG_EBX);
-    asm_code.AddCmd(ASM_MOV, REG_EAX, new AsmMemory(REG_EBX));
+    asm_code.AddCmd(ASM_MOV, REG_EAX, new AsmMemory(REG_EBX)); */
 }
 
 //---StmtBlock---
@@ -414,7 +405,7 @@ void StmtExpression::Print(ostream& o, int offset) const
 void StmtExpression::Generate(AsmCode& asm_code) const
 {
     expr->GenerateValue(asm_code);
-    if (expr->GetSymType() != top_type_untyped) asm_code.AddCmd(ASM_ADD, 4, REG_ESP);
+    asm_code.AddCmd(ASM_ADD, expr->GetSymType()->GetSize(), REG_ESP);
 }
 
 //---StmtFor---
