@@ -8,16 +8,8 @@ bool ishexnum(char c)
 int hex_str_to_i(char* str)
 {
     int res = 0;
-    int pow = 1;
-    int i = strlen(str) - 1;
-    while (i >= 0)
-    {
-        int tmp;
-        if (isdigit(str[i])) tmp = str[i] - '0';
-        else tmp = str[i] = tolower(str[i]) - 'a' + 10;
-        res += tmp * pow;
-        pow *= 16;
-    }
+    sscanf(str, "%x", &res);
+    return res;
 }
 
 ostream& PrintSpaces(ostream& o, int offset)
@@ -102,7 +94,8 @@ const string TOKEN_VALUE_DESCRIPTION[] =
     "TOK_UNRESERVED",
     "TOK_INTEGER",
     "TOK_REAL",
-    "TOK_WRITE"
+    "TOK_WRITE",
+    "TOK_WRITELN"
 };
 
 const string TOKEN_TO_STR[] = 
@@ -167,7 +160,8 @@ const string TOKEN_TO_STR[] =
     "UNRESERVED",
     "integer",
     "real",
-    "write"
+    "write",
+    "writeln"
 };
 
 //---Reserved words--
@@ -239,6 +233,7 @@ ReservedWords::ReservedWords()
     Add("<=", OPERATION, TOK_LESS_OR_EQUAL);
     Add("<>", OPERATION, TOK_NOT_EQUAL);
     Add("write", IDENTIFIER, TOK_WRITE);
+    Add("writeln", IDENTIFIER, TOK_WRITELN);
 }
 
 bool ReservedWords::Identify(string& str, TokenType& returned_type, TokenValue& returned_value)
@@ -391,7 +386,7 @@ void Token::NameToLowerCase()
 int Token::GetIntValue() const
 {    
     if (name[0] != '$') return atoi(name);
-    return hex_str_to_i(name);    
+    return hex_str_to_i(name + 1);    
 }
 
 //---Scanner---

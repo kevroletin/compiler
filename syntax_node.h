@@ -24,7 +24,9 @@ public:
 class NodeWriteCall: public SyntaxNode{
 private:
     std::vector<SyntaxNode*> args;
+    bool new_line;
 public:
+    NodeWriteCall(bool new_line_ = false);
     void AddArg(SyntaxNode* arg);
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual const SymType* GetSymType() const;

@@ -36,7 +36,16 @@ enum RegisterName{
     REG_EDI,
     REG_ESI,
     REG_EBP,
-    REG_ESP
+    REG_ESP,
+    REG_ST,
+    REG_ST0,
+    REG_ST1,
+    REG_ST2,
+    REG_ST3,
+    REG_ST4,
+    REG_ST5,
+    REG_ST6,
+    REG_ST7
 };
 
 extern const string REG_TO_STR[];
@@ -47,9 +56,13 @@ enum AsmCmdName{
     ASM_CALL,
     ASM_CMP,
     ASM_DIV,
+    ASM_FADDP,
+    ASM_FDIVRP,
     ASM_FILD,
     ASM_FLD,
+    ASM_FMULP,
     ASM_FSTP,
+    ASM_FSUBRP,
     ASM_IDIV,
     ASM_IMUL,
     ASM_JMP,
@@ -201,6 +214,11 @@ private:
     AsmImmidiate format_str_real;
     AsmImmidiate format_str_int;
     AsmImmidiate format_str_str;
+    AsmImmidiate format_str_new_line;
+    bool was_real;
+    bool was_int;
+    bool was_str;
+    bool was_new_line;
     AsmMemory funct_write; 
     vector<AsmCmd*> commands;
     vector<AsmData*> data;
@@ -223,7 +241,7 @@ public:
     void AddCmd(AsmCmdName cmd, AsmImmidiate* imm);
     void AddCmd(AsmCmdName cmd, AsmImmidiate imm, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2);
-    void AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest);
+    void AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate dest);
     void AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName oper1);
@@ -243,9 +261,10 @@ public:
     void AddLabel(AsmImmidiate label);
     void AddLabel(string label);
     virtual void Print(ostream& o) const;
-    void CallWriteForInt();
-    void CallWriteForReal();
-    void CallWriteForStr();
+    void GenCallWriteForInt();
+    void GenCallWriteForReal();
+    void GenCallWriteForStr();
+    void GenWriteNewLine();
     void PushMemory(unsigned size);
     void MoveToMemoryFromStack(unsigned size);
     void MoveMemory(unsigned size);

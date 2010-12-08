@@ -60,6 +60,11 @@ void NodeCall::GenerateValue(AsmCode& asm_code) const
 
 //---NodeWriteCall---
 
+NodeWriteCall::NodeWriteCall(bool new_line_):
+    new_line(new_line_)
+{
+}
+
 void NodeWriteCall::AddArg(SyntaxNode* arg)
 {
     args.push_back(arg);
@@ -72,11 +77,12 @@ void NodeWriteCall::GenerateValue(AsmCode& asm_code) const
         (*it)->GenerateValue(asm_code);
         const SymType* type = (*it)->GetSymType();
         if (type == top_type_int)
-            asm_code.CallWriteForInt();
+            asm_code.GenCallWriteForInt();
         else if (type == top_type_real)
-            asm_code.CallWriteForReal();
+            asm_code.GenCallWriteForReal();
         else
-            asm_code.CallWriteForStr();
+            asm_code.GenCallWriteForStr();
+        if (new_line) asm_code.GenWriteNewLine();
     }
 }
 
@@ -176,7 +182,28 @@ void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
 
 void NodeBinaryOp::GenerateForReal(AsmCode& asm_code) const
 {
-//TODO
+
+    left->GenerateValue(asm_code);
+    right->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_FLD, AsmMemory(REG_ESP, 4), SIZE_SHORT);
+    asm_code.AddCmd(ASM_FLD, AsmMemory(REG_ESP), SIZE_SHORT);    
+    switch (token.GetValue())
+    {
+        case TOK_PLUS:
+            asm_code.AddCmd(ASM_FADDP, REG_ST, REG_ST1, SIZE_NONE);
+        break;
+        case TOK_MINUS:
+            asm_code.AddCmd(ASM_FSUBRP, REG_ST, REG_ST1, SIZE_NONE);
+        break;
+        case TOK_MULT:
+            asm_code.AddCmd(ASM_FMULP, REG_ST, REG_ST1, SIZE_NONE);
+        break;
+        case TOK_DIVISION:
+            asm_code.AddCmd(ASM_FDIVRP, REG_ST, REG_ST1, SIZE_NONE);
+        break;
+    }
+    asm_code.AddCmd(ASM_ADD, 4, REG_ESP);
+    asm_code.AddCmd(ASM_FSTP, AsmMemory(REG_ESP), SIZE_SHORT);
 }
 
 NodeBinaryOp::NodeBinaryOp(const Token& name, SyntaxNode* left_, SyntaxNode* right_):

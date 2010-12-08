@@ -484,8 +484,10 @@ SyntaxNode* Parser::ParseFunctionCall(SymProc* funct_name)
 
 SyntaxNode* Parser::ParseWriteFunctCall()
 {
-    CheckTokOrDie(TOK_WRITE);
-    NodeWriteCall* write = new NodeWriteCall();
+    bool new_line = (scan.GetToken().GetValue() == TOK_WRITELN);
+    if (new_line) scan.NextToken();
+    else CheckTokOrDie(TOK_WRITE);
+    NodeWriteCall* write = new NodeWriteCall(new_line);
     if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
     {
         scan.NextToken();
@@ -556,18 +558,19 @@ SyntaxNode* Parser::ParseArrayAccess(SyntaxNode* array)
 SyntaxNode* Parser::ParseFactor()
 {
     SyntaxNode* left = NULL;
+    TokenValue tok_val = scan.GetToken().GetValue();
     if (scan.GetToken().IsConst())
     {
         return ParseConstants();
     }
-    else if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT)
+    else if (tok_val == TOK_BRACKETS_LEFT)
     {
         scan.NextToken();
         left = ParseRelationalExpr();
         if (left == NULL) Error("illegal expression");
         CheckTokOrDie(TOK_BRACKETS_RIGHT);
     }
-    else if (scan.GetToken().GetValue() == TOK_WRITE) left = ParseWriteFunctCall();
+    else if (tok_val == TOK_WRITE || tok_val == TOK_WRITELN) left = ParseWriteFunctCall();
     else {
         if (scan.GetToken().GetType() != IDENTIFIER) return NULL;
         const Symbol* sym = FindSymbolOrDie(scan.GetToken(), SymbolClass(SYM_VAR | SYM_PROC), "identifier not found");

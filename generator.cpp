@@ -24,7 +24,16 @@ const string REG_TO_STR[] =
     "%edi",
     "%esi",
     "%ebp",
-    "%esp"
+    "%esp",
+    "%st",
+    "%st(0)",
+    "%st(1)",
+    "%st(2)",
+    "%st(3)",
+    "%st(4)",
+    "%st(5)",
+    "%st(6)",
+    "%st(7)"
 };
 
 const string ASM_CMD_TO_STR[] =
@@ -34,9 +43,13 @@ const string ASM_CMD_TO_STR[] =
     "call",
     "cmp",
     "div",
+    "faddp",
+    "fdivrp",
     "fild",
     "fld",
+    "fmulp",
     "fstp",
+    "fsubrp",
     "idiv",
     "imul",
     "jmp",
@@ -295,15 +308,13 @@ void AsmMemory::Print(ostream& o) const
 //---AsmCode---
 
 AsmCode::AsmCode():
-//    format_str_real(AddData("format_str_f", "%d", DATA_STR))
-//    format_str_int(AddData("format_str_d", "%d", DATA_STR))
-//    funct_write(AsmMemory(AsmImmidiate("printf")))
     funct_write(AsmImmidiate("printf")),
-    label_counter(0)
+    label_counter(0),
+    was_real(false),
+    was_int(false),
+    was_str(false),
+    was_new_line(false)
 {
-    format_str_real = AddData(ChangeName("format_str_f"), "%f", DATA_STR);
-    format_str_int = AddData(ChangeName("format_str_d"), "%d", DATA_STR);
-    format_str_str = AddData(ChangeName("format_str_s"), "%s", DATA_STR);
 }
 
 AsmImmidiate AsmCode::GenLabel()
@@ -362,9 +373,9 @@ void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory mem, CmdSize size)
     commands.push_back(new AsmCmd1(cmd, new AsmMemory(mem), size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest)
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest, CmdSize size)
 {
-    commands.push_back(new AsmCmd2(cmd, new AsmRegister(src), new AsmRegister(dest)));
+    commands.push_back(new AsmCmd2(cmd, new AsmRegister(src), new AsmRegister(dest), size));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper)
@@ -515,40 +526,60 @@ void AsmCode::Print(ostream& o) const
     o << "\tret\n";
 }
 
-void AsmCode::CallWriteForInt()
+void AsmCode::GenCallWriteForInt()
 {
+    if (!was_int)
+    {
+        format_str_int = AddData(ChangeName("format_str_d"), "%d", DATA_STR);
+        was_int = true;
+    }
     AddCmd(ASM_PUSH, format_str_int);
     AddCmd(ASM_CALL, funct_write);
     AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
 }
 
-void AsmCode::CallWriteForReal()
+void AsmCode::GenCallWriteForReal()
 {
-/*        subl    $12, %esp
-        flds    float_0
-        fstpl   4(%esp)
-        movl    $format_str_f, (%esp)
-        calll   (printf)
-        addl    $12, %esp */
+    if (!was_real)
+    {
+        format_str_real = AddData(ChangeName("format_str_f"), "%f", DATA_STR);
+        was_real = true;
+    }
     AddCmd(ASM_FLD, AsmMemory(REG_ESP), SIZE_SHORT);
     AddCmd(ASM_SUB, AsmImmidiate(8), REG_ESP);
     AddCmd(ASM_FSTP, AsmMemory(REG_ESP, 4));
     AddCmd(ASM_MOV, format_str_real, AsmMemory(REG_ESP));
     AddCmd(ASM_CALL, funct_write);
-    AddCmd(ASM_ADD, AsmImmidiate(12), REG_ESP);
+    AddCmd(ASM_ADD, 12, REG_ESP);
 }
 
-void AsmCode::CallWriteForStr()
+void AsmCode::GenCallWriteForStr()
 {
+    if (!was_str)
+    {
+        format_str_str = AddData(ChangeName("format_str_s"), "%s", DATA_STR);
+        was_str = true;
+    }
     AddCmd(ASM_PUSH, format_str_str);
     AddCmd(ASM_CALL, funct_write);
-    AddCmd(ASM_ADD, AsmImmidiate(8), REG_ESP);
+    AddCmd(ASM_ADD, 8, REG_ESP);
+}
+
+void AsmCode::GenWriteNewLine()
+{
+    if (!was_new_line)
+    {
+        format_str_new_line = AddData(ChangeName("format_str_new_line"), "\\n", DATA_STR);
+        was_new_line = true;
+    }
+    AddCmd(ASM_PUSH, format_str_new_line);
+    AddCmd(ASM_CALL, funct_write);
+    AddCmd(ASM_ADD, 4, REG_ESP);
 }
 
 void AsmCode::PushMemory(unsigned size)
 {
     AddCmd(ASM_POP, REG_EBX);
-//    AddCmd(ASM_SUB, size, REG_ESP);
     for (int i = 0; i < size; i += 4)
     {
         AddCmd(ASM_MOV, AsmMemory(REG_EBX, size - i - 4), REG_EAX);

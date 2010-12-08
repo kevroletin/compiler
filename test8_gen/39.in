@@ -1,0 +1,12 @@
+var
+    t : record 
+	a, b: real;
+    end;
+begin
+    WriteLn(5.5 + 4.5);
+    WriteLn(10.0 * 20);
+    WriteLn(10.0 - 2.75);
+    t.a := 30;
+    t.b := 10;
+    WriteLn(t.a / t.b);
+end.
