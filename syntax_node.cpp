@@ -93,15 +93,8 @@ const SymType* NodeWriteCall::GetSymType() const
 
 //---NodeBinaryOp---
 
-void NodeBinaryOp::FinGenForRelationalOp(AsmCode& asm_code) const
+void NodeBinaryOp::FinGenForIntRelationalOp(AsmCode& asm_code) const
 {
-/*
-      movl    b, %edx
-      movl    c, %eax
-      cmpl    %eax, %edx
-      setg    %al
-      movzbl  %al, %eax
-*/
     asm_code.AddCmd(ASM_CMP, REG_EBX, REG_EAX); 
     switch (token.GetValue())
     {
@@ -127,10 +120,70 @@ void NodeBinaryOp::FinGenForRelationalOp(AsmCode& asm_code) const
     asm_code.AddCmd(ASM_PUSH, REG_EAX);
 }
 
+void NodeBinaryOp::FinGenForRealRelationalOp(AsmCode& asm_code) const
+{
+/*
+  a > b
+        flds    a
+        flds    b
+        fxch    %st(1)
+        fucompp
+        fnstsw  %ax
+        sahf
+        seta    %al
+        movzbl  %al, %edx
+*/     
+    asm_code.AddCmd(ASM_FXCH, REG_ST1, SIZE_NONE);
+    asm_code.AddCmd(ASM_FCOMPP, REG_ST1, SIZE_NONE);
+    asm_code.AddCmd(ASM_FNSTS, REG_AX, SIZE_WORD);
+    switch (token.GetValue())
+    {
+        case TOK_GREATER:
+            asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
+            asm_code.AddCmd(ASM_SETA, REG_AL, SIZE_NONE);            
+        break;
+        case TOK_GREATER_OR_EQUAL:
+            asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
+            asm_code.AddCmd(ASM_SETAE, REG_AL, SIZE_NONE);            
+        break;
+        case TOK_LESS:
+            /*
+              testb   $69, %ah
+              sete    %al
+            */
+            asm_code.AddCmd(ASM_TEST, AsmImmidiate(69), REG_AH, SIZE_BYTE);
+            asm_code.AddCmd(ASM_SETE, REG_AL, SIZE_NONE);            
+        break;
+        case TOK_LESS_OR_EQUAL:
+            /*
+              testb   $5, %ah
+              sete    %al
+            */
+            asm_code.AddCmd(ASM_TEST, 5, SIZE_BYTE);
+            asm_code.AddCmd(ASM_SETA, REG_AL, SIZE_NONE);            
+        break;
+        case TOK_EQUAL:
+            /*
+              sahf
+              sete    %al
+             */
+            asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
+            asm_code.AddCmd(ASM_SETE, REG_AL, SIZE_NONE);            
+        break;
+        case TOK_NOT_EQUAL:
+            /*
+              sahf
+              sete    %al
+              setnp   %dl
+            */
+            asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
+            asm_code.AddCmd(ASM_SETNE, REG_AL, SIZE_NONE);            
+    }
+    asm_code.AddCmd(ASM_MOVZB, REG_AL, REG_EDX);
+}
+
 void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
 {
-    left->GenerateValue(asm_code);
-    right->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_POP, REG_EBX);
     asm_code.AddCmd(ASM_POP, REG_EAX);
     switch (token.GetValue())
@@ -174,7 +227,7 @@ void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
             asm_code.AddCmd(ASM_NOT, REG_EBX, REG_EAX);
         break;
         default:
-            FinGenForRelationalOp(asm_code);
+            FinGenForIntRelationalOp(asm_code);
             return;
     }
     asm_code.AddCmd(ASM_PUSH, REG_EAX);
@@ -182,9 +235,6 @@ void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
 
 void NodeBinaryOp::GenerateForReal(AsmCode& asm_code) const
 {
-
-    left->GenerateValue(asm_code);
-    right->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_FLD, AsmMemory(REG_ESP, 4), SIZE_SHORT);
     asm_code.AddCmd(ASM_FLD, AsmMemory(REG_ESP), SIZE_SHORT);    
     switch (token.GetValue())
@@ -201,6 +251,9 @@ void NodeBinaryOp::GenerateForReal(AsmCode& asm_code) const
         case TOK_DIVISION:
             asm_code.AddCmd(ASM_FDIVRP, REG_ST, REG_ST1, SIZE_NONE);
         break;
+        default:
+            FinGenForRealRelationalOp(asm_code);
+            return;
     }
     asm_code.AddCmd(ASM_ADD, 4, REG_ESP);
     asm_code.AddCmd(ASM_FSTP, AsmMemory(REG_ESP), SIZE_SHORT);
@@ -224,16 +277,50 @@ void NodeBinaryOp::Print(ostream& o, int offset) const
 
 const SymType* NodeBinaryOp::GetSymType() const
 {
+    if (token.IsRelationalOp()) return top_type_int;
     return left->GetSymType();
 }
 
 void NodeBinaryOp::GenerateValue(AsmCode& asm_code) const
 {
+    left->GenerateValue(asm_code);
+    right->GenerateValue(asm_code);
     if (GetSymType() == top_type_int) GenerateForInt(asm_code);
     else GenerateForReal(asm_code);
 }
 
 //---NodeUnaryOp---
+
+void NodeUnaryOp::GenerateForInt(AsmCode& asm_code) const
+{
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    switch (token.GetValue())
+    {
+        case TOK_NOT:
+            asm_code.AddCmd(ASM_NOT, REG_EAX);
+        break;
+        case TOK_PLUS:
+        break;
+        case TOK_MINUS:
+            asm_code.AddCmd(ASM_NEG, REG_EAX);
+        break;            
+    }
+    asm_code.AddCmd(ASM_PUSH, REG_EAX);
+}
+
+void NodeUnaryOp::GenerateForReal(AsmCode& asm_code) const
+{
+    if (token.GetValue() != TOK_MINUS) return;
+    /*
+        flds    b
+        fchs
+        fstps   b
+        flds    b
+      */
+    asm_code.AddCmd(ASM_FLD, AsmMemory(REG_ESP), SIZE_SHORT);
+    asm_code.AddCmd(ASM_FCH, SIZE_SHORT);
+    asm_code.AddCmd(ASM_FSTP, AsmMemory(REG_ESP), SIZE_SHORT);
+}
 
 NodeUnaryOp::NodeUnaryOp(const Token& name, SyntaxNode* child_):
     token(name),
@@ -252,6 +339,13 @@ void NodeUnaryOp::Print(ostream& o, int offset) const
 const SymType* NodeUnaryOp::GetSymType() const
 {
     return child->GetSymType();
+}
+
+void NodeUnaryOp::GenerateValue(AsmCode& asm_code) const
+{
+    child->GenerateValue(asm_code);
+    if (GetSymType() == top_type_int) GenerateForInt(asm_code);
+    else GenerateForReal(asm_code);
 }
 
 // NodeIntToRealConv
@@ -514,7 +608,11 @@ void StmtFor::Print(ostream& o, int offset) const
 
 void StmtFor::Generate(AsmCode& asm_code) const
 {
-    StmtAssign(new NodeVar(index), init_val).Generate(asm_code);
+    init_val->GenerateValue(asm_code);
+    index->GenerateLValue(asm_code);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_POP, REG_EBX);
+    asm_code.AddCmd(ASM_MOV, REG_EBX, AsmMemory(REG_EAX));
     AsmImmidiate start_label(asm_code.GenLabel("for_check"));
     AsmImmidiate check_label(asm_code.GenLabel("for_check"));
     AsmImmidiate fin_label(asm_code.GenLabel("for_fin"));

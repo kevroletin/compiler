@@ -16,6 +16,7 @@ enum CmdSize{
     SIZE_NONE,
     SIZE_BYTE,
     SIZE_SHORT,
+    SIZE_WORD,
     SIZE_LONG,
     SIZE_QUARD
 };
@@ -27,6 +28,14 @@ enum RegisterName{
     REG_BL,
     REG_CL,
     REG_DL,
+    REG_AH,
+    REG_BH,
+    REG_CH,
+    REG_DH,
+    REG_AX,
+    REG_BX,
+    REG_CX,
+    REG_DX,    
     REG_DI,
     REG_SI,
     REG_EAX,
@@ -57,12 +66,16 @@ enum AsmCmdName{
     ASM_CMP,
     ASM_DIV,
     ASM_FADDP,
+    ASM_FCH,
+    ASM_FCOMPP,
     ASM_FDIVRP,
     ASM_FILD,
     ASM_FLD,
     ASM_FMULP,
+    ASM_FNSTS,
     ASM_FSTP,
     ASM_FSUBRP,
+    ASM_FXCH,
     ASM_IDIV,
     ASM_IMUL,
     ASM_JMP,
@@ -75,13 +88,17 @@ enum AsmCmdName{
     ASM_MOV,
     ASM_MOVZB,
     ASM_MUL,
+    ASM_NEG ,
     ASM_NOT,
     ASM_OR,
     ASM_POP,
     ASM_PUSH,
     ASM_RET,
+    ASM_SAHF,
     ASM_SAR,
     ASM_SAL,
+    ASM_SETA,
+    ASM_SETAE,
     ASM_SETG,
     ASM_SETGE,
     ASM_SETL,
@@ -232,26 +249,26 @@ public:
     string GenStrLabel(string prefix);
     AsmImmidiate LabelByStr(string str);
     void AddCmd(AsmCmd* cmd);
-    void AddCmd(AsmCmdName cmd);
+    void AddCmd(AsmCmdName cmd, CmdSize size = SIZE_LONG);
     void AddCmd(string raw_cmd);
-    void AddCmd(AsmCmdName cmd, AsmOperand* oper);
+    void AddCmd(AsmCmdName cmd, AsmOperand* oper, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, RegisterName reg, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, AsmMemory* mem);
+    void AddCmd(AsmCmdName cmd, AsmMemory* mem, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmMemory mem, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate* imm);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate* imm, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmImmidiate imm, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2);
+    void AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest);
-    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate dest);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName oper1);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate src, RegisterName oper1);
-    void AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg);
-    void AddCmd(AsmCmdName cmd, AsmMemory mem, RegisterName reg);
-    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem);
-    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory mem);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate* src, AsmMemory* mem);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate src, AsmMemory mem);    
+    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate dest, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName oper1, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate src, RegisterName oper1, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmMemory mem, RegisterName reg, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory mem, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate* src, AsmMemory* mem, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmImmidiate src, AsmMemory mem, CmdSize size = SIZE_LONG);    
     void AddData(AsmData* new_data);
     AsmImmidiate AddData(string label, string value, AsmDataType type = DATA_UNTYPED);
     AsmImmidiate AddData(string label, unsigned size);

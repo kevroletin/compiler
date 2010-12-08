@@ -121,6 +121,7 @@ public:
     bool IsConst() const;
     bool IsVar() const;
     bool IsConstVar() const;
+    bool IsBitwiseOp() const;
     Token();
     Token(const char* name_, TokenType type_, TokenValue value_, int line_ = -1, int pos_ = -1);
     Token(const Token& token);

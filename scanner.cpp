@@ -278,6 +278,11 @@ bool Token::IsFactorOp() const
     return value == TOK_BRACKETS_SQUARE_LEFT || value == TOK_DOT;
 }
 
+bool Token::IsBitwiseOp() const
+{
+    return value == TOK_DIV || value == TOK_MOD || value == TOK_SHL || value == TOK_SHR || value == TOK_NOT || value == TOK_OR || value == TOK_AND || value == TOK_XOR;
+}
+
 bool Token::IsConst() const
 {
     return type == INT_CONST || type == REAL_CONST || type == STR_CONST;

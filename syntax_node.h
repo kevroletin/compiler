@@ -37,7 +37,8 @@ private:
     Token token;
     SyntaxNode* left;
     SyntaxNode* right;
-    void FinGenForRelationalOp(AsmCode& asm_code) const;
+    void FinGenForIntRelationalOp(AsmCode& asm_code) const;
+    void FinGenForRealRelationalOp(AsmCode& asm_code) const;
     void GenerateForInt(AsmCode& asm_code) const;
     void GenerateForReal(AsmCode& asm_code) const;
 public:
@@ -51,10 +52,13 @@ class NodeUnaryOp: public SyntaxNode{
 protected:
     Token token;
     SyntaxNode* child;
+    void GenerateForInt(AsmCode& asm_code) const;
+    void GenerateForReal(AsmCode& asm_code) const;
 public:
     NodeUnaryOp(const Token& name, SyntaxNode* child_);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;
+    void GenerateValue(AsmCode& asm_code) const;
 };
 
 class NodeIntToRealConv: public NodeUnaryOp{

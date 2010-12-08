@@ -46,3 +46,4 @@
 * TODO доабавить break, continue, exit
 * TODO выполнить проверку типов аргументов для операций AND OR NOT 
 * TODO генерация унарнх операций
+* TODO убрать SIZE_SHORT

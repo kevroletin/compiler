@@ -608,7 +608,10 @@ SyntaxNode* Parser::ParseUnaryExpr()
     if (res != NULL)
     {
         for (std::vector<Token>::reverse_iterator it = un.rbegin(); it != un.rend(); ++it)
+        {
+            if (it->IsBitwiseOp()) TryToConvertTypeOrDie(res, top_type_int, *it);
             res = new NodeUnaryOp(*it, res);
+        }
     }
     return res;
 }
@@ -628,7 +631,7 @@ SyntaxNode* Parser::ParseMultiplyingExpr()
             TryToConvertTypeOrDie(left, top_type_real, op);
             TryToConvertTypeOrDie(right, top_type_real, op);
         }
-        else if (op.GetValue() == TOK_DIV || op.GetValue() == TOK_MOD)
+        else if (op.IsBitwiseOp())
         {
             TryToConvertTypeOrDie(left, top_type_int, op);
             TryToConvertTypeOrDie(right, top_type_int, op);
@@ -651,7 +654,13 @@ SyntaxNode* Parser::ParseAddingExpr()
         scan.NextToken();
         SyntaxNode* right = ParseMultiplyingExpr();
         if (right == NULL) Error("expression expected");
-        TryToConvertTypeOrDie(left, right, op);
+        if (op.IsBitwiseOp())
+        {
+            TryToConvertTypeOrDie(left, top_type_int, op);
+            TryToConvertTypeOrDie(right, top_type_int, op);
+        }
+        else
+            TryToConvertTypeOrDie(left, right, op);       
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }

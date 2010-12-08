@@ -1,0 +1,6 @@
+begin
+    Writeln(-5);
+    Writeln(+5);
+    Writeln(not 5);
+    Writeln(not not 5);
+end.

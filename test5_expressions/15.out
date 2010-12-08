@@ -1,5 +1,5 @@
 begin
-  > [real]
+  > [integer]
     IntToReal [real]
       a [integer]
     b [real]

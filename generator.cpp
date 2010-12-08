@@ -1,10 +1,11 @@
-#include "generator.h"
+#include "generator.h" 
 
 const string SIZE_TO_STR[] =
 {
     "",
     "b",
     "s",
+    "w",
     "l",
     "q"
 };
@@ -15,6 +16,14 @@ const string REG_TO_STR[] =
     "%bl",
     "%cl",
     "%dl",
+    "%ah",
+    "%bh",
+    "%ch",
+    "%dh",
+    "%ax",
+    "%bx",
+    "%cx",
+    "%dx",
     "%dl",
     "%si",
     "%eax",
@@ -44,12 +53,16 @@ const string ASM_CMD_TO_STR[] =
     "cmp",
     "div",
     "faddp",
+    "fch",
+    "fcompp",
     "fdivrp",
     "fild",
     "fld",
     "fmulp",
+    "fnsts",
     "fstp",
     "fsubrp",
+    "fxch",
     "idiv",
     "imul",
     "jmp",
@@ -62,13 +75,17 @@ const string ASM_CMD_TO_STR[] =
     "mov",
     "movzb",
     "mul",
-    "not",
+    "neg",
+    "not",    
     "or",
     "pop",
     "push",
     "ret",
-    "sal",
+    "sahf",
     "sar",
+    "sal",
+    "seta",
+    "setae",
     "setg",
     "setge",
     "setl",
@@ -363,9 +380,9 @@ void AsmCode::AddCmd(string raw_cmd)
     commands.push_back(new AsmRawCmd(raw_cmd));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd)
+void AsmCode::AddCmd(AsmCmdName cmd, CmdSize size)
 {
-    commands.push_back(new AsmCmd0(cmd));
+    commands.push_back(new AsmCmd0(cmd, size));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory mem, CmdSize size)
@@ -378,9 +395,9 @@ void AsmCode::AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest, CmdSiz
     commands.push_back(new AsmCmd2(cmd, new AsmRegister(src), new AsmRegister(dest), size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper, CmdSize size)
 {
-    commands.push_back(new AsmCmd1(cmd, oper));
+    commands.push_back(new AsmCmd1(cmd, oper, size));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, CmdSize size)
@@ -388,14 +405,14 @@ void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, CmdSize size)
     commands.push_back(new AsmCmd1(cmd, new AsmRegister(reg), size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory* mem)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory* mem, CmdSize size)
 {
-    commands.push_back(new AsmCmd1(cmd, mem));
+    commands.push_back(new AsmCmd1(cmd, mem, size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* imm)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* imm, CmdSize size)
 {
-    commands.push_back(new AsmCmd1(cmd, imm));
+    commands.push_back(new AsmCmd1(cmd, imm, size));
 }
 
 void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate imm, CmdSize size)
@@ -404,61 +421,61 @@ void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate imm, CmdSize size)
     commands.push_back(new AsmCmd1(cmd, tmp, size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2, CmdSize size)
 {
-    commands.push_back(new AsmCmd2(cmd, oper1, oper2));
+    commands.push_back(new AsmCmd2(cmd, oper1, oper2, size));
 }
         
-void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest)
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest, CmdSize size)
 {
-    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), dest));
+    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), dest, size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate dest)
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate dest, CmdSize size)
 {
     AsmImmidiate* imm = new AsmImmidiate(dest);
-    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), imm));
+    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), imm, size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName reg)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName reg, CmdSize size)
 {
-    commands.push_back(new AsmCmd2(cmd, src, new AsmRegister(reg)));
+    commands.push_back(new AsmCmd2(cmd, src, new AsmRegister(reg), size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate src, RegisterName reg)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate src, RegisterName reg, CmdSize size)
 {
     AsmImmidiate* imm = new AsmImmidiate(src);
-    commands.push_back(new AsmCmd2(cmd, imm, new AsmRegister(reg)));
+    commands.push_back(new AsmCmd2(cmd, imm, new AsmRegister(reg), size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg, CmdSize size)
 {
-    commands.push_back(new AsmCmd2(cmd, mem, new AsmRegister(reg)));
+    commands.push_back(new AsmCmd2(cmd, mem, new AsmRegister(reg), size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory mem, RegisterName reg)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmMemory mem, RegisterName reg, CmdSize size)
 {
-    commands.push_back(new AsmCmd2(cmd, new AsmMemory(mem), new AsmRegister(reg)));
+    commands.push_back(new AsmCmd2(cmd, new AsmMemory(mem), new AsmRegister(reg), size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem)
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem, CmdSize size)
 {
-    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), mem));
+    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), mem, size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory mem)
+void AsmCode::AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory mem, CmdSize size)
 {
-    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), new AsmMemory(mem)));
+    commands.push_back(new AsmCmd2(cmd, new AsmRegister(reg), new AsmMemory(mem), size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* src, AsmMemory* mem)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate* src, AsmMemory* mem, CmdSize size)
 {
-    commands.push_back(new AsmCmd2(cmd, src, mem));
+    commands.push_back(new AsmCmd2(cmd, src, mem, size));
 }
 
-void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate src, AsmMemory mem)
+void AsmCode::AddCmd(AsmCmdName cmd, AsmImmidiate src, AsmMemory mem, CmdSize size)
 {
-    AddCmd(cmd, new AsmImmidiate(src), new AsmMemory(mem));
+    AddCmd(cmd, new AsmImmidiate(src), new AsmMemory(mem), size);
 }
 
 void AsmCode::AddData(AsmData* new_data)
