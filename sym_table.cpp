@@ -8,8 +8,16 @@ const string SymbolClassDescription[] = {
     "SYM_TYPE_SCALAR",
     "SYM_TYPE_INTEGER",
     "SYM_TYPE_REAL",
+    "SYM_TYPE_UNTYPED",
     "SYM_TYPE_ARRAY",
+    "SYM_TYPE_RECORD",
+    "SYM_TYPE_ALIAS",
+    "SYM_TYPE_POINTER",
     "SYM_VAR",
+    "SYM_VAR_CONST",
+    "SYM_VAR_PARAM",
+    "SYM_VAR_GLOBAL",
+    "SYM_VAR_LOCAL"
 };
 
 SymType* top_type_int = new SymTypeInteger(Token("Integer", RESERVED_WORD, TOK_INTEGER, -1, -1));
@@ -33,6 +41,11 @@ Symbol::Symbol(const Symbol& sym):
 const char* Symbol::GetName() const
 {
     return token.GetName();
+}
+
+Token Symbol::GetToken() const
+{
+    return token;
 }
 
 SymbolClass Symbol::GetClassName() const
@@ -463,15 +476,26 @@ SymbolClass  SymTypePointer::GetClassName() const
 
 //---SymVarConst---
 
-
-SymVarConst::SymVarConst(Token name, const SymType* type):
-    SymVar(name, type)
+SymVarConst::SymVarConst(Token name, Token value_, const SymType* type):
+    SymVar(name, type),
+    value(value_)
 {
 }
 
 SymbolClass SymVarConst::GetClassName() const
 {
     return SymbolClass(SYM | SYM_VAR | SYM_VAR_CONST);
+}
+
+void SymVarConst::Print(ostream& o, int offset) const
+{
+    PrintSpaces(o, offset) << token.GetName() << " = " << value.GetName();
+}
+
+void SymVarConst::PrintVerbose(ostream& o, int offset) const
+{
+    Print(o, offset);
+    o << '\n';
 }
 
 void SymVarConst::GenerateLValue(AsmCode& asm_code) const
@@ -483,11 +507,11 @@ void SymVarConst::GenerateValue(AsmCode& asm_code) const
 {
     if (token.GetType() == INT_CONST)
     {
-        asm_code.AddCmd(ASM_PUSH, AsmImmidiate(token.GetName()));
+        asm_code.AddCmd(ASM_PUSH, AsmImmidiate(value.GetName()));
     }
-    else if (token.GetType() == REAL_CONST)
+    else if (value.GetType() == REAL_CONST)
     {
-        AsmImmidiate label = asm_code.AddData(asm_code.GenStrLabel("float"), token.GetName(), DATA_REAL);
+        AsmImmidiate label = asm_code.AddData(asm_code.GenStrLabel("float"), value.GetName(), DATA_REAL);
         asm_code.AddCmd(ASM_PUSH, AsmMemory(label));
     }
     else

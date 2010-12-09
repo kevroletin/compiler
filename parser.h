@@ -29,7 +29,8 @@ private:
     void CheckTokOrDie(TokenValue tok_val);
     void CheckNextTokOrDie(TokenValue tok_val);    
     SyntaxNode* GetIntExprOrDie();
-    SyntaxNode* ParseConstants();
+    int GetIntConstValueOrDie();
+    SymVarConst* ParseConstant(Token const_name);
     SyntaxNode* ParseFunctionCall(SymProc* funct_if);
     SyntaxNode* ParseWriteFunctCall();
     SyntaxNode* ParseRecordAccess(SyntaxNode* record);
@@ -45,6 +46,7 @@ private:
     SymType* ParseRecordType();
     SymType* ParsePointerType();
     SymType* ParseType();
+    void ParseConstDeclarations();
     void ParseVarDeclarations(bool is_global = true);
     void ParseTypeDeclarations();
     void ParseDeclarations(bool is_global = true);

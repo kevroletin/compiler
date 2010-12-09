@@ -46,6 +46,7 @@ public:
     Symbol(Token token_);
     Symbol(const Symbol& sym);
     const char* GetName() const;
+    Token GetToken() const;
     virtual SymbolClass GetClassName() const;
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual void Print(ostream& o, int offset = 0) const;
@@ -190,9 +191,13 @@ public:
 //---SymVar descendants---
 
 class SymVarConst: public SymVar{
+private:
+    Token value;
 public:
-    SymVarConst(Token name, const SymType* type);
+    SymVarConst(Token name, Token value, const SymType* type);
     virtual SymbolClass GetClassName() const;
+    virtual void Print(ostream& o, int offset = 0) const;
+    virtual void PrintVerbose(ostream& o, int offset = 0) const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
 };

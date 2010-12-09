@@ -94,25 +94,23 @@ Parser::Parser(Scanner& scanner):
 
 SymType* Parser::ParseArrayType()
 {
-    std::vector<std::pair<Token, Token> > bounds;
+    std::vector<std::pair<int, int> > bounds;
     CheckTokOrDie(TOK_ARRAY);
     CheckTokOrDie(TOK_BRACKETS_SQUARE_LEFT);
     bool was_comma = true;
     while (was_comma)
     {
-        Token low = scan.GetToken();
-        CheckNextTokOrDie(TOK_DOUBLE_DOT);
-        Token high = scan.GetToken();
-        if (low.GetType() != INT_CONST || high.GetType() != INT_CONST)
-            Error("non-integer array bounds is not implemented");
-        bounds.push_back(std::pair<Token, Token>(low, high));
-        if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA)) scan.NextToken();
+        int fst = GetIntConstValueOrDie();
+        CheckTokOrDie(TOK_DOUBLE_DOT);
+        int sec = GetIntConstValueOrDie();
+        bounds.push_back(std::pair<int, int>(min(fst, sec), max(fst, sec)));
+        if (was_comma = (scan.GetToken().GetValue() == TOK_COMMA)) scan.NextToken();
     }
     CheckTokOrDie(TOK_BRACKETS_SQUARE_RIGHT);
     CheckTokOrDie(TOK_OF);
     SymType* res = ParseType();
-    for (std::vector<std::pair<Token, Token> >::reverse_iterator it = bounds.rbegin(); it != bounds.rend(); ++it)
-        res = new SymTypeArray(res, it->first.GetIntValue(), it->second.GetIntValue());
+    for (std::vector<std::pair<int, int> >::reverse_iterator it = bounds.rbegin(); it != bounds.rend(); ++it)
+        res = new SymTypeArray(res, it->first, it->second);
     return res;
 }
 
@@ -155,6 +153,19 @@ SymType* Parser::ParseType()
             scan.NextToken();
             return (SymType*)res;
         }
+    }
+}
+
+void Parser::ParseConstDeclarations()
+{
+    while (scan.GetToken().IsVar())
+    {
+        Token name = scan.GetToken();
+        if (FindSymbol(name) != NULL) Error("duplicate declaration");
+        CheckNextTokOrDie(TOK_EQUAL);
+        SymVarConst* sym = ParseConstant(name);
+        sym_table_stack.back()->Add(sym);
+        CheckTokOrDie(TOK_SEMICOLON);
     }
 }
 
@@ -205,6 +216,10 @@ void Parser::ParseDeclarations(bool is_global)
             case TOK_PROCEDURE:
             case TOK_FUNCTION:
                 ParseFunctionDefinition();
+            break;
+            case TOK_CONST:
+                scan.NextToken();
+                ParseConstDeclarations();
             break;
             case TOK_VAR:
                 scan.NextToken();
@@ -455,6 +470,19 @@ SyntaxNode* Parser::GetIntExprOrDie()
     return res;
 }
 
+int Parser::GetIntConstValueOrDie()
+{
+    string err_msg = "integer const expected";
+    Token tok = scan.GetToken();
+    scan.NextToken();
+    if (tok.GetType() != INT_CONST)
+    {
+        SymVarConst* sym = (SymVarConst*)FindSymbolOrDie(tok, SYM_VAR_CONST, err_msg);
+        if (sym->GetVarType() != top_type_int) Error(err_msg);
+        tok = sym->GetToken();
+    }
+    return tok.GetIntValue();
+}
 
 SyntaxNode* Parser::ParseFunctionCall(SymProc* funct_name)
 {
@@ -510,15 +538,15 @@ SyntaxNode* Parser::ParseWriteFunctCall()
     return write;
 }
 
-SyntaxNode* Parser::ParseConstants()
+SymVarConst* Parser::ParseConstant(Token const_name)
 {
-    Token token = scan.GetToken();
+    Token value = scan.GetToken();
     SymType* type = NULL;
-    if (token.GetType() == INT_CONST) type = top_type_int;
-    else if (token.GetType() == REAL_CONST) type = top_type_real;
+    if (value.GetType() == INT_CONST) type = top_type_int;
+    else if (value.GetType() == REAL_CONST) type = top_type_real;
     else type = top_type_str;
     scan.NextToken();
-    return new NodeVar(new SymVarConst(token, type));
+    return new SymVarConst(const_name, value, type);
 }
 
 SyntaxNode* Parser::ParseRecordAccess(SyntaxNode* record)
@@ -561,7 +589,7 @@ SyntaxNode* Parser::ParseFactor()
     TokenValue tok_val = scan.GetToken().GetValue();
     if (scan.GetToken().IsConst())
     {
-        return ParseConstants();
+        return new NodeVar(ParseConstant(scan.GetToken()));
     }
     else if (tok_val == TOK_BRACKETS_LEFT)
     {
@@ -578,6 +606,7 @@ SyntaxNode* Parser::ParseFactor()
         {
             left = new NodeVar((SymVar*)sym);
             scan.NextToken();
+            if (sym->GetClassName() & SYM_VAR_CONST) return left;
         }
         else if (sym->GetClassName() & SYM_PROC)
         {

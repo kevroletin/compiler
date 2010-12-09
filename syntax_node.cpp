@@ -7,6 +7,21 @@ static void Error(string msg, Token token)
     throw( CompilerException(s.str()) );
 }
 
+//---NodeCallBase---
+
+void NodeCallBase::PrintArgs(ostream& o, int offset) const
+{
+    for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++it)
+    {
+        (*it)->Print(o, offset + 1);
+    }
+}
+
+void NodeCallBase::AddArg(SyntaxNode* arg)
+{
+    args.push_back(arg);
+}
+
 //---NodeCall---
 
 NodeCall::NodeCall(const SymProc* funct_):
@@ -14,11 +29,6 @@ NodeCall::NodeCall(const SymProc* funct_):
 {
 }
     
-void NodeCall::AddArg(SyntaxNode* arg)
-{
-    args.push_back(arg);
-}
-
 const SymType* NodeCall::GetCurrentArgType() const
 {
     if (args.size() >= funct->GetArgsCount()) return NULL;
@@ -36,10 +46,7 @@ void NodeCall::Print(ostream& o, int offset) const
     PrintSpaces(o, offset) << "() " << funct->GetName() << " [";
     GetSymType()->Print(o , offset);
     o << "]\n";
-    for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++it)
-    {
-        (*it)->Print(o, offset + 1);
-    }
+    PrintArgs(o, offset);
 }
 
 const SymType* NodeCall::GetSymType() const
@@ -65,9 +72,10 @@ NodeWriteCall::NodeWriteCall(bool new_line_):
 {
 }
 
-void NodeWriteCall::AddArg(SyntaxNode* arg)
+void NodeWriteCall::Print(ostream& o, int offset) const
 {
-    args.push_back(arg);
+    PrintSpaces(o, offset) << "() " << (new_line ? "writeln" : "write" ) << " [untyped]\n";
+    PrintArgs(o, offset);    
 }
 
 void NodeWriteCall::GenerateValue(AsmCode& asm_code) const
@@ -122,17 +130,6 @@ void NodeBinaryOp::FinGenForIntRelationalOp(AsmCode& asm_code) const
 
 void NodeBinaryOp::FinGenForRealRelationalOp(AsmCode& asm_code) const
 {
-/*
-  a > b
-        flds    a
-        flds    b
-        fxch    %st(1)
-        fucompp
-        fnstsw  %ax
-        sahf
-        seta    %al
-        movzbl  %al, %edx
-*/     
     asm_code.AddCmd(ASM_FXCH, REG_ST1, SIZE_NONE);
     asm_code.AddCmd(ASM_FCOMPP, REG_ST1, SIZE_NONE);
     asm_code.AddCmd(ASM_FNSTS, REG_AX, SIZE_WORD);

@@ -7,13 +7,19 @@
 #include "exception.h"
 #include <vector>
 
-class NodeCall: public SyntaxNode{
-private:
+class NodeCallBase: public SyntaxNode{
+protected:
     std::vector<SyntaxNode*> args;
+    void PrintArgs(ostream& o, int offset = 0) const;
+public:    
+    void AddArg(SyntaxNode* arg);
+};
+
+class NodeCall: public NodeCallBase{
+private:
     const SymProc* funct;
 public: 
     NodeCall(const SymProc* funct_);
-    void AddArg(SyntaxNode* arg);
     const SymType* GetCurrentArgType() const;
     bool IsCurrentArfByRef() const;
     virtual void Print(ostream& o, int offset = 0) const;
@@ -21,13 +27,12 @@ public:
     virtual void GenerateValue(AsmCode& asm_code) const;
 };
 
-class NodeWriteCall: public SyntaxNode{
+class NodeWriteCall: public NodeCallBase{
 private:
-    std::vector<SyntaxNode*> args;
     bool new_line;
 public:
     NodeWriteCall(bool new_line_ = false);
-    void AddArg(SyntaxNode* arg);
+    virtual void Print(ostream& o, int offset = 0) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual const SymType* GetSymType() const;
 };
