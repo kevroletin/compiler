@@ -1,0 +1,9 @@
+const
+    n = 10;
+
+var
+    a: array[1..n] of Integer;
+    
+begin
+    a[2] := 10;
+end.

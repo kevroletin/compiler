@@ -1,0 +1,72 @@
+Free Pascal Compiler version 2.4.0-2 [2010/03/06] for x86_64
+Copyright (c) 1993-2009 by Florian Klaempfl
+/usr/lib/fpc/2.4.0/ppcx64 [options] <inputfile> [options]
+Put + after a boolean switch option to enable it, - to disable it
+  -a     The compiler doesn't delete the generated assembler file
+      -al        List sourcecode lines in assembler file
+      -an        List node info in assembler file
+      -ap        Use pipes instead of creating temporary assembler files
+      -ar        List register allocation/release info in assembler file
+      -at        List temp allocation/release info in assembler file
+  -A<x>  Output format:
+      -Adefault  Use default assembler
+      -Aas       Assemble using GNU AS
+  -b     Generate browser info
+      -bl        Generate local symbol info
+  -B     Build all modules
+  -C<x>  Code generation options:
+      -Ca<x>     Select ABI, see fpc -i for possible values
+      -Cb        Generate big-endian code
+      -Cc<x>     Set default calling convention to <x>
+      -CD        Create also dynamic library (not supported)
+      -Ce        Compilation with emulated floating point opcodes
+*** press enter ***
+      -Cf<x>     Select fpu instruction set to use, see fpc -i for possible values
+      -CF<x>     Minimal floating point constant precision (default, 32, 64)
+      -Cg        Generate PIC code
+      -Ch<n>     <n> bytes heap (between 1023 and 67107840)
+      -Ci        IO-checking
+      -Cn        Omit linking stage
+      -Co        Check overflow of integer operations
+      -CO        Check for possible overflow of integer operations
+      -Cp<x>     Select instruction set, see fpc -i for possible values
+      -CP<x>=<y>  packing settings
+         -CPPACKSET=<y> <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
+      -Cr        Range checking
+      -CR        Verify object method call validity
+      -Cs<n>     Set stack checking size to <n>
+      -Ct        Stack checking (for testing only, see manual)
+      -CX        Create also smartlinked library
+  -d<x>  Defines the symbol <x>
+  -D     Generate a DEF file
+      -Dd<x>     Set description to <x>
+      -Dv<x>     Set DLL version to <x>
+  -e<x>  Set path to executable
+  -E     Same as -Cn
+  -fPIC  Same as -Cg
+*** press enter ***
+  -F<x>  Set file names and paths:
+      -Fa<x>[,y] (for a program) load units <x> and [y] before uses is parsed
+      -Fc<x>     Set input codepage to <x>
+      -FC<x>     Set RC compiler binary name to <x>
+      -Fd        Disable the compiler's internal directory cache
+      -FD<x>     Set the directory where to search for compiler utilities
+      -Fe<x>     Redirect error output to <x>
+      -Ff<x>     Add <x> to framework path (Darwin only)
+      -FE<x>     Set exe/unit output path to <x>
+      -Fi<x>     Add <x> to include path
+      -Fl<x>     Add <x> to library path
+      -FL<x>     Use <x> as dynamic linker
+      -Fm<x>     Load unicode conversion table from <x>.txt in the compiler dir
+      -Fo<x>     Add <x> to object path
+      -Fr<x>     Load error message file <x>
+      -FR<x>     Set resource (.res) linker to <x>
+      -Fu<x>     Add <x> to unit path
+      -FU<x>     Set unit output path to <x>, overrides -FE
+      -FW<x>     Store generated whole-program optimization feedback in <x>
+      -Fw<x>     Load previously stored whole-program optimization feedback from <x>
+  -g     Generate debug information (default format for target)
+      -gc        Generate checks for pointers
+      -gh        Use heaptrace unit (for memory leak/corruption debugging)
+*** press enter ***
+Fatal: Compilation aborted

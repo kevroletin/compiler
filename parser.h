@@ -30,6 +30,7 @@ private:
     void CheckNextTokOrDie(TokenValue tok_val);    
     SyntaxNode* GetIntExprOrDie();
     int GetIntConstValueOrDie();
+    Token GetConstTokOrDie();
     SymVarConst* ParseConstant(Token const_name);
     SyntaxNode* ParseFunctionCall(SymProc* funct_if);
     SyntaxNode* ParseWriteFunctCall();

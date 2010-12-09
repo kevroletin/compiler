@@ -1,0 +1,7 @@
+begin
+  := 
+    [] [integer]
+      a [array]
+      2 [integer]
+    10 [integer]
+end

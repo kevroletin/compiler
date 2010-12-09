@@ -195,6 +195,7 @@ private:
     Token value;
 public:
     SymVarConst(Token name, Token value, const SymType* type);
+    Token GetValueTok() const;
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void PrintVerbose(ostream& o, int offset = 0) const;
@@ -216,14 +217,7 @@ public:
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
 };
-/*
-class SymVarResult: public SymVarParam{
-public:
-    SymVarResult(Token name, const SymType* type, int offset_);
-    virtual void GenerateLValue(AsmCode& asm_code) const;
-    virtual void GenerateValue(AsmCode& asm_code) const;
-}
-*/
+
 class SymVarGlobal: public SymVar{
 private:
     AsmImmidiate label;

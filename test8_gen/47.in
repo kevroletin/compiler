@@ -1,0 +1,27 @@
+procedure A(a, b: Integer);
+begin
+    Writeln(a, ' ', b);
+end;
+
+function B(a, b: Integer): Integer;
+begin
+    WriteLn(a, ' ', b);
+end;
+
+procedure AB(l, r: Integer);
+begin
+    B(l, r);
+end;
+
+function BA(l, r: Integer): Integer;
+begin
+    A(l, r);
+end;
+
+
+begin
+    A(10, 20);
+    B(10, 20);
+    AB(10, 20);
+    BA(10, 20);
+end.

@@ -135,6 +135,7 @@ public:
     int GetLine() const;
     void NameToLowerCase();
     int GetIntValue() const;
+    void ChangeSign();
 };
 
 class Scanner{
@@ -183,4 +184,3 @@ public:
 };
 
 #endif
-

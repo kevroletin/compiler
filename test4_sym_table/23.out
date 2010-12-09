@@ -1,0 +1,3 @@
+a = 4
+arr: array [-4..4] of integer
+b = -4

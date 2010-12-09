@@ -482,6 +482,11 @@ SymVarConst::SymVarConst(Token name, Token value_, const SymType* type):
 {
 }
 
+Token SymVarConst::GetValueTok() const
+{
+    return value;
+}
+
 SymbolClass SymVarConst::GetClassName() const
 {
     return SymbolClass(SYM | SYM_VAR | SYM_VAR_CONST);
@@ -505,7 +510,7 @@ void SymVarConst::GenerateLValue(AsmCode& asm_code) const
 
 void SymVarConst::GenerateValue(AsmCode& asm_code) const
 {
-    if (token.GetType() == INT_CONST)
+    if (value.GetType() == INT_CONST)
     {
         asm_code.AddCmd(ASM_PUSH, AsmImmidiate(value.GetName()));
     }
@@ -519,7 +524,6 @@ void SymVarConst::GenerateValue(AsmCode& asm_code) const
         AsmImmidiate label = asm_code.AddData(asm_code.GenStrLabel("str"), token.GetName(), DATA_STR);
         asm_code.AddCmd(ASM_PUSH, label);
     }
-
 }
 
 //---SymVarParam---

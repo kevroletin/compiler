@@ -99,10 +99,12 @@ int main(int argc, char* argv[])
     catch (CompilerException& e)
     {
         cout << e.what() << endl;
+        return 1;
     }
     catch (exception& e)
     {
         cout << e.what() << endl;
+        return 1;
     }
     return 0;
 }

@@ -57,7 +57,7 @@ const SymType* NodeCall::GetSymType() const
 void NodeCall::GenerateValue(AsmCode& asm_code) const
 {
     if (funct->GetResultType()->GetSize()) asm_code.AddCmd(ASM_SUB, AsmImmidiate(funct->GetResultType()->GetSize()), REG_ESP);
-    for (int i = 0; i < args.size(); ++i)
+    for (int i = args.size() - 1 ; 0 <= i ; --i)
         if (funct->GetArg(i)->IsByRef())
             args[i]->GenerateLValue(asm_code);
         else
@@ -90,8 +90,8 @@ void NodeWriteCall::GenerateValue(AsmCode& asm_code) const
             asm_code.GenCallWriteForReal();
         else
             asm_code.GenCallWriteForStr();
-        if (new_line) asm_code.GenWriteNewLine();
     }
+    if (new_line) asm_code.GenWriteNewLine();
 }
 
 const SymType* NodeWriteCall::GetSymType() const

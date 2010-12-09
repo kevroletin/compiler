@@ -1,0 +1,7 @@
+const 
+    a = 4;
+    b = -a;
+var
+    arr: array[b..a] of Integer;
+begin
+end.

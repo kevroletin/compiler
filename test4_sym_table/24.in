@@ -1,0 +1,6 @@
+const 
+    a = - - 10;
+    
+begin
+    a;
+end.

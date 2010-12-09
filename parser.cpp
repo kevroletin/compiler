@@ -67,8 +67,6 @@ void Parser::PrintSyntaxTree(ostream& o)
 
 void Parser::PrintSymTable(ostream& o)
 {
-//    for (std::vector<SymTable*>::const_iterator it = sym_table_stack.begin(); it != sym_table_stack.end(); ++it)
-//        (*it)->Print(o);
     if (body != NULL) sym_table_stack.back()->Print(o, 0);
 }
 
@@ -103,7 +101,8 @@ SymType* Parser::ParseArrayType()
         int fst = GetIntConstValueOrDie();
         CheckTokOrDie(TOK_DOUBLE_DOT);
         int sec = GetIntConstValueOrDie();
-        bounds.push_back(std::pair<int, int>(min(fst, sec), max(fst, sec)));
+        if (sec < fst) Error("invalid subrange type");
+        bounds.push_back(std::pair<int, int>(fst, sec));
         if (was_comma = (scan.GetToken().GetValue() == TOK_COMMA)) scan.NextToken();
     }
     CheckTokOrDie(TOK_BRACKETS_SQUARE_RIGHT);
@@ -472,16 +471,30 @@ SyntaxNode* Parser::GetIntExprOrDie()
 
 int Parser::GetIntConstValueOrDie()
 {
-    string err_msg = "integer const expected";
-    Token tok = scan.GetToken();
-    scan.NextToken();
-    if (tok.GetType() != INT_CONST)
-    {
-        SymVarConst* sym = (SymVarConst*)FindSymbolOrDie(tok, SYM_VAR_CONST, err_msg);
-        if (sym->GetVarType() != top_type_int) Error(err_msg);
-        tok = sym->GetToken();
-    }
+    Token tok = GetConstTokOrDie();
+    if (tok.GetType() != INT_CONST) Error("integer const expected");
     return tok.GetIntValue();
+}
+
+Token Parser::GetConstTokOrDie()
+{
+    bool ch_sgn = false;
+    if (scan.GetToken().GetValue() == TOK_PLUS) scan.NextToken();
+    else if (scan.GetToken().GetValue() == TOK_MINUS)
+    {
+        scan.NextToken();
+        ch_sgn = true;
+    }
+    Token res = scan.GetToken();
+    if (!res.IsConstVar()) Error("constant expected");
+    if (res.IsVar())
+    {
+        SymVarConst* sym = (SymVarConst*)FindSymbolOrDie(res, SYM_VAR_CONST, "constant expected");
+        res = sym->GetValueTok();
+    }
+    scan.NextToken();
+    if (ch_sgn) res.ChangeSign();
+    return res;
 }
 
 SyntaxNode* Parser::ParseFunctionCall(SymProc* funct_name)
@@ -540,12 +553,11 @@ SyntaxNode* Parser::ParseWriteFunctCall()
 
 SymVarConst* Parser::ParseConstant(Token const_name)
 {
-    Token value = scan.GetToken();
+    Token value = GetConstTokOrDie();
     SymType* type = NULL;
     if (value.GetType() == INT_CONST) type = top_type_int;
     else if (value.GetType() == REAL_CONST) type = top_type_real;
     else type = top_type_str;
-    scan.NextToken();
     return new SymVarConst(const_name, value, type);
 }
 

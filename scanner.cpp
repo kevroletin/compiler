@@ -394,6 +394,20 @@ int Token::GetIntValue() const
     return hex_str_to_i(name + 1);    
 }
 
+void Token::ChangeSign()
+{
+    if (name[0] == '+') name[0] = '-';
+    else if (name[0] == '-') name[0] = '+';
+    else
+    {
+        char* tmp = new char[strlen(name) + 2];
+        strcpy(tmp + 1, name);
+        tmp[0] = '-';        
+        delete name;
+        name = tmp;
+    }
+}
+
 //---Scanner---
 
 void Scanner::AddToBuffer(char c)
