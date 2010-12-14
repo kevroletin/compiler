@@ -86,6 +86,9 @@ public:
     void GenerateDeclaration(AsmCode& asm_code);
     AsmImmidiate GetLabel() const;
     AsmImmidiate GetExitLabel() const;
+    void ObtainLabels(AsmCode& asm_code);
+    bool IsHaveBody() const;
+    bool TryToAssign(SymProc* src);
 };
 
 class SymFunct: public SymProc{

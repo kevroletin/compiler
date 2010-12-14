@@ -1,0 +1,7 @@
+function F: Integer; forward;
+
+function F: Real; forward;
+
+
+begin
+end.

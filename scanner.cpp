@@ -49,6 +49,7 @@ const string TOKEN_VALUE_DESCRIPTION[] =
     "TOK_EXIT",
     "TOK_FILE",
     "TOK_FOR",
+    "TOK_FORWARD",
     "TOK_FUNCTION",
     "TOK_IF",
     "TOK_IN",
@@ -118,6 +119,7 @@ const string TOKEN_TO_STR[] =
     "exit",
     "file",
     "for",
+    "forward",
     "function",
     "if",
     "in",
@@ -196,6 +198,7 @@ ReservedWords::ReservedWords()
     Add("end", RESERVED_WORD, TOK_EXIT);
     Add("file", RESERVED_WORD, TOK_FILE);
     Add("for", RESERVED_WORD, TOK_FOR);
+    Add("forward", RESERVED_WORD, TOK_FORWARD);
     Add("function", RESERVED_WORD, TOK_FUNCTION);
     Add("if", RESERVED_WORD, TOK_IF);
     Add("in", RESERVED_WORD, TOK_IN);

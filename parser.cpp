@@ -311,17 +311,22 @@ void Parser::ParseFunctionBody(SymProc* funct)
 void Parser::ParseFunctionDefinition()
 {
     SymProc* res = NULL;
+    SymProc* prototype = NULL;
     TokenValue op = scan.GetToken().GetValue();
     if (op != TOK_PROCEDURE && op != TOK_FUNCTION) return;
     Token name = scan.NextToken();
-    if (FindSymbol(name) != NULL) Error("duplicate identifier");
-    if (op == TOK_PROCEDURE)
-        res = new SymProc(name);
-    else
-        res = new SymFunct(name);
-    sym_table_stack.back()->Add(res);
+    const Symbol* sym = FindSymbol(name);
+    if (sym != NULL)
+    {
+        if (sym->GetClassName() & SYM_PROC && !((SymProc*)sym)->IsHaveBody())
+            prototype = (SymProc*)sym;
+        else
+            Error("duplicate identifier");
+    }
+    res = (op == TOK_PROCEDURE) ? new SymProc(name) : new SymFunct(name);
+    if (prototype == NULL) sym_table_stack.back()->Add(res);
     sym_table_stack.push_back(new SymTable);
-    res->AddSymTable(sym_table_stack.back());
+    res->AddSymTable(sym_table_stack.back());        
     scan.NextToken();
     if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT) ParseFunctionParameters(res);
     if (op == TOK_FUNCTION)
@@ -332,9 +337,24 @@ void Parser::ParseFunctionDefinition()
         ((SymFunct*)res)->AddResultType(type);
     }
     CheckTokOrDie(TOK_SEMICOLON);
-    ParseDeclarations(false);
-    ParseFunctionBody(res);
-    CheckTokOrDie(TOK_SEMICOLON);
+    if (prototype != NULL)
+    {
+        if (!prototype->TryToAssign(res)) Error("function prototype differs from preveous declaration", name);
+        delete res;
+        res = prototype;
+    }
+    if (scan.GetToken().GetValue() == TOK_FORWARD)
+    {
+        scan.NextToken();
+        CheckTokOrDie(TOK_SEMICOLON);
+    }
+    else
+    {
+        res->ObtainLabels(asm_code);
+        ParseDeclarations(false);
+        ParseFunctionBody(res);
+        CheckTokOrDie(TOK_SEMICOLON);
+    }
     sym_table_stack.pop_back();
 }
 

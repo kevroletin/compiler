@@ -1,0 +1,11 @@
+begin
+    while (1) do
+	begin
+    	    break;
+	    continue;
+	end;
+    repeat
+	break;
+	continue;
+    until (2);
+end.

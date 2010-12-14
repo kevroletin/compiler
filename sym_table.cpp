@@ -164,13 +164,17 @@ const SymType* SymProc::GetResultType() const
 void SymProc::PrintVerbose(ostream& o, int offset) const
 {
     Print(o, offset);
-    o << ";\n";
-    if (!sym_table->IsEmpty())
+    if (body != NULL)
     {
-        o << "var\n";
-        sym_table->Print(o, offset + 1);
+        o << ";\n";
+        if (!sym_table->IsEmpty())
+        {
+            o << "var\n";
+            sym_table->Print(o, offset + 1);
+        }
     }
-    body->Print(o, offset);
+    else o << "; forward;\n";    
+    if (body != NULL) body->Print(o, offset);
 }
     
 void SymProc::Print(ostream& o, int offset) const
@@ -181,7 +185,6 @@ void SymProc::Print(ostream& o, int offset) const
 
 void SymProc::GenerateDeclaration(AsmCode& asm_code)
 {
-    label = asm_code.LabelByStr(token.GetName());
     asm_code.AddLabel(label);
     asm_code.AddCmd(ASM_PUSH, REG_EBP);
     asm_code.AddCmd(ASM_MOV, REG_ESP, REG_EBP);
@@ -200,6 +203,33 @@ AsmImmidiate SymProc::GetLabel() const
 AsmImmidiate SymProc::GetExitLabel() const
 {
     return exit_label;
+}
+
+void SymProc::ObtainLabels(AsmCode& asm_code)
+{
+    label = asm_code.LabelByStr(token.GetName());
+    exit_label = asm_code.LabelByStr("exit");
+}
+
+bool SymProc::IsHaveBody() const
+{
+    return body != NULL;
+}
+
+bool SymProc::TryToAssign(SymProc* src)
+{
+    if (GetResultType() != src->GetResultType()) return false;
+    if (params.size() != src->params.size()) return false;
+    for (int i = 0; i < params.size(); ++i)
+        if (params[i]->GetVarType() != src->params[i]->GetVarType()) return false;
+    delete sym_table;
+    sym_table = src->sym_table;
+    params.assign(src->params.begin(), src->params.end());
+    label = src->label;
+    exit_label = src->label;
+    if (body != NULL) delete body;
+    body = src->body;
+    return true;
 }
 
 //---SymFunct---

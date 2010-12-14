@@ -1,0 +1,6 @@
+function F(a, b: Real): Integer; forward;
+
+function F(d, m: Real): Integer; forward;
+
+begin
+end.

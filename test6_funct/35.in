@@ -1,0 +1,6 @@
+procedure Proc(a, b: Integer); forward;
+
+procedure Proc(c, d: Integer); forward;
+
+begin
+end.

@@ -40,6 +40,7 @@ enum TokenValue{
     TOK_EXIT,
     TOK_FILE,
     TOK_FOR,
+    TOK_FORWARD,
     TOK_FUNCTION,
     TOK_IF,
     TOK_IN,

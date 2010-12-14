@@ -1,0 +1,8 @@
+procedure P(a, b: Integer); forward;
+
+procedure P(a: Integer; b: Real);
+begin
+end;
+
+begin
+end.

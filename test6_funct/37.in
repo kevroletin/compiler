@@ -1,0 +1,11 @@
+function F(a, b: Integer): Integer; forward;
+
+function F(c, d: Integer): Integer;
+begin
+    Result := c + d;
+end;
+
+function F(l, m: Integer): Integer; forward;
+
+begin
+end.

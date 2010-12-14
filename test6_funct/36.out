@@ -1,0 +1,1 @@
+function f(d: real; m: real): integer; forward;
