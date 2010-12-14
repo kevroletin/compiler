@@ -1,0 +1,7 @@
+type
+    T = array[1..10] of Integer;
+var
+    a, b: T;
+begin
+    a + b;
+end.

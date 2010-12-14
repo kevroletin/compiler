@@ -1,0 +1,22 @@
+type
+    t= array[1..10] of Integer;
+    
+procedure P(a: t);
+var
+    i: Integer;
+begin
+    for i := 1 to 10 do
+	Write(a[i], ' ');
+    Writeln;
+end;
+    
+var
+    a: array[1..10] of T;
+    i, j: Integer;
+begin
+    for i := 1 to 10 do
+	for j := 1 to 10 do
+	    a[i, j] := i + 2 * j;
+    for i := 1 to 10 do
+	P(a[i]);
+end.

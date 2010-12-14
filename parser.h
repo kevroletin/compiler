@@ -24,8 +24,10 @@ private:
     SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type);
     void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second);
     void TryToConvertType(SyntaxNode*& expr, const SymType* type);
-    void TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err);
-    void TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err);
+    void ConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err);
+    void ConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err);
+    void ConvertToBaseTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err);
+    void CheckForBaseType(SyntaxNode* expr, Token tok_err);
     void CheckTokOrDie(TokenValue tok_val);
     void CheckNextTokOrDie(TokenValue tok_val);    
     SyntaxNode* GetIntExprOrDie();

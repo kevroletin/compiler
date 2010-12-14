@@ -1,1 +1,1 @@
-2:21 ERROR at '+': incompatible types: string and integer
+2:21 ERROR at '+': can't do arithmetic operation with string

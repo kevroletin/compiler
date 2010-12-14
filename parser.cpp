@@ -32,7 +32,7 @@ void Parser::TryToConvertType(SyntaxNode*& expr, const SymType* type)
     return;
 }
 
-void Parser::TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err)
+void Parser::ConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err)
 {
     TryToConvertType(first, second);
     if (first->GetSymType() != second->GetSymType()) 
@@ -46,7 +46,7 @@ void Parser::TryToConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Toke
     }
 }
 
-void Parser::TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err)
+void Parser::ConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err)
 {
     TryToConvertType(expr, type);
     if (expr->GetSymType() != type) 
@@ -56,6 +56,25 @@ void Parser::TryToConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token
         expr->GetSymType()->Print(s, 0);
         s << " and ";
         type->Print(s, 0);
+        Error(s.str(), tok_err);
+    }
+}
+
+
+void Parser::ConvertToBaseTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err)
+{
+    CheckForBaseType(first, tok_err);
+    CheckForBaseType(second, tok_err);
+    ConvertTypeOrDie(first, second, tok_err);
+}
+
+void Parser::CheckForBaseType(SyntaxNode* expr, Token tok_err)
+{
+    if (expr->GetSymType() != top_type_int && expr->GetSymType() != top_type_real)
+    {
+        stringstream s;
+        s << "can't do arithmetic operation with ";
+        expr->GetSymType()->Print(s, 0);
         Error(s.str(), tok_err);
     }
 }
@@ -334,7 +353,7 @@ NodeStatement* Parser::ParseForStatement()
     CheckTokOrDie(TOK_FOR);
     if (!scan.GetToken().IsVar()) Error("identifier expected");
     const SymVar* index = (SymVar*)FindSymbolOrDie(scan.GetToken(), SYM_VAR, "identifier not found");
-    if (index->GetVarType() != top_type_int) Error("integer varible expected");
+    if (index->GetVarType() != top_type_int) Error("integer variable expected");
     CheckNextTokOrDie(TOK_ASSIGN);
     SyntaxNode* first = GetIntExprOrDie();
     bool is_inc = (scan.GetToken().GetValue() == TOK_TO);
@@ -399,7 +418,7 @@ NodeStatement* Parser::ParseAssignStatement()
     scan.NextToken();
     SyntaxNode* right = ParseRelationalExpr();
     if (right == NULL) Error("expression expected");
-    TryToConvertTypeOrDie(right, left->GetSymType(), op);
+    ConvertTypeOrDie(right, left->GetSymType(), op);
     if (!(left->IsLValue())) Error("l-value expected", op);
     return new StmtAssign(left, right);    
 }
@@ -513,7 +532,7 @@ SyntaxNode* Parser::ParseFunctionCall(SymProc* funct_name)
             else if (scan.GetToken().GetValue() != TOK_BRACKETS_RIGHT)
                 Error(", expected");
             if (funct->GetCurrentArgType() == NULL) Error("too many actual parameters", err_pos_tok);
-            TryToConvertTypeOrDie(arg, funct->GetCurrentArgType(), err_pos_tok);
+            ConvertTypeOrDie(arg, funct->GetCurrentArgType(), err_pos_tok);
             if (funct->IsCurrentArfByRef() && !arg->IsLValue()) Error("lvalue expected", err_pos_tok);
             funct->AddArg(arg);
         }
@@ -650,7 +669,8 @@ SyntaxNode* Parser::ParseUnaryExpr()
     {
         for (std::vector<Token>::reverse_iterator it = un.rbegin(); it != un.rend(); ++it)
         {
-            if (it->IsBitwiseOp()) TryToConvertTypeOrDie(res, top_type_int, *it);
+            if (it->IsBitwiseOp()) ConvertTypeOrDie(res, top_type_int, *it);
+            else CheckForBaseType(res, *it);
             res = new NodeUnaryOp(*it, res);
         }
     }
@@ -669,16 +689,16 @@ SyntaxNode* Parser::ParseMultiplyingExpr()
         if (right == NULL) Error("illegal expression");
         if (op.GetValue() == TOK_DIVISION)
         {
-            TryToConvertTypeOrDie(left, top_type_real, op);
-            TryToConvertTypeOrDie(right, top_type_real, op);
+            ConvertTypeOrDie(left, top_type_real, op);
+            ConvertTypeOrDie(right, top_type_real, op);
         }
         else if (op.IsBitwiseOp())
         {
-            TryToConvertTypeOrDie(left, top_type_int, op);
-            TryToConvertTypeOrDie(right, top_type_int, op);
+            ConvertTypeOrDie(left, top_type_int, op);
+            ConvertTypeOrDie(right, top_type_int, op);
         }
         else
-            TryToConvertTypeOrDie(left, right, op);       
+            ConvertToBaseTypeOrDie(left, right, op);       
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
@@ -697,11 +717,11 @@ SyntaxNode* Parser::ParseAddingExpr()
         if (right == NULL) Error("expression expected");
         if (op.IsBitwiseOp())
         {
-            TryToConvertTypeOrDie(left, top_type_int, op);
-            TryToConvertTypeOrDie(right, top_type_int, op);
+            ConvertTypeOrDie(left, top_type_int, op);
+            ConvertTypeOrDie(right, top_type_int, op);
         }
         else
-            TryToConvertTypeOrDie(left, right, op);       
+            ConvertToBaseTypeOrDie(left, right, op);       
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
@@ -718,7 +738,7 @@ SyntaxNode* Parser::ParseRelationalExpr()
         scan.NextToken();
         SyntaxNode* right = ParseAddingExpr();
         if (right == NULL) Error("expression expected");
-        TryToConvertTypeOrDie(left, right, op);
+        ConvertToBaseTypeOrDie(left, right, op);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }

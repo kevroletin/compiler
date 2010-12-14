@@ -1,0 +1,11 @@
+procedure P1;
+begin
+end;
+
+procedure P2;
+begin
+end;
+
+begin
+    P1 := P2;
+end.

@@ -1,0 +1,5 @@
+var
+    a, b: array[1..10] of Integer;
+begin
+    b := - a;
+end.
