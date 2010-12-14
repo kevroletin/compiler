@@ -1,9 +1,9 @@
 #ifndef SYNTAX_NODE_BASE
 #define SYNTAX_NODE_BASE
 
-#include <iostream>
 #include "scanner.h"
 #include "generator.h"
+#include <ostream>
 
 class SymType;
 

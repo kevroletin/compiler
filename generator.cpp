@@ -375,6 +375,11 @@ void AsmCode::AddCmd(AsmCmd* cmd)
     commands.push_back(cmd);
 }
 
+void AsmCode::AddCmd(AsmLabel label)
+{
+    commands.push_back(new AsmLabel(label));
+}
+
 void AsmCode::AddCmd(string raw_cmd)
 {
     commands.push_back(new AsmRawCmd(raw_cmd));

@@ -60,7 +60,6 @@ void Parser::ConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_
     }
 }
 
-
 void Parser::ConvertToBaseTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err)
 {
     CheckForBaseType(first, tok_err);
@@ -191,24 +190,39 @@ void Parser::ParseVarDeclarations(bool is_global)
 {
     while (scan.GetToken().IsVar())
     {
-        std::vector<Token> vars;
-        bool was_comma = true;
-        while (was_comma)
-        {
-            Token name = scan.GetToken();
-            if (FindSymbol(name) != NULL) Error("duplicate declaration");
-            vars.push_back(name);
-            if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA))
-                scan.NextToken();
-        }
-        CheckTokOrDie(TOK_COLON);
-        SymType* type = ParseType();
-        for (std::vector<Token>::iterator it = vars.begin(); it != vars.end(); ++it)
-            if (is_global)
-                sym_table_stack.back()->Add(new SymVarGlobal(*it, type));
-            else
-                sym_table_stack.back()->Add(new SymVarLocal(*it, type, sym_table_stack.back()->GetLocalsSize()));
+        ParseVarDeclarationFactory(is_global ? SYM_VAR_GLOBAL : SYM_VAR_LOCAL);
         CheckTokOrDie(TOK_SEMICOLON);
+    }
+}
+
+void Parser::ParseVarDeclarationFactory(SymbolClass var_class_name)
+{
+    std::vector<Token> vars;
+    bool was_comma = true;
+    while (was_comma)
+    {
+        Token name = scan.GetToken();
+        if (FindSymbol(name) != NULL) Error("duplicate declaration");
+        vars.push_back(name);
+        if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA))
+            scan.NextToken();
+    }
+    CheckTokOrDie(TOK_COLON);
+    SymType* type = ParseType();
+    for (std::vector<Token>::iterator it = vars.begin(); it != vars.end(); ++it)
+    {
+        switch (var_class_name)
+        {
+            case SYM_VAR_PARAM:
+                //TODO
+            break;
+            case SYM_VAR_GLOBAL:
+                sym_table_stack.back()->Add(new SymVarGlobal(*it, type));
+            break;
+            case SYM_VAR_LOCAL:
+                sym_table_stack.back()->Add(new SymVarLocal(*it, type, sym_table_stack.back()->GetLocalsSize()));
+            break;
+        }
     }
 }
 

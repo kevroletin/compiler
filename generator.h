@@ -249,6 +249,7 @@ public:
     string GenStrLabel(string prefix);
     AsmImmidiate LabelByStr(string str);
     void AddCmd(AsmCmd* cmd);
+    void AddCmd(AsmLabel cmd);
     void AddCmd(AsmCmdName cmd, CmdSize size = SIZE_LONG);
     void AddCmd(string raw_cmd);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper, CmdSize size = SIZE_LONG);

@@ -5,6 +5,7 @@
 #include "scanner.h"
 #include "sym_table.h"
 #include "syntax_node.h"
+#include "statement.h"
 #include "generator.h"
 #include "exception.h"
 #include <string.h>
@@ -50,6 +51,7 @@ private:
     SymType* ParsePointerType();
     SymType* ParseType();
     void ParseConstDeclarations();
+    void ParseVarDeclarationFactory(SymbolClass var_class_name);
     void ParseVarDeclarations(bool is_global = true);
     void ParseTypeDeclarations();
     void ParseDeclarations(bool is_global = true);
