@@ -1,0 +1,8 @@
+function F(c, d: Integer): Integer;
+begin
+end;
+
+function F(l, m: Integer): Integer; forward;
+
+begin
+end.
