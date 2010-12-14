@@ -98,7 +98,8 @@ void Parser::Generate(ostream& o)
 
 Parser::Parser(Scanner& scanner):
     body(NULL),
-    scan(scanner)
+    scan(scanner),
+    current_proc(NULL)
 {
     scan.NextToken();
     top_sym_table.Add(top_type_int);
@@ -299,6 +300,14 @@ void Parser::ParseFunctionParameters(SymProc* funct)
     CheckTokOrDie(TOK_BRACKETS_RIGHT);
 }
 
+void Parser::ParseFunctionBody(SymProc* funct)
+{
+    current_proc = funct;
+    if (scan.GetToken().GetValue() != TOK_BEGIN) Error("'begin' expected");
+    funct->AddBody(ParseStatement());
+    current_proc = NULL;
+}
+
 void Parser::ParseFunctionDefinition()
 {
     SymProc* res = NULL;
@@ -324,8 +333,7 @@ void Parser::ParseFunctionDefinition()
     }
     CheckTokOrDie(TOK_SEMICOLON);
     ParseDeclarations(false);
-    if (scan.GetToken().GetValue() != TOK_BEGIN) Error("'begin' expected");
-    res->AddBody(ParseStatement());
+    ParseFunctionBody(res);
     CheckTokOrDie(TOK_SEMICOLON);
     sym_table_stack.pop_back();
 }
@@ -344,9 +352,24 @@ NodeStatement* Parser::ParseStatement()
             return ParseUntilStatement();
         case TOK_IF:
             return ParseIfStatement();
+        case TOK_BREAK:
+        case TOK_CONTINUE:
+            return ParseJumpStatement();
+        case TOK_EXIT:
+            return ParseExitStatement();
         default:
             return ParseAssignStatement();
     }
+}
+
+NodeStatement* Parser::AddLoopBody(StmtLoop* loop)
+{
+    loop_stack.push_back(loop);
+    NodeStatement* body = ParseStatement();
+    if (body == NULL) Error("statement expected");
+    loop_stack.pop_back();
+    loop->AddBody(body);
+    return loop;
 }
 
 NodeStatement* Parser::ParseBlockStatement()
@@ -375,9 +398,7 @@ NodeStatement* Parser::ParseForStatement()
     scan.NextToken();
     SyntaxNode* second = GetIntExprOrDie();
     CheckTokOrDie(TOK_DO);
-    NodeStatement* body = ParseStatement();
-    if (body == NULL) Error("statement expected");
-    return new StmtFor(index, first, second, is_inc, body);
+    return AddLoopBody(new StmtFor(index, first, second, is_inc));
 }
 
 NodeStatement* Parser::ParseWhileStatement()
@@ -385,14 +406,14 @@ NodeStatement* Parser::ParseWhileStatement()
     CheckTokOrDie(TOK_WHILE);
     SyntaxNode* cond = GetIntExprOrDie();
     CheckTokOrDie(TOK_DO);
-    NodeStatement* body = ParseStatement();
-    if (body == NULL) Error("statement expected");
-    return new StmtWhile(cond, body); 
+    return AddLoopBody(new StmtWhile(cond, body)); 
 }
 
 NodeStatement* Parser::ParseUntilStatement()
 {
     CheckTokOrDie(TOK_REPEAT);
+    StmtUntil* until = new StmtUntil(NULL);
+    loop_stack.push_back(until);
     StmtBlock* body = new StmtBlock();
     while (scan.GetToken().GetValue() != TOK_UNTIL)
     {
@@ -401,8 +422,10 @@ NodeStatement* Parser::ParseUntilStatement()
         scan.NextToken();
     }
     scan.NextToken();
-    SyntaxNode* cond = GetIntExprOrDie();
-    return new StmtUntil(cond, body);
+    until->AddBody(body);
+    until->AddCondition(GetIntExprOrDie());
+    loop_stack.pop_back();
+    return until;
 }
 
 NodeStatement* Parser::ParseIfStatement()
@@ -435,6 +458,26 @@ NodeStatement* Parser::ParseAssignStatement()
     ConvertTypeOrDie(right, left->GetSymType(), op);
     if (!(left->IsLValue())) Error("l-value expected", op);
     return new StmtAssign(left, right);    
+}
+
+NodeStatement* Parser::ParseJumpStatement()
+{
+    if (loop_stack.empty())
+    {
+        stringstream s;
+        s << scan.GetToken().GetName();
+        s << " outside loop";
+        Error(s.str());
+    }
+    Token tok = scan.GetToken();
+    scan.NextToken();
+    return new StmtJump(tok, loop_stack.back());
+    return NULL;
+}
+
+NodeStatement* Parser::ParseExitStatement()
+{
+    return NULL; //todo
 }
 
 const Symbol* Parser::FindSymbol(Symbol* sym)

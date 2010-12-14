@@ -71,14 +71,37 @@ void StmtExpression::Generate(AsmCode& asm_code) const
     asm_code.AddCmd(ASM_ADD, expr->GetSymType()->GetSize(), REG_ESP);
 }
 
+//---StmtLoop---
+
+StmtLoop::StmtLoop(NodeStatement* body_):
+    body(body_)
+{
+}
+
+AsmImmidiate StmtLoop::GetBreakLabel() const
+{
+    return break_label;
+}
+
+AsmImmidiate StmtLoop::GetContinueLabel() const
+{
+    return continue_label;
+}
+
+void StmtLoop::AddBody(NodeStatement* body_)
+{
+    if (body != NULL) delete body;
+    body = body_;
+}
+
 //---StmtFor---
 
 StmtFor::StmtFor(const SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value, bool is_inc, NodeStatement* body_):
+    StmtLoop(body_),
     index(index_),
     init_val(init_value),
     last_val(last_value),
-    inc(is_inc),
-    body(body_)
+    inc(is_inc)
 {
 }
 
@@ -122,8 +145,8 @@ void StmtFor::Generate(AsmCode& asm_code) const
 //---StmtWhile---
 
 StmtWhile::StmtWhile(SyntaxNode* condition_, NodeStatement* body_):
-    condition(condition_),
-    body(body_)
+    StmtLoop(body_),
+    condition(condition_)
 {
 }
     
@@ -151,9 +174,14 @@ void StmtWhile::Generate(AsmCode& asm_code) const
 //---StmtUntil---
 
 StmtUntil::StmtUntil(SyntaxNode* condition_, NodeStatement* body_):
-    condition(condition_),
-    body(body_)
+    StmtLoop(body_),
+    condition(condition_)
 {
+}
+
+void StmtUntil::AddCondition(SyntaxNode* condition_)
+{
+    condition = condition_;
 }
 
 void StmtUntil::Print(ostream& o, int offset) const
@@ -214,12 +242,36 @@ void StmtIf::Generate(AsmCode& asm_code) const
 
 //---StmtJump---
 
+StmtJump::StmtJump(Token tok, StmtLoop* loop_):
+    loop(loop_),
+    op(tok)
+{
+}
+
 void StmtJump::Print(ostream& o, int offset) const
 {
-    PrintSpaces(o, offset) << name;
+    PrintSpaces(o, offset) << op.GetName() << '\n';
 }
 
 void StmtJump::Generate(AsmCode& asm_code) const
+{
+    AsmImmidiate label = op.GetValue() == TOK_BREAK ? loop->GetBreakLabel() : loop->GetContinueLabel();
+    asm_code.AddCmd(AsmLabel(label));
+}
+
+//---StmtExit---
+
+StmtExit::StmtExit(AsmImmidiate exit_label):
+    label(exit_label)
+{
+}
+
+void StmtExit::Print(ostream& o, int offset) const
+{
+    PrintSpaces(o, offset) << "exit\n";
+}
+
+void StmtExit::Generate(AsmCode& asm_code) const
 {
     asm_code.AddCmd(AsmLabel(label));
 }

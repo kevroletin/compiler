@@ -197,6 +197,11 @@ AsmImmidiate SymProc::GetLabel() const
     return label;
 }
 
+AsmImmidiate SymProc::GetExitLabel() const
+{
+    return exit_label;
+}
+
 //---SymFunct---
 
 SymFunct::SymFunct(Token token_, SymTable* syn_table, const SymType* result_type_):

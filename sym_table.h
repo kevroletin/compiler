@@ -70,6 +70,7 @@ protected:
     NodeStatement* body;
     virtual void PrintPrototype(ostream& o, int offset) const;
     AsmImmidiate label;
+    AsmImmidiate exit_label;
 public:
     SymProc(Token token_, SymTable* syn_table_);
     SymProc(Token name);
@@ -84,6 +85,7 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     void GenerateDeclaration(AsmCode& asm_code);
     AsmImmidiate GetLabel() const;
+    AsmImmidiate GetExitLabel() const;
 };
 
 class SymFunct: public SymProc{

@@ -37,13 +37,16 @@ const string TOKEN_VALUE_DESCRIPTION[] =
     "TOK_AND",
     "TOK_ARRAY",
     "TOK_BEGIN",
+    "TOK_BREAK",
     "TOK_CASE",
+    "TOK_CONTINUE",
     "TOK_CONST",
     "TOK_DIV",
     "TOK_DO",
     "TOK_DOWNTO",
     "TOK_ELSE",
     "TOK_END",
+    "TOK_EXIT",
     "TOK_FILE",
     "TOK_FOR",
     "TOK_FUNCTION",
@@ -103,13 +106,16 @@ const string TOKEN_TO_STR[] =
     "and",
     "array",
     "begin",
+    "break",
     "case",
     "const",
+    "continue",
     "div",
     "do",
     "downto",
     "else",
     "end",
+    "exit",
     "file",
     "for",
     "function",
@@ -178,13 +184,16 @@ ReservedWords::ReservedWords()
     Add("and", OPERATION, TOK_AND);
     Add("array", RESERVED_WORD, TOK_ARRAY);
     Add("begin", RESERVED_WORD, TOK_BEGIN);
+    Add("break", RESERVED_WORD, TOK_BREAK);
     Add("case", RESERVED_WORD, TOK_CASE);
+    Add("continue", RESERVED_WORD, TOK_CONTINUE);
     Add("const", RESERVED_WORD, TOK_CONST);
     Add("div", OPERATION, TOK_DIV);
     Add("do", RESERVED_WORD, TOK_DO);
     Add("downto", RESERVED_WORD, TOK_DOWNTO);
     Add("else", RESERVED_WORD, TOK_ELSE);
     Add("end", RESERVED_WORD, TOK_END);
+    Add("end", RESERVED_WORD, TOK_EXIT);
     Add("file", RESERVED_WORD, TOK_FILE);
     Add("for", RESERVED_WORD, TOK_FOR);
     Add("function", RESERVED_WORD, TOK_FUNCTION);
@@ -233,7 +242,7 @@ ReservedWords::ReservedWords()
     Add("<=", OPERATION, TOK_LESS_OR_EQUAL);
     Add("<>", OPERATION, TOK_NOT_EQUAL);
     Add("write", IDENTIFIER, TOK_WRITE);
-    Add("writeln", IDENTIFIER, TOK_WRITELN);
+    Add("writeln", IDENTIFIER, TOK_WRITELN);    
 }
 
 bool ReservedWords::Identify(string& str, TokenType& returned_type, TokenValue& returned_value)

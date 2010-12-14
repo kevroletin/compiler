@@ -4,6 +4,7 @@
 #include "statement_base.h"
 #include "syntax_node_base.h"
 #include "sym_table.h"
+#include "scanner.h"
 #include "exception.h"
 #include <vector>
 #include <string>
@@ -38,37 +39,47 @@ public:
     virtual void Generate(AsmCode& asm_code) const;
 };
 
-class StmtFor: public NodeStatement{
+class StmtLoop: public NodeStatement{
+protected:
+    AsmImmidiate break_label;
+    AsmImmidiate continue_label;
+    NodeStatement* body;
+public:
+    StmtLoop(NodeStatement* body_);
+    AsmImmidiate GetBreakLabel() const;
+    AsmImmidiate GetContinueLabel() const;
+    void AddBody(NodeStatement* body);
+};
+
+class StmtFor: public StmtLoop{
 private:
     const SymVar* index;
     SyntaxNode* init_val;
     SyntaxNode* last_val;
     bool inc;
-    NodeStatement* body;
 public:
-    StmtFor(const SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value, bool is_inc, NodeStatement* body_);
+    StmtFor(const SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value, bool is_inc, NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code) const;
 };
 
-class StmtWhile: public NodeStatement{
+class StmtWhile: public StmtLoop{
 private:
     SyntaxNode* condition;
-    NodeStatement* body;
 public:
-    StmtWhile(SyntaxNode* condition_, NodeStatement* body_);
+    StmtWhile(SyntaxNode* condition_, NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code) const;
 };
 
-class StmtUntil: public NodeStatement{
+class StmtUntil: public StmtLoop{
 private:
     SyntaxNode* condition;
-    NodeStatement* body;
 public:
-    StmtUntil(SyntaxNode* condition_, NodeStatement* body);
+    StmtUntil(SyntaxNode* condition_, NodeStatement* body = NULL);
+    void AddCondition(SyntaxNode* condition);
     virtual void Print(ostream& o, int offset = 0) const;
-    void Generate(AsmCode& asm_code) const;
+    virtual void Generate(AsmCode& asm_code) const;
 };
 
 class StmtIf: public NodeStatement{
@@ -84,11 +95,21 @@ public:
 
 class StmtJump: public NodeStatement{
 private:
-    AsmImmidiate label;
-    string name;
+    StmtLoop* loop;
+    Token op;
 public:
+    StmtJump(Token tok, StmtLoop* loop_);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code) const;
+};
+
+class StmtExit: public NodeStatement{
+private:
+    AsmImmidiate label;
+public:
+    StmtExit(AsmImmidiate exit_label);
+    virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Generate(AsmCode& asm_code) const;   
 };
 
 #endif
