@@ -130,6 +130,7 @@ AsmLabel::AsmLabel(string label):
 
 void AsmLabel::Print(ostream& o) const
 {
+    o << "  ";
     label->PrintBase(o);
     o << ':';
 }
@@ -156,7 +157,7 @@ AsmCmd0::AsmCmd0(AsmCmdName cmd, CmdSize cmd_size):
 
 void AsmCmd0::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size];
+    o << "    " << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size];
 }
 
 //---AsmData---
@@ -170,7 +171,7 @@ AsmData::AsmData(string name_, string value_, AsmDataType type_):
 
 void AsmData::Print(ostream& o) const
 {
-    o << name << ": " << ASM_DATA_TYPE_TO_STR[type] << ' ';
+    o << "    " << name << ": " << ASM_DATA_TYPE_TO_STR[type] << ' ';
     if (type == DATA_STR) o << '\"' << value << '\"';
     else o << value;
 }
@@ -185,7 +186,7 @@ AsmCmd1::AsmCmd1(AsmCmdName cmd, AsmOperand* oper_, CmdSize size):
 
 void AsmCmd1::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size] << '\t';
+    o << "    " << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size] << '\t';
     if (size == SIZE_NONE)
         oper->PrintBase(o);
     else
@@ -203,7 +204,7 @@ AsmCmd2::AsmCmd2(AsmCmdName cmd, AsmOperand* src_, AsmOperand* dest_, CmdSize si
 
 void AsmCmd2::Print(ostream& o) const
 {
-    o << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size] << '\t';
+    o << "    " << ASM_CMD_TO_STR[command] << SIZE_TO_STR[size] << '\t';
     src->Print(o);
     o<< ", ";
     dest->Print(o);
@@ -534,18 +535,15 @@ void AsmCode::Print(ostream& o) const
     o << ".data\n";
     for (vector<AsmData*>::const_iterator it = data.begin(); it != data.end(); ++it)
     {
-        o << '\t';
         (*it)->Print(o);
         o << '\n';
     }
     o << ".text\n";
     for (vector<AsmCmd*>::const_iterator it = commands.begin(); it != commands.end(); ++it)
     {
-        o << '\t';
         (*it)->Print(o);
         o << '\n';
     }
-    o << "\tret\n";
 }
 
 void AsmCode::GenCallWriteForInt()

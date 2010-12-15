@@ -1,0 +1,26 @@
+procedure P2; forward;
+
+procedure P1;
+begin
+    P2;
+end;
+
+procedure P2;
+var
+    i, j: Integer;
+begin
+    for i := 1 to 20 do
+        begin
+    	    for j := 1 to 20 do
+		begin
+		    Writeln(i, ' ', j);
+		    if j = 5 then break;
+		end;
+	    Writeln;
+	    if i = 5 then break;
+	end;
+end;
+
+begin
+    P1;
+end.

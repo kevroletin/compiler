@@ -280,5 +280,5 @@ void StmtExit::Print(ostream& o, int offset) const
 
 void StmtExit::Generate(AsmCode& asm_code)
 {
-    asm_code.AddCmd(AsmLabel(label));
+    asm_code.AddCmd(ASM_JMP, label, SIZE_NONE);
 }

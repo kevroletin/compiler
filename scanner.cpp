@@ -195,7 +195,7 @@ ReservedWords::ReservedWords()
     Add("downto", RESERVED_WORD, TOK_DOWNTO);
     Add("else", RESERVED_WORD, TOK_ELSE);
     Add("end", RESERVED_WORD, TOK_END);
-    Add("end", RESERVED_WORD, TOK_EXIT);
+    Add("exit", RESERVED_WORD, TOK_EXIT);
     Add("file", RESERVED_WORD, TOK_FILE);
     Add("for", RESERVED_WORD, TOK_FOR);
     Add("forward", RESERVED_WORD, TOK_FORWARD);

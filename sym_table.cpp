@@ -189,7 +189,8 @@ void SymProc::GenerateDeclaration(AsmCode& asm_code)
     asm_code.AddCmd(ASM_PUSH, REG_EBP);
     asm_code.AddCmd(ASM_MOV, REG_ESP, REG_EBP);
     if (sym_table->GetLocalsSize()) asm_code.AddCmd(ASM_SUB, AsmImmidiate(sym_table->GetLocalsSize()), REG_ESP);
-    body->Generate(asm_code);    
+    body->Generate(asm_code);
+    asm_code.AddLabel(exit_label);
     asm_code.AddCmd(ASM_MOV, REG_EBP, REG_ESP);
     asm_code.AddCmd(ASM_POP, REG_EBP);
     asm_code.AddCmd(ASM_RET, AsmImmidiate(sym_table->GetParamsSize() - GetResultType()->GetSize()));
@@ -208,7 +209,7 @@ AsmImmidiate SymProc::GetExitLabel() const
 void SymProc::ObtainLabels(AsmCode& asm_code)
 {
     label = asm_code.LabelByStr(token.GetName());
-    exit_label = asm_code.LabelByStr("exit");
+    exit_label = asm_code.GenLabel("exit");
 }
 
 bool SymProc::IsHaveBody() const

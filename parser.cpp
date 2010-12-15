@@ -92,7 +92,12 @@ void Parser::Generate(ostream& o)
 {
     sym_table_stack.back()->GenerateDeclarations(asm_code);
     asm_code.AddCmd(".globl main\nmain:\n");
+    asm_code.AddCmd(ASM_MOV, REG_ESP, REG_EBP);
     body->Generate(asm_code);
+    asm_code.AddLabel(exit_label);
+    asm_code.AddCmd(ASM_MOV, REG_EBP, REG_ESP);
+    asm_code.AddCmd(ASM_MOV, AsmImmidiate(0), REG_EAX);
+    asm_code.AddCmd(ASM_RET);
     asm_code.Print(o);
 }
 
@@ -106,6 +111,7 @@ Parser::Parser(Scanner& scanner):
     top_sym_table.Add(top_type_real);
     sym_table_stack.push_back(&top_sym_table);
     sym_table_stack.push_back(new SymTable());
+    exit_label = asm_code.GenLabel("exit");
     Parse();
 }
 
@@ -497,7 +503,9 @@ NodeStatement* Parser::ParseJumpStatement()
 
 NodeStatement* Parser::ParseExitStatement()
 {
-    return NULL; //todo
+    CheckTokOrDie(TOK_EXIT);
+    AsmImmidiate label = (current_proc == NULL) ? exit_label : current_proc->GetExitLabel();
+    return new StmtExit(label);
 }
 
 const Symbol* Parser::FindSymbol(Symbol* sym)
