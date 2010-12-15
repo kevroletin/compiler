@@ -1,0 +1,17 @@
+var
+    a, b: Integer;
+begin
+    a := 10;
+    repeat
+	Write(a, ': ');
+	b := 10;
+	repeat 
+	    Write(b, ' ');
+	    b := b - 1;
+	    if b < 1 then break;
+	until 0;
+	Writeln;
+	a := a - 1;
+	if a < 1 then break;
+    until 0;
+end.

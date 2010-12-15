@@ -1,0 +1,9 @@
+var
+    i: Integer;
+begin
+    for i := 1 to 20 do
+	begin
+	    Write(i, ' ');
+	    if i = 10 then break;
+	end;
+end.

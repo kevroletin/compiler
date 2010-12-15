@@ -6,6 +6,6 @@ void NodeStatement::Print(ostream& o, int offset) const
 {
 }
 
-void NodeStatement::Generate(AsmCode& asm_code) const
+void NodeStatement::Generate(AsmCode& asm_code)
 {
 }

@@ -18,7 +18,7 @@ public:
     const SyntaxNode* GetLeft() const;
     const SyntaxNode* GetRight() const;
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Generate(AsmCode& asm_code) const;
+    virtual void Generate(AsmCode& asm_code);
 };
  
 class StmtBlock: public NodeStatement{
@@ -27,7 +27,7 @@ private:
 public:
     void AddStatement(NodeStatement* new_stmt);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Generate(AsmCode& asm_code) const;
+    virtual void Generate(AsmCode& asm_code);
 };
 
 class StmtExpression: public NodeStatement{
@@ -36,7 +36,7 @@ private:
 public:
     StmtExpression(SyntaxNode* expression);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Generate(AsmCode& asm_code) const;
+    virtual void Generate(AsmCode& asm_code);
 };
 
 class StmtLoop: public NodeStatement{
@@ -44,6 +44,7 @@ protected:
     AsmImmidiate break_label;
     AsmImmidiate continue_label;
     NodeStatement* body;
+    void ObtainLabels(AsmCode& asm_code);
 public:
     StmtLoop(NodeStatement* body_);
     AsmImmidiate GetBreakLabel() const;
@@ -60,7 +61,7 @@ private:
 public:
     StmtFor(const SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value, bool is_inc, NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Generate(AsmCode& asm_code) const;
+    virtual void Generate(AsmCode& asm_code);
 };
 
 class StmtWhile: public StmtLoop{
@@ -69,7 +70,7 @@ private:
 public:
     StmtWhile(SyntaxNode* condition_, NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Generate(AsmCode& asm_code) const;
+    virtual void Generate(AsmCode& asm_code);
 };
 
 class StmtUntil: public StmtLoop{
@@ -79,7 +80,7 @@ public:
     StmtUntil(SyntaxNode* condition_, NodeStatement* body = NULL);
     void AddCondition(SyntaxNode* condition);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Generate(AsmCode& asm_code) const;
+    virtual void Generate(AsmCode& asm_code);
 };
 
 class StmtIf: public NodeStatement{
@@ -90,7 +91,7 @@ private:
 public:
     StmtIf(SyntaxNode* condition_, NodeStatement* then_branch_, NodeStatement* else_branch_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Generate(AsmCode& asm_code) const;
+    virtual void Generate(AsmCode& asm_code);
 };
 
 class StmtJump: public NodeStatement{
@@ -100,7 +101,7 @@ private:
 public:
     StmtJump(Token tok, StmtLoop* loop_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Generate(AsmCode& asm_code) const;
+    virtual void Generate(AsmCode& asm_code);
 };
 
 class StmtExit: public NodeStatement{
@@ -109,7 +110,7 @@ private:
 public:
     StmtExit(AsmImmidiate exit_label);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Generate(AsmCode& asm_code) const;
+    virtual void Generate(AsmCode& asm_code);
 };
 
 #endif

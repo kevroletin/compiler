@@ -1,0 +1,11 @@
+var
+    i: integer;
+begin
+    i := 0;
+    while i <= 20 do
+	begin
+	    i := i + 1;
+	    if i mod 2 then continue;
+	    Writeln(i);
+	end;
+end.
