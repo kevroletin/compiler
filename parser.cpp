@@ -209,7 +209,7 @@ void Parser::ParseVarDeclarationFactory(SymbolClass var_class_name)
     while (was_comma)
     {
         Token name = scan.GetToken();
-        if (FindSymbol(name) != NULL) Error("duplicate declaration");
+        if (sym_table_stack.back()->Find(name) != NULL) Error("duplicate declaration");
         vars.push_back(name);
         if (was_comma = (scan.NextToken().GetValue() == TOK_COMMA))
             scan.NextToken();
@@ -383,6 +383,9 @@ NodeStatement* Parser::ParseStatement()
             return ParseJumpStatement();
         case TOK_EXIT:
             return ParseExitStatement();
+        case TOK_SEMICOLON:
+            //scan.NextToken();
+            return new NodeStatement();
         default:
             return ParseAssignStatement();
     }
@@ -404,8 +407,14 @@ NodeStatement* Parser::ParseBlockStatement()
     CheckTokOrDie(TOK_BEGIN);
     while (scan.GetToken().GetValue() != TOK_END)
     {
-        block->AddStatement(ParseStatement());
-        CheckTokOrDie(TOK_SEMICOLON);
+        NodeStatement* stmt = ParseStatement();
+        if (stmt != NULL) block->AddStatement(stmt);
+        else Error("illeagl expression");
+        if (scan.GetToken().GetValue() != TOK_SEMICOLON)
+        {
+            if (scan.GetToken().GetValue() != TOK_END) Error("';' expected");
+        }
+        else scan.NextToken();
     }
     scan.NextToken();
     return block;
@@ -444,8 +453,11 @@ NodeStatement* Parser::ParseUntilStatement()
     while (scan.GetToken().GetValue() != TOK_UNTIL)
     {
         body->AddStatement(ParseStatement());
-        if (scan.GetToken().GetValue() != TOK_SEMICOLON) Error("';' expected");
-        scan.NextToken();
+        if (scan.GetToken().GetValue() != TOK_SEMICOLON)
+        {
+            if (scan.GetToken().GetValue() != TOK_UNTIL) Error("';' expected");
+        }
+        else scan.NextToken();
     }
     scan.NextToken();
     until->AddBody(body);

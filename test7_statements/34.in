@@ -1,0 +1,5 @@
+begin
+    repeat
+	5 + 5
+    until (0);
+end.

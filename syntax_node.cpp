@@ -144,35 +144,18 @@ void NodeBinaryOp::FinGenForRealRelationalOp(AsmCode& asm_code) const
             asm_code.AddCmd(ASM_SETAE, REG_AL, SIZE_NONE);            
         break;
         case TOK_LESS:
-            /*
-              testb   $69, %ah
-              sete    %al
-            */
             asm_code.AddCmd(ASM_TEST, AsmImmidiate(69), REG_AH, SIZE_BYTE);
             asm_code.AddCmd(ASM_SETE, REG_AL, SIZE_NONE);            
         break;
         case TOK_LESS_OR_EQUAL:
-            /*
-              testb   $5, %ah
-              sete    %al
-            */
             asm_code.AddCmd(ASM_TEST, 5, SIZE_BYTE);
             asm_code.AddCmd(ASM_SETA, REG_AL, SIZE_NONE);            
         break;
         case TOK_EQUAL:
-            /*
-              sahf
-              sete    %al
-             */
             asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
             asm_code.AddCmd(ASM_SETE, REG_AL, SIZE_NONE);            
         break;
         case TOK_NOT_EQUAL:
-            /*
-              sahf
-              sete    %al
-              setnp   %dl
-            */
             asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
             asm_code.AddCmd(ASM_SETNE, REG_AL, SIZE_NONE);            
     }
@@ -204,6 +187,9 @@ void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
             asm_code.AddCmd(ASM_IDIV, REG_EBX);
             asm_code.AddCmd(ASM_PUSH, REG_EDX);
             return;
+        case TOK_AND:
+            asm_code.AddCmd(ASM_AND, REG_EBX, REG_EAX);
+        break;
         case TOK_OR:
             asm_code.AddCmd(ASM_OR, REG_EBX, REG_EAX);
         break;
@@ -294,7 +280,9 @@ void NodeUnaryOp::GenerateForInt(AsmCode& asm_code) const
     switch (token.GetValue())
     {
         case TOK_NOT:
-            asm_code.AddCmd(ASM_NOT, REG_EAX);
+            asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
+            asm_code.AddCmd(ASM_SETE, REG_AL, SIZE_NONE);
+            asm_code.AddCmd(ASM_MOVZB, REG_AL, REG_EAX);
         break;
         case TOK_PLUS:
         break;
@@ -308,12 +296,6 @@ void NodeUnaryOp::GenerateForInt(AsmCode& asm_code) const
 void NodeUnaryOp::GenerateForReal(AsmCode& asm_code) const
 {
     if (token.GetValue() != TOK_MINUS) return;
-    /*
-        flds    b
-        fchs
-        fstps   b
-        flds    b
-      */
     asm_code.AddCmd(ASM_FLD, AsmMemory(REG_ESP), SIZE_SHORT);
     asm_code.AddCmd(ASM_FCH, SIZE_SHORT);
     asm_code.AddCmd(ASM_FSTP, AsmMemory(REG_ESP), SIZE_SHORT);

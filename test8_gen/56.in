@@ -1,0 +1,22 @@
+begin
+    if 1 and 1 then writeln('good')
+    else writeln('bad');
+
+    if (1) and (0) then writeln('bad')
+    else writeln('good');
+    
+    if (0) and (1) then writeln('bad')
+    else writeln('good');
+    
+    if (0) and (0) then writeln('bad')
+    else writeln('good');
+    
+    if not 1 then writeln('bad')
+    else writeln('good');
+    
+    if -1 then writeln('good')
+    else writeln('bad');
+    
+    if not 0 then writeln('good')
+    else writeln('bad');
+end.

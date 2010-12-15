@@ -36,7 +36,7 @@ void StmtAssign::Generate(AsmCode& asm_code)
 
 void StmtBlock::AddStatement(NodeStatement* new_stmt)
 {
-    statements.push_back(new_stmt);
+    if (new_stmt != NULL) statements.push_back(new_stmt);
 }
 
 void StmtBlock::Print(ostream& o, int offset) const

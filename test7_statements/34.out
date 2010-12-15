@@ -1,0 +1,9 @@
+begin
+  until
+    0 [integer]
+    begin
+      + [integer]
+        5 [integer]
+        5 [integer]
+    end
+end
