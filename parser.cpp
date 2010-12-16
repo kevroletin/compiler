@@ -35,7 +35,7 @@ void Parser::TryToConvertType(SyntaxNode*& expr, const SymType* type)
 void Parser::ConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err)
 {
     TryToConvertType(first, second);
-    if (first->GetSymType() != second->GetSymType()) 
+    if (first->GetSymType() != second->GetSymType())
     {
         std::stringstream s;
         s << "incompatible types: ";
@@ -49,7 +49,7 @@ void Parser::ConvertTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok
 void Parser::ConvertTypeOrDie(SyntaxNode*& expr, const SymType* type, Token tok_err)
 {
     TryToConvertType(expr, type);
-    if (expr->GetSymType() != type) 
+    if (expr->GetSymType() != type)
     {
         std::stringstream s;
         s << "incompatible types: ";
@@ -91,12 +91,12 @@ void Parser::PrintSymTable(ostream& o)
 void Parser::Generate(ostream& o)
 {
     sym_table_stack.back()->GenerateDeclarations(asm_code);
-    asm_code.AddCmd(".globl main\nmain:\n");
+    asm_code.AddMainFunctionLabel();
     asm_code.AddCmd(ASM_MOV, REG_ESP, REG_EBP);
     body->Generate(asm_code);
     asm_code.AddLabel(exit_label);
     asm_code.AddCmd(ASM_MOV, REG_EBP, REG_ESP);
-    asm_code.AddCmd(ASM_MOV, AsmImmidiate(0), REG_EAX);
+    asm_code.AddCmd(ASM_MOV, AsmImmediate(0), REG_EAX);
     asm_code.AddCmd(ASM_RET);
     asm_code.Print(o);
 }
@@ -156,7 +156,7 @@ SymType* Parser::ParsePointerType()
     if (!scan.GetToken().IsVar()) Error("identifier expected");
     const Symbol* ref_type = FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
     scan.NextToken();
-    return new SymTypePointer((SymType*)ref_type);    
+    return new SymTypePointer((SymType*)ref_type);
 }
 
 SymType* Parser::ParseType()
@@ -170,9 +170,9 @@ SymType* Parser::ParseType()
             return ParseRecordType();
         } break;
         case TOK_CAP: {
-            return ParsePointerType(); 
+            return ParsePointerType();
         } break;
-        default: {            
+        default: {
             const Symbol* res = FindSymbolOrDie(scan.GetToken(), SYM_TYPE, "type identifier expected");
             scan.NextToken();
             return (SymType*)res;
@@ -272,7 +272,7 @@ void Parser::ParseDeclarations(bool is_global)
             break;
             default:
                 loop = false;
-        }      
+        }
     }
 }
 
@@ -332,7 +332,7 @@ void Parser::ParseFunctionDefinition()
     res = (op == TOK_PROCEDURE) ? new SymProc(name) : new SymFunct(name);
     if (prototype == NULL) sym_table_stack.back()->Add(res);
     sym_table_stack.push_back(new SymTable);
-    res->AddSymTable(sym_table_stack.back());        
+    res->AddSymTable(sym_table_stack.back());
     scan.NextToken();
     if (scan.GetToken().GetValue() == TOK_BRACKETS_LEFT) ParseFunctionParameters(res);
     if (op == TOK_FUNCTION)
@@ -345,9 +345,11 @@ void Parser::ParseFunctionDefinition()
     CheckTokOrDie(TOK_SEMICOLON);
     if (prototype != NULL)
     {
-        if (!prototype->TryToAssign(res)) Error("function prototype differs from preveous declaration", name);
+        if (!prototype->ValidateParams(res)) Error("function prototype differs from preveous declaration", name);
         delete res;
         res = prototype;
+        sym_table_stack.pop_back();
+        sym_table_stack.push_back(res->GetSymTable());
     }
     if (scan.GetToken().GetValue() == TOK_FORWARD)
     {
@@ -441,7 +443,7 @@ NodeStatement* Parser::ParseWhileStatement()
     CheckTokOrDie(TOK_WHILE);
     SyntaxNode* cond = GetIntExprOrDie();
     CheckTokOrDie(TOK_DO);
-    return AddLoopBody(new StmtWhile(cond, body)); 
+    return AddLoopBody(new StmtWhile(cond, body));
 }
 
 NodeStatement* Parser::ParseUntilStatement()
@@ -495,7 +497,7 @@ NodeStatement* Parser::ParseAssignStatement()
     if (right == NULL) Error("expression expected");
     ConvertTypeOrDie(right, left->GetSymType(), op);
     if (!(left->IsLValue())) Error("l-value expected", op);
-    return new StmtAssign(left, right);    
+    return new StmtAssign(left, right);
 }
 
 NodeStatement* Parser::ParseJumpStatement()
@@ -516,14 +518,14 @@ NodeStatement* Parser::ParseJumpStatement()
 NodeStatement* Parser::ParseExitStatement()
 {
     CheckTokOrDie(TOK_EXIT);
-    AsmImmidiate label = (current_proc == NULL) ? exit_label : current_proc->GetExitLabel();
+    AsmImmediate label = (current_proc == NULL) ? exit_label : current_proc->GetExitLabel();
     return new StmtExit(label);
 }
 
 const Symbol* Parser::FindSymbol(Symbol* sym)
 {
     const Symbol* res = NULL;
-    for (std::vector<SymTable*>::const_reverse_iterator it = sym_table_stack.rbegin();
+    for (std::vector<SymTable*>::reverse_iterator it = sym_table_stack.rbegin();
          it != sym_table_stack.rend() && res == NULL; ++it)
     {
         res = (*it)->Find(sym);
@@ -566,7 +568,7 @@ void Parser::CheckTokOrDie(TokenValue tok_val)
         stringstream str;
         str << "'" <<  TOKEN_TO_STR[tok_val] << "' expected";
         Error(str.str());
-    }        
+    }
     scan.NextToken();
 }
 
@@ -795,7 +797,7 @@ SyntaxNode* Parser::ParseMultiplyingExpr()
             ConvertTypeOrDie(right, top_type_int, op);
         }
         else
-            ConvertToBaseTypeOrDie(left, right, op);       
+            ConvertToBaseTypeOrDie(left, right, op);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }
@@ -818,7 +820,7 @@ SyntaxNode* Parser::ParseAddingExpr()
             ConvertTypeOrDie(right, top_type_int, op);
         }
         else
-            ConvertToBaseTypeOrDie(left, right, op);       
+            ConvertToBaseTypeOrDie(left, right, op);
         left = new NodeBinaryOp(op, left, right);
         op = scan.GetToken();
     }

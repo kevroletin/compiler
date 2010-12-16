@@ -10,7 +10,7 @@
 using namespace std;
 
 class AsmOperand;
-class AsmImmidiate;
+class AsmImmediate;
 
 enum CmdSize{
     SIZE_NONE,
@@ -35,7 +35,7 @@ enum RegisterName{
     REG_AX,
     REG_BX,
     REG_CX,
-    REG_DX,    
+    REG_DX,
     REG_DI,
     REG_SI,
     REG_EAX,
@@ -104,7 +104,7 @@ enum AsmCmdName{
     ASM_SETL,
     ASM_SETLE,
     ASM_SETE,
-    ASM_SETNE, 
+    ASM_SETNE,
     ASM_SUB,
     ASM_TEST,
     ASM_XOR
@@ -127,10 +127,10 @@ public:
 };
 
 class AsmLabel: public AsmCmd{
-    AsmImmidiate* label;
+    AsmImmediate* label;
 public:
-    AsmLabel(AsmImmidiate* label);
-    AsmLabel(AsmImmidiate label);
+    AsmLabel(AsmImmediate* label);
+    AsmLabel(AsmImmediate label);
     AsmLabel(string label);
     virtual void Print(ostream& o) const;
 };
@@ -159,7 +159,7 @@ private:
     AsmDataType type;
 public:
     AsmData(string name_, string value, AsmDataType type = DATA_UNTYPED);
-    virtual void Print(ostream& o) const;    
+    virtual void Print(ostream& o) const;
 };
 
 class AsmCmd1: public AsmCmd0{
@@ -167,7 +167,7 @@ private:
     AsmOperand* oper;
 public:
     AsmCmd1(AsmCmdName cmd, AsmOperand* oper_, CmdSize size = SIZE_LONG);
-    virtual void Print(ostream& o) const;    
+    virtual void Print(ostream& o) const;
 };
 
 class AsmCmd2: public AsmCmd0{
@@ -181,7 +181,7 @@ public:
 
 class AsmOperand{
 public:
-    virtual void Print(ostream& o) const;    
+    virtual void Print(ostream& o) const;
     virtual void PrintBase(ostream& o) const;
 };
 
@@ -200,14 +200,14 @@ public:
     virtual void PrintBase(ostream& o) const;
 };
 
-class AsmImmidiate: public AsmOperandBase{
+class AsmImmediate: public AsmOperandBase{
 private:
     string value;
 public:
-    AsmImmidiate();
-    AsmImmidiate(const string& value_);
-    AsmImmidiate(int num);
-    AsmImmidiate(const AsmImmidiate& src);
+    AsmImmediate();
+    AsmImmediate(const string& value_);
+    AsmImmediate(int num);
+    AsmImmediate(const AsmImmediate& src);
     string GetValue();
     virtual void Print(ostream& o) const;
     virtual void PrintBase(ostream& o) const;
@@ -221,33 +221,33 @@ private:
     unsigned scale;
 public:
     AsmMemory(AsmOperandBase* base_, int disp_ = 0, int index_ = 0, unsigned scale_ = 0);
-    AsmMemory(AsmImmidiate base, int disp_ = 0, int index_ = 0, unsigned scale_ = 0);
+    AsmMemory(AsmImmediate base, int disp_ = 0, int index_ = 0, unsigned scale_ = 0);
     AsmMemory(RegisterName reg, int disp_ = 0, int index_ = 0, unsigned scale_ = 0);
     virtual void Print(ostream& o) const;
 };
 
 class AsmCode{
 private:
-    AsmImmidiate format_str_real;
-    AsmImmidiate format_str_int;
-    AsmImmidiate format_str_str;
-    AsmImmidiate format_str_new_line;
+    AsmImmediate format_str_real;
+    AsmImmediate format_str_int;
+    AsmImmediate format_str_str;
+    AsmImmediate format_str_new_line;
     bool was_real;
     bool was_int;
     bool was_str;
     bool was_new_line;
-    AsmMemory funct_write; 
+    AsmMemory funct_write;
     vector<AsmCmd*> commands;
     vector<AsmData*> data;
     string ChangeName(string str);
     unsigned label_counter;
 public:
     AsmCode();
-    AsmImmidiate GenLabel();
+    AsmImmediate GenLabel();
     string GenStrLabel();
-    AsmImmidiate GenLabel(string prefix);
+    AsmImmediate GenLabel(string prefix);
     string GenStrLabel(string prefix);
-    AsmImmidiate LabelByStr(string str);
+    AsmImmediate LabelByStr(string str);
     void AddCmd(AsmCmd* cmd);
     void AddCmd(AsmLabel cmd);
     void AddCmd(AsmCmdName cmd, CmdSize size = SIZE_LONG);
@@ -256,27 +256,27 @@ public:
     void AddCmd(AsmCmdName cmd, RegisterName reg, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmMemory* mem, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmMemory mem, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate* imm, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate imm, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmImmediate* imm, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmImmediate imm, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmOperand* oper1, AsmOperand* oper2, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, RegisterName src, RegisterName dest, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate* dest, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmidiate dest, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate* src, RegisterName oper1, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate src, RegisterName oper1, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmediate* dest, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, RegisterName reg, AsmImmediate dest, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmImmediate* src, RegisterName oper1, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmImmediate src, RegisterName oper1, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmMemory* mem, RegisterName reg, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, AsmMemory mem, RegisterName reg, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory* mem, CmdSize size = SIZE_LONG);
     void AddCmd(AsmCmdName cmd, RegisterName reg, AsmMemory mem, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate* src, AsmMemory* mem, CmdSize size = SIZE_LONG);
-    void AddCmd(AsmCmdName cmd, AsmImmidiate src, AsmMemory mem, CmdSize size = SIZE_LONG);    
+    void AddCmd(AsmCmdName cmd, AsmImmediate* src, AsmMemory* mem, CmdSize size = SIZE_LONG);
+    void AddCmd(AsmCmdName cmd, AsmImmediate src, AsmMemory mem, CmdSize size = SIZE_LONG);
     void AddData(AsmData* new_data);
-    AsmImmidiate AddData(string label, string value, AsmDataType type = DATA_UNTYPED);
-    AsmImmidiate AddData(string label, unsigned size);
-    AsmImmidiate AddData(string value, AsmDataType type = DATA_UNTYPED);
-    AsmImmidiate AddData(unsigned size);
-    void AddLabel(AsmImmidiate* label);
-    void AddLabel(AsmImmidiate label);
+    AsmImmediate AddData(string label, string value, AsmDataType type = DATA_UNTYPED);
+    AsmImmediate AddData(string label, unsigned size);
+    AsmImmediate AddData(string value, AsmDataType type = DATA_UNTYPED);
+    AsmImmediate AddData(unsigned size);
+    void AddLabel(AsmImmediate* label);
+    void AddLabel(AsmImmediate label);
     void AddLabel(string label);
     virtual void Print(ostream& o) const;
     void GenCallWriteForInt();
@@ -286,6 +286,7 @@ public:
     void PushMemory(unsigned size);
     void MoveToMemoryFromStack(unsigned size);
     void MoveMemory(unsigned size);
+    void AddMainFunctionLabel();
 };
 
 #endif

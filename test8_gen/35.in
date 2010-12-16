@@ -3,12 +3,12 @@ var
     a: array[0..10] of integer;
 begin
     for i := 9 downto 1 do 
-	a[i] := 0;
+        a[i] := 0;
     a[10] := 1;
     a[i] := 1;
     i := 10;
     repeat
-	i := i - 1;
-	Write(a[i]);
+        i := i - 1;
+    Write(a[i]);
     until a[i];
 end.    

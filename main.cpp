@@ -18,7 +18,7 @@ avaible options are:\n\
 \t-g\tGenerate asm code\n\
 \t-l\tshow Lexems stream\n\
 \t-s\tprint Syntax tree\n\
-\t-t\tprint symTable\n";    
+\t-t\tprint symTable\n";
 }
 
 string my_argv[] = {"compiler.exe", "-l", "test/16.in" };
@@ -73,14 +73,14 @@ int main(int argc, char* argv[])
                     case 't':
                     {
                         Scanner scan(in);
-                        Parser parser(scan);                        
+                        Parser parser(scan);
                         parser.PrintSymTable(std::cout);
                     }
                     break;
                     case 'g':
                     {
                         Scanner scan(in);
-                        Parser parser(scan);                        
+                        Parser parser(scan);
                         parser.Generate(std::cout);
                     }
                     break;

@@ -1,8 +1,4 @@
-var
-    a, b : Real;
 begin
-    a := 10;
-    b := 20;
 
     if (5.0 > 4.0) then Writeln('good')
     else Writeln('bad');
@@ -41,4 +37,5 @@ begin
     else Writeln('bad');
     if (4.0 <> 4.0) then Writeln('bad')
     else Writeln('good');
+
 end.

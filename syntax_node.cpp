@@ -28,7 +28,7 @@ NodeCall::NodeCall(const SymProc* funct_):
     funct(funct_)
 {
 }
-    
+
 const SymType* NodeCall::GetCurrentArgType() const
 {
     if (args.size() >= funct->GetArgsCount()) return NULL;
@@ -41,7 +41,7 @@ bool NodeCall::IsCurrentArfByRef() const
     return funct->GetArg(args.size())->IsByRef();
 }
 
-void NodeCall::Print(ostream& o, int offset) const 
+void NodeCall::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << "() " << funct->GetName() << " [";
     GetSymType()->Print(o , offset);
@@ -56,7 +56,8 @@ const SymType* NodeCall::GetSymType() const
 
 void NodeCall::GenerateValue(AsmCode& asm_code) const
 {
-    if (funct->GetResultType()->GetSize()) asm_code.AddCmd(ASM_SUB, AsmImmidiate(funct->GetResultType()->GetSize()), REG_ESP);
+    if (funct->GetResultType()->GetSize())
+        asm_code.AddCmd(ASM_SUB, AsmImmediate(funct->GetResultType()->GetSize()), REG_ESP);
     for (int i = args.size() - 1 ; 0 <= i ; --i)
         if (funct->GetArg(i)->IsByRef())
             args[i]->GenerateLValue(asm_code);
@@ -75,7 +76,7 @@ NodeWriteCall::NodeWriteCall(bool new_line_):
 void NodeWriteCall::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << "() " << (new_line ? "writeln" : "write" ) << " [untyped]\n";
-    PrintArgs(o, offset);    
+    PrintArgs(o, offset);
 }
 
 void NodeWriteCall::GenerateValue(AsmCode& asm_code) const
@@ -103,7 +104,7 @@ const SymType* NodeWriteCall::GetSymType() const
 
 void NodeBinaryOp::FinGenForIntRelationalOp(AsmCode& asm_code) const
 {
-    asm_code.AddCmd(ASM_CMP, REG_EBX, REG_EAX); 
+    asm_code.AddCmd(ASM_CMP, REG_EBX, REG_EAX);
     switch (token.GetValue())
     {
         case TOK_GREATER:
@@ -113,7 +114,7 @@ void NodeBinaryOp::FinGenForIntRelationalOp(AsmCode& asm_code) const
             asm_code.AddCmd(ASM_SETGE, REG_AL, SIZE_NONE);
         break;
         case TOK_LESS:
-            asm_code.AddCmd(ASM_SETL, REG_AL, SIZE_NONE);        
+            asm_code.AddCmd(ASM_SETL, REG_AL, SIZE_NONE);
         break;
         case TOK_LESS_OR_EQUAL:
             asm_code.AddCmd(ASM_SETLE, REG_AL, SIZE_NONE);
@@ -122,7 +123,7 @@ void NodeBinaryOp::FinGenForIntRelationalOp(AsmCode& asm_code) const
             asm_code.AddCmd(ASM_SETE, REG_AL, SIZE_NONE);
         break;
         case TOK_NOT_EQUAL:
-            asm_code.AddCmd(ASM_SETNE, REG_AL, SIZE_NONE);            
+            asm_code.AddCmd(ASM_SETNE, REG_AL, SIZE_NONE);
     }
     asm_code.AddCmd(ASM_MOVZB, REG_AL, REG_EAX);
     asm_code.AddCmd(ASM_PUSH, REG_EAX);
@@ -133,31 +134,26 @@ void NodeBinaryOp::FinGenForRealRelationalOp(AsmCode& asm_code) const
     asm_code.AddCmd(ASM_FXCH, REG_ST1, SIZE_NONE);
     asm_code.AddCmd(ASM_FCOMPP, REG_ST1, SIZE_NONE);
     asm_code.AddCmd(ASM_FNSTS, REG_AX, SIZE_WORD);
+    asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
     switch (token.GetValue())
     {
         case TOK_GREATER:
-            asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
-            asm_code.AddCmd(ASM_SETA, REG_AL, SIZE_NONE);            
+            asm_code.AddCmd(ASM_SETA, REG_AL, SIZE_NONE);
         break;
         case TOK_GREATER_OR_EQUAL:
-            asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
-            asm_code.AddCmd(ASM_SETAE, REG_AL, SIZE_NONE);            
+            asm_code.AddCmd(ASM_SETAE, REG_AL, SIZE_NONE);
         break;
         case TOK_LESS:
-            asm_code.AddCmd(ASM_TEST, AsmImmidiate(69), REG_AH, SIZE_BYTE);
-            asm_code.AddCmd(ASM_SETE, REG_AL, SIZE_NONE);            
+            asm_code.AddCmd(ASM_SETL, REG_AL, SIZE_NONE);
         break;
         case TOK_LESS_OR_EQUAL:
-            asm_code.AddCmd(ASM_TEST, 5, SIZE_BYTE);
-            asm_code.AddCmd(ASM_SETA, REG_AL, SIZE_NONE);            
+            asm_code.AddCmd(ASM_SETLE, REG_AL, SIZE_NONE);
         break;
         case TOK_EQUAL:
-            asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
-            asm_code.AddCmd(ASM_SETE, REG_AL, SIZE_NONE);            
+            asm_code.AddCmd(ASM_SETE, REG_AL, SIZE_NONE);
         break;
         case TOK_NOT_EQUAL:
-            asm_code.AddCmd(ASM_SAHF, SIZE_NONE);
-            asm_code.AddCmd(ASM_SETNE, REG_AL, SIZE_NONE);            
+            asm_code.AddCmd(ASM_SETNE, REG_AL, SIZE_NONE);
     }
     asm_code.AddCmd(ASM_MOVZB, REG_AL, REG_EDX);
 }
@@ -179,8 +175,7 @@ void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
             asm_code.AddCmd(ASM_IMUL, REG_EBX);
         break;
         case TOK_DIV:
-            asm_code.AddCmd(ASM_XOR, REG_EDX, REG_EDX);
-            asm_code.AddCmd(ASM_IDIV, REG_EBX);            
+            asm_code.AddCmd(ASM_IDIV, REG_EBX);
         break;
         case TOK_MOD:
             asm_code.AddCmd(ASM_XOR, REG_EDX, REG_EDX);
@@ -219,7 +214,7 @@ void NodeBinaryOp::GenerateForInt(AsmCode& asm_code) const
 void NodeBinaryOp::GenerateForReal(AsmCode& asm_code) const
 {
     asm_code.AddCmd(ASM_FLD, AsmMemory(REG_ESP, 4), SIZE_SHORT);
-    asm_code.AddCmd(ASM_FLD, AsmMemory(REG_ESP), SIZE_SHORT);    
+    asm_code.AddCmd(ASM_FLD, AsmMemory(REG_ESP), SIZE_SHORT);
     switch (token.GetValue())
     {
         case TOK_PLUS:
@@ -249,7 +244,7 @@ NodeBinaryOp::NodeBinaryOp(const Token& name, SyntaxNode* left_, SyntaxNode* rig
 {
 }
 
-void NodeBinaryOp::Print(ostream& o, int offset) const 
+void NodeBinaryOp::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << token.GetName() << " [";
     GetSymType()->Print(o , offset);
@@ -288,7 +283,7 @@ void NodeUnaryOp::GenerateForInt(AsmCode& asm_code) const
         break;
         case TOK_MINUS:
             asm_code.AddCmd(ASM_NEG, REG_EAX);
-        break;            
+        break;
     }
     asm_code.AddCmd(ASM_PUSH, REG_EAX);
 }
@@ -307,7 +302,7 @@ NodeUnaryOp::NodeUnaryOp(const Token& name, SyntaxNode* child_):
 {
 }
 
-void NodeUnaryOp::Print(ostream& o, int offset) const 
+void NodeUnaryOp::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << token.GetName() << " [";
     GetSymType()->Print(o , offset);
@@ -331,11 +326,11 @@ void NodeUnaryOp::GenerateValue(AsmCode& asm_code) const
 
 NodeIntToRealConv::NodeIntToRealConv(SyntaxNode* child_, SymType* real_type_):
     NodeUnaryOp(Token(), child_),
-    real_type(real_type_)     
+    real_type(real_type_)
 {
 }
 
-void NodeIntToRealConv::Print(ostream& o, int offset) const 
+void NodeIntToRealConv::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << "IntToReal [";
     real_type->Print(o, 0);
@@ -372,7 +367,7 @@ const SymType* NodeVar::GetSymType() const
     return var->GetVarType()->GetActualType();
 }
 
-void NodeVar::Print(ostream& o, int offset) const 
+void NodeVar::Print(ostream& o, int offset) const
 {
     var->PrintAsNode(o, offset);
 }
@@ -400,7 +395,7 @@ NodeArrayAccess::NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_):
 {
 }
 
-void NodeArrayAccess::Print(ostream& o, int offset) const 
+void NodeArrayAccess::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << "[] [";
     GetSymType()->Print(o, offset);
@@ -441,7 +436,7 @@ void NodeArrayAccess::GenerateLValue(AsmCode& asm_code) const
 void NodeArrayAccess::GenerateValue(AsmCode& asm_code) const
 {
     ComputeIndexToEax(asm_code);
-    if (GetSymType()->GetSize() == 4) 
+    if (GetSymType()->GetSize() == 4)
         asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EAX));
     else
     {

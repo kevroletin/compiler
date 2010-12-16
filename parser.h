@@ -23,7 +23,7 @@ private:
     std::vector<SymTable*> sym_table_stack;
     std::vector<StmtLoop*> loop_stack;
     SymProc* current_proc;
-    AsmImmidiate exit_label;
+    AsmImmediate exit_label;
     AsmCode asm_code;
     SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type);
     void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second);
@@ -33,7 +33,7 @@ private:
     void ConvertToBaseTypeOrDie(SyntaxNode*& first, SyntaxNode*& second, Token tok_err);
     void CheckForBaseType(SyntaxNode* expr, Token tok_err);
     void CheckTokOrDie(TokenValue tok_val);
-    void CheckNextTokOrDie(TokenValue tok_val);    
+    void CheckNextTokOrDie(TokenValue tok_val);
     SyntaxNode* GetIntExprOrDie();
     int GetIntConstValueOrDie();
     Token GetConstTokOrDie();
@@ -73,7 +73,7 @@ private:
     NodeStatement* ParseExitStatement();
     const Symbol* FindSymbol(Symbol* sym);
     const Symbol* FindSymbolOrDie(Symbol* sym, SymbolClass type, string msg);
-    const Symbol* FindSymbolOrDie(Token tok, SymbolClass type, string msg); 
+    const Symbol* FindSymbolOrDie(Token tok, SymbolClass type, string msg);
     const Symbol* FindSymbol(const Token& tok);
     void Parse();
 public:

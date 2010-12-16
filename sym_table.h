@@ -68,27 +68,29 @@ protected:
     vector<SymVarParam*> params;
     SymTable* sym_table;
     NodeStatement* body;
+    AsmImmediate label;
+    AsmImmediate exit_label;
     virtual void PrintPrototype(ostream& o, int offset) const;
-    AsmImmidiate label;
-    AsmImmidiate exit_label;
 public:
     SymProc(Token token_, SymTable* syn_table_);
     SymProc(Token name);
+    ~SymProc();
     void AddSymTable(SymTable* syn_table_);
     void AddParam(SymVarParam* param);
     int GetArgsCount() const;
     const SymVarParam* GetArg(int arg_num) const;
+    SymTable* GetSymTable() const;
     void AddBody(NodeStatement* body_);
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetResultType() const;
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual void Print(ostream& o, int offset = 0) const;
     void GenerateDeclaration(AsmCode& asm_code);
-    AsmImmidiate GetLabel() const;
-    AsmImmidiate GetExitLabel() const;
+    AsmImmediate GetLabel() const;
+    AsmImmediate GetExitLabel() const;
     void ObtainLabels(AsmCode& asm_code);
     bool IsHaveBody() const;
-    bool TryToAssign(SymProc* src);
+    bool ValidateParams(SymProc* src);
 };
 
 class SymFunct: public SymProc{
@@ -140,8 +142,8 @@ public:
 class SymTypeUntyped: public SymTypeScalar{
 public:
     SymTypeUntyped();
-    virtual SymbolClass GetClassName() const;  
-    virtual unsigned GetSize() const;    
+    virtual SymbolClass GetClassName() const;
+    virtual unsigned GetSize() const;
 };
 
 class SymTypeArray: public SymType{
@@ -157,7 +159,7 @@ public:
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void PrintVerbose(ostream& o, int offset) const;
-    virtual unsigned GetSize() const;    
+    virtual unsigned GetSize() const;
 };
 
 class SymTypeRecord: public SymType{
@@ -190,7 +192,7 @@ private:
 public:
     SymTypePointer(SymType* ref_type_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual SymbolClass GetClassName() const;    
+    virtual SymbolClass GetClassName() const;
 };
 
 //---SymVar descendants---
@@ -225,11 +227,11 @@ public:
 
 class SymVarGlobal: public SymVar{
 private:
-    AsmImmidiate label;
+    AsmImmediate label;
 public:
     SymVarGlobal(Token name, const SymType* type);
-    void SetLabel(AsmImmidiate& new_label);
-    AsmImmidiate GetLabel() const;
+    void SetLabel(AsmImmediate& new_label);
+    AsmImmediate GetLabel() const;
     virtual SymbolClass GetClassName() const;
     void GenerateDeclaration(AsmCode& asm_code);
     virtual void GenerateLValue(AsmCode& asm_code) const;

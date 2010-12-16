@@ -20,7 +20,7 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
 };
- 
+
 class StmtBlock: public NodeStatement{
 private:
     std::vector<NodeStatement*> statements;
@@ -41,14 +41,14 @@ public:
 
 class StmtLoop: public NodeStatement{
 protected:
-    AsmImmidiate break_label;
-    AsmImmidiate continue_label;
+    AsmImmediate break_label;
+    AsmImmediate continue_label;
     NodeStatement* body;
     void ObtainLabels(AsmCode& asm_code);
 public:
     StmtLoop(NodeStatement* body_);
-    AsmImmidiate GetBreakLabel() const;
-    AsmImmidiate GetContinueLabel() const;
+    AsmImmediate GetBreakLabel() const;
+    AsmImmediate GetContinueLabel() const;
     void AddBody(NodeStatement* body);
 };
 
@@ -106,9 +106,9 @@ public:
 
 class StmtExit: public NodeStatement{
 private:
-    AsmImmidiate label;
+    AsmImmediate label;
 public:
-    StmtExit(AsmImmidiate exit_label);
+    StmtExit(AsmImmediate exit_label);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
 };

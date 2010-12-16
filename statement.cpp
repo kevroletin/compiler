@@ -18,7 +18,7 @@ const SyntaxNode* StmtAssign::GetRight() const
     return right;
 }
 
-void StmtAssign::Print(ostream& o, int offset) const 
+void StmtAssign::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << ":= \n";
     left->Print(o, offset + 1);
@@ -84,12 +84,12 @@ StmtLoop::StmtLoop(NodeStatement* body_):
 {
 }
 
-AsmImmidiate StmtLoop::GetBreakLabel() const
+AsmImmediate StmtLoop::GetBreakLabel() const
 {
     return break_label;
 }
 
-AsmImmidiate StmtLoop::GetContinueLabel() const
+AsmImmediate StmtLoop::GetContinueLabel() const
 {
     return continue_label;
 }
@@ -120,14 +120,14 @@ void StmtFor::Print(ostream& o, int offset) const
     body->Print(o, offset);
 }
 
-void StmtFor::Generate(AsmCode& asm_code) 
+void StmtFor::Generate(AsmCode& asm_code)
 {
     init_val->GenerateValue(asm_code);
     index->GenerateLValue(asm_code);
     asm_code.AddCmd(ASM_POP, REG_EAX);
     asm_code.AddCmd(ASM_POP, REG_EBX);
     asm_code.AddCmd(ASM_MOV, REG_EBX, AsmMemory(REG_EAX));
-    AsmImmidiate start_label(asm_code.GenLabel("for_check"));
+    AsmImmediate start_label(asm_code.GenLabel("for_check"));
     ObtainLabels(asm_code);
     last_val->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_JMP, continue_label, SIZE_NONE);
@@ -154,7 +154,7 @@ StmtWhile::StmtWhile(SyntaxNode* condition_, NodeStatement* body_):
     condition(condition_)
 {
 }
-    
+
 void StmtWhile::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << "while\n";
@@ -198,7 +198,7 @@ void StmtUntil::Print(ostream& o, int offset) const
 void StmtUntil::Generate(AsmCode& asm_code)
 {
     ObtainLabels(asm_code);
-    AsmImmidiate start_label(asm_code.GenLabel("until_start"));
+    AsmImmediate start_label(asm_code.GenLabel("until_start"));
     asm_code.AddLabel(start_label);
     body->Generate(asm_code);
     asm_code.AddLabel(continue_label);
@@ -233,8 +233,8 @@ void StmtIf::Print(ostream& o, int offset) const
 
 void StmtIf::Generate(AsmCode& asm_code)
 {
-    AsmImmidiate label_else(asm_code.GenLabel("else"));
-    AsmImmidiate label_fin(asm_code.GenLabel("fin"));
+    AsmImmediate label_else(asm_code.GenLabel("else"));
+    AsmImmediate label_fin(asm_code.GenLabel("fin"));
     condition->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_POP, REG_EAX);
     asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
@@ -244,7 +244,7 @@ void StmtIf::Generate(AsmCode& asm_code)
     asm_code.AddLabel(label_else);
     if (else_branch != NULL) else_branch->Generate(asm_code);
     asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);
-    asm_code.AddLabel(label_fin);    
+    asm_code.AddLabel(label_fin);
 }
 
 //---StmtJump---
@@ -262,13 +262,13 @@ void StmtJump::Print(ostream& o, int offset) const
 
 void StmtJump::Generate(AsmCode& asm_code)
 {
-    AsmImmidiate label = op.GetValue() == TOK_BREAK ? loop->GetBreakLabel() : loop->GetContinueLabel();
+    AsmImmediate label = op.GetValue() == TOK_BREAK ? loop->GetBreakLabel() : loop->GetContinueLabel();
     asm_code.AddCmd(ASM_JMP, label, SIZE_NONE);
 }
 
 //---StmtExit---
 
-StmtExit::StmtExit(AsmImmidiate exit_label):
+StmtExit::StmtExit(AsmImmediate exit_label):
     label(exit_label)
 {
 }
