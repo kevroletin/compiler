@@ -96,7 +96,7 @@ void Parser::Generate(ostream& o)
     body->Generate(asm_code);
     asm_code.AddLabel(exit_label);
     asm_code.AddCmd(ASM_MOV, REG_EBP, REG_ESP);
-    asm_code.AddCmd(ASM_MOV, AsmImmediate(0), REG_EAX);
+    asm_code.AddCmd(ASM_MOV, 0, REG_EAX);
     asm_code.AddCmd(ASM_RET);
     asm_code.Print(o);
 }
@@ -518,7 +518,7 @@ NodeStatement* Parser::ParseJumpStatement()
 NodeStatement* Parser::ParseExitStatement()
 {
     CheckTokOrDie(TOK_EXIT);
-    AsmImmediate label = (current_proc == NULL) ? exit_label : current_proc->GetExitLabel();
+    AsmStrImmediate label = (current_proc == NULL) ? exit_label : current_proc->GetExitLabel();
     return new StmtExit(label);
 }
 

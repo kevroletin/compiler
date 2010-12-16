@@ -198,20 +198,20 @@ void SymProc::GenerateDeclaration(AsmCode& asm_code)
     asm_code.AddLabel(label);
     asm_code.AddCmd(ASM_PUSH, REG_EBP);
     asm_code.AddCmd(ASM_MOV, REG_ESP, REG_EBP);
-    if (sym_table->GetLocalsSize()) asm_code.AddCmd(ASM_SUB, AsmImmediate(sym_table->GetLocalsSize()), REG_ESP);
+    if (sym_table->GetLocalsSize()) asm_code.AddCmd(ASM_SUB, sym_table->GetLocalsSize(), REG_ESP);
     body->Generate(asm_code);
     asm_code.AddLabel(exit_label);
     asm_code.AddCmd(ASM_MOV, REG_EBP, REG_ESP);
     asm_code.AddCmd(ASM_POP, REG_EBP);
-    asm_code.AddCmd(ASM_RET, AsmImmediate(sym_table->GetParamsSize() - GetResultType()->GetSize()));
+    asm_code.AddCmd(ASM_RET, sym_table->GetParamsSize() - GetResultType()->GetSize());
 }
 
-AsmImmediate SymProc::GetLabel() const
+AsmStrImmediate SymProc::GetLabel() const
 {
     return label;
 }
 
-AsmImmediate SymProc::GetExitLabel() const
+AsmStrImmediate SymProc::GetExitLabel() const
 {
     return exit_label;
 }
@@ -552,7 +552,7 @@ void SymVarConst::GenerateValue(AsmCode& asm_code) const
 {
     if (value.GetType() == INT_CONST)
     {
-        asm_code.AddCmd(ASM_PUSH, AsmImmediate(value.GetName()));
+        asm_code.AddCmd(ASM_PUSH, value.GetIntValue());
     }
     else if (value.GetType() == REAL_CONST)
     {
@@ -561,11 +561,11 @@ void SymVarConst::GenerateValue(AsmCode& asm_code) const
         float f;
         int* p = (int*)&f;
         s >> f;
-        asm_code.AddCmd(ASM_PUSH, AsmImmediate(*p));
+        asm_code.AddCmd(ASM_PUSH, *p);
     }
     else
     {
-        AsmImmediate label = asm_code.AddData(asm_code.GenStrLabel("str"), token.GetName(), DATA_STR);
+        AsmStrImmediate label = asm_code.AddData(asm_code.GenStrLabel("str"), token.GetName(), DATA_STR);
         asm_code.AddCmd(ASM_PUSH, label);
     }
 }
@@ -631,12 +631,12 @@ SymVarGlobal::SymVarGlobal(Token name, const SymType* type):
 {
 }
 
-void SymVarGlobal::SetLabel(AsmImmediate& new_label)
+void SymVarGlobal::SetLabel(AsmStrImmediate& new_label)
 {
     label = new_label;
 }
 
-AsmImmediate SymVarGlobal::GetLabel() const
+AsmStrImmediate SymVarGlobal::GetLabel() const
 {
     return label;
 }

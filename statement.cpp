@@ -84,12 +84,12 @@ StmtLoop::StmtLoop(NodeStatement* body_):
 {
 }
 
-AsmImmediate StmtLoop::GetBreakLabel() const
+AsmStrImmediate StmtLoop::GetBreakLabel() const
 {
     return break_label;
 }
 
-AsmImmediate StmtLoop::GetContinueLabel() const
+AsmStrImmediate StmtLoop::GetContinueLabel() const
 {
     return continue_label;
 }
@@ -127,7 +127,7 @@ void StmtFor::Generate(AsmCode& asm_code)
     asm_code.AddCmd(ASM_POP, REG_EAX);
     asm_code.AddCmd(ASM_POP, REG_EBX);
     asm_code.AddCmd(ASM_MOV, REG_EBX, AsmMemory(REG_EAX));
-    AsmImmediate start_label(asm_code.GenLabel("for_check"));
+    AsmStrImmediate start_label(asm_code.GenLabel("for_check"));
     ObtainLabels(asm_code);
     last_val->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_JMP, continue_label, SIZE_NONE);
@@ -198,7 +198,7 @@ void StmtUntil::Print(ostream& o, int offset) const
 void StmtUntil::Generate(AsmCode& asm_code)
 {
     ObtainLabels(asm_code);
-    AsmImmediate start_label(asm_code.GenLabel("until_start"));
+    AsmStrImmediate start_label(asm_code.GenLabel("until_start"));
     asm_code.AddLabel(start_label);
     body->Generate(asm_code);
     asm_code.AddLabel(continue_label);
@@ -233,8 +233,8 @@ void StmtIf::Print(ostream& o, int offset) const
 
 void StmtIf::Generate(AsmCode& asm_code)
 {
-    AsmImmediate label_else(asm_code.GenLabel("else"));
-    AsmImmediate label_fin(asm_code.GenLabel("fin"));
+    AsmStrImmediate label_else(asm_code.GenLabel("else"));
+    AsmStrImmediate label_fin(asm_code.GenLabel("fin"));
     condition->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_POP, REG_EAX);
     asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
@@ -262,13 +262,13 @@ void StmtJump::Print(ostream& o, int offset) const
 
 void StmtJump::Generate(AsmCode& asm_code)
 {
-    AsmImmediate label = op.GetValue() == TOK_BREAK ? loop->GetBreakLabel() : loop->GetContinueLabel();
+    AsmStrImmediate label = op.GetValue() == TOK_BREAK ? loop->GetBreakLabel() : loop->GetContinueLabel();
     asm_code.AddCmd(ASM_JMP, label, SIZE_NONE);
 }
 
 //---StmtExit---
 
-StmtExit::StmtExit(AsmImmediate exit_label):
+StmtExit::StmtExit(AsmStrImmediate exit_label):
     label(exit_label)
 {
 }

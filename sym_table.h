@@ -68,8 +68,8 @@ protected:
     vector<SymVarParam*> params;
     SymTable* sym_table;
     NodeStatement* body;
-    AsmImmediate label;
-    AsmImmediate exit_label;
+    AsmStrImmediate label;
+    AsmStrImmediate exit_label;
     virtual void PrintPrototype(ostream& o, int offset) const;
 public:
     SymProc(Token token_, SymTable* syn_table_);
@@ -86,8 +86,8 @@ public:
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual void Print(ostream& o, int offset = 0) const;
     void GenerateDeclaration(AsmCode& asm_code);
-    AsmImmediate GetLabel() const;
-    AsmImmediate GetExitLabel() const;
+    AsmStrImmediate GetLabel() const;
+    AsmStrImmediate GetExitLabel() const;
     void ObtainLabels(AsmCode& asm_code);
     bool IsHaveBody() const;
     bool ValidateParams(SymProc* src);
@@ -227,11 +227,11 @@ public:
 
 class SymVarGlobal: public SymVar{
 private:
-    AsmImmediate label;
+    AsmStrImmediate label;
 public:
     SymVarGlobal(Token name, const SymType* type);
-    void SetLabel(AsmImmediate& new_label);
-    AsmImmediate GetLabel() const;
+    void SetLabel(AsmStrImmediate& new_label);
+    AsmStrImmediate GetLabel() const;
     virtual SymbolClass GetClassName() const;
     void GenerateDeclaration(AsmCode& asm_code);
     virtual void GenerateLValue(AsmCode& asm_code) const;

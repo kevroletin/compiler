@@ -23,7 +23,7 @@ private:
     std::vector<SymTable*> sym_table_stack;
     std::vector<StmtLoop*> loop_stack;
     SymProc* current_proc;
-    AsmImmediate exit_label;
+    AsmStrImmediate exit_label;
     AsmCode asm_code;
     SyntaxNode* ConvertType(SyntaxNode* node, const SymType* type);
     void TryToConvertType(SyntaxNode*& first, SyntaxNode*& second);

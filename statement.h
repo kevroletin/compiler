@@ -41,14 +41,14 @@ public:
 
 class StmtLoop: public NodeStatement{
 protected:
-    AsmImmediate break_label;
-    AsmImmediate continue_label;
+    AsmStrImmediate break_label;
+    AsmStrImmediate continue_label;
     NodeStatement* body;
     void ObtainLabels(AsmCode& asm_code);
 public:
     StmtLoop(NodeStatement* body_);
-    AsmImmediate GetBreakLabel() const;
-    AsmImmediate GetContinueLabel() const;
+    AsmStrImmediate GetBreakLabel() const;
+    AsmStrImmediate GetContinueLabel() const;
     void AddBody(NodeStatement* body);
 };
 
@@ -106,9 +106,9 @@ public:
 
 class StmtExit: public NodeStatement{
 private:
-    AsmImmediate label;
+    AsmStrImmediate label;
 public:
-    StmtExit(AsmImmediate exit_label);
+    StmtExit(AsmStrImmediate exit_label);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
 };
