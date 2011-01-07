@@ -51,6 +51,10 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
+    virtual bool IsConst() const;
+    virtual Token* ComputeConstExpr() const;
+    virtual int ComputeIntConstExpr() const;
+    virtual float ComputeRealConstExpr() const;
 };
 
 class NodeUnaryOp: public SyntaxNode{
@@ -64,6 +68,7 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;
     void GenerateValue(AsmCode& asm_code) const;
+    virtual bool IsConst() const;
 };
 
 class NodeIntToRealConv: public NodeUnaryOp{
@@ -74,6 +79,7 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
+    virtual float ComputeRealConstExpr() const;
 };
 
 class NodeVar: public SyntaxNode{
@@ -87,6 +93,9 @@ public:
     virtual bool IsLValue() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
+    virtual int ComputeIntConstExpr() const;
+    virtual float ComputeRealConstExpr() const;
+    virtual bool IsConst() const;
 };
 
 class NodeArrayAccess: public SyntaxNode{

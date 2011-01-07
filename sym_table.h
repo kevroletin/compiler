@@ -117,6 +117,7 @@ public:
     void PrintAsNode(ostream& o, int offset = 0) const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
+    virtual bool IsConst() const;
 };
 
 //---SymType descendants---

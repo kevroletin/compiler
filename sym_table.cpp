@@ -326,6 +326,11 @@ void SymVar::GenerateValue(AsmCode& asm_code) const
 {
 }
 
+bool SymVar::IsConst() const
+{
+    return token.IsConst();
+}
+
 //---SymTypeScalar---
 
 SymTypeScalar::SymTypeScalar(Token name):

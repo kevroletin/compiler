@@ -406,6 +406,15 @@ int Token::GetIntValue() const
     return hex_str_to_i(name + 1);    
 }
 
+float Token::GetRealValue() const
+{
+    float res;
+    stringstream s;
+    s << name;
+    s >> res;
+    return res;
+}
+
 void Token::ChangeSign()
 {
     if (name[0] == '+') name[0] = '-';
@@ -418,6 +427,39 @@ void Token::ChangeSign()
         delete name;
         name = tmp;
     }
+}
+
+//---IntToken---
+
+IntToken::IntToken(int value_):
+    value(value_)
+{
+    type = INT_CONST;
+    stringstream s;
+    s << value;
+    delete name;
+    name = strcpy(new char[s.str().size() + 1], s.str().c_str());
+}
+
+int IntToken::GetIntValue() const
+{
+    return value;
+}
+
+//---RealToken---
+
+RealToken::RealToken(float value_):
+    value(value_)
+{
+    type = REAL_CONST;
+    stringstream s;
+    s << value;
+    delete name;
+    name = strcpy(new char[s.str().size() + 1], s.str().c_str());}
+
+float RealToken::GetRealValue() const
+{
+    return value;
 }
 
 //---Scanner---

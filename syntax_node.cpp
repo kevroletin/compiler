@@ -271,6 +271,127 @@ void NodeBinaryOp::GenerateValue(AsmCode& asm_code) const
     else GenerateForReal(asm_code);
 }
 
+bool NodeBinaryOp::IsConst() const
+{
+    return left->IsConst() && right->IsConst();
+}
+
+int NodeBinaryOp::ComputeIntConstExpr() const
+{
+    if (left->GetSymType() == top_type_int)
+    {
+        int a = left->ComputeIntConstExpr();
+        int b = right->ComputeIntConstExpr();
+        switch (token.GetValue())
+        {
+            case TOK_PLUS:
+                return a + b;
+            break;
+            case TOK_MINUS:
+                return a - b;
+            break;
+            case TOK_MULT:
+                return a * b;
+            break;
+            case TOK_DIV:
+                return a / b;
+            break;
+            case TOK_MOD:
+                return a % b;
+            case TOK_AND:
+                return a & b;
+            break;
+            case TOK_OR:
+                return a | b;
+            break;
+            case TOK_XOR:
+                return a ^ b;
+            break;
+            case TOK_SHR:
+                return a >> b;
+            break;
+            case TOK_SHL:
+                return a << b;
+            break;
+            case TOK_NOT:
+//                return a ~ b;
+            break;
+            case TOK_GREATER:
+                return a > b;
+            break;
+            case TOK_GREATER_OR_EQUAL:
+                return a >= b;
+            break;
+            case TOK_LESS:
+                return a < b;
+            break;
+            case TOK_LESS_OR_EQUAL:
+                return a <= b;
+            break;
+            case TOK_EQUAL:
+                return a == b;
+            break;
+            case TOK_NOT_EQUAL:
+                return a != b;
+        }
+    }
+    else
+    {
+        float a = left->ComputeRealConstExpr();
+        float b = right->ComputeRealConstExpr();
+        switch (token.GetValue())
+        {
+            case TOK_GREATER:
+                return a > b;
+            break;
+            case TOK_GREATER_OR_EQUAL:
+                return a >= b;
+            break;
+            case TOK_LESS:
+                return a < b;
+            break;
+            case TOK_LESS_OR_EQUAL:
+                return a <= b;
+            break;
+            case TOK_EQUAL:
+                return a == b;
+            break;
+            case TOK_NOT_EQUAL:
+                return a != b;
+        }
+    }
+}
+
+float NodeBinaryOp::ComputeRealConstExpr() const
+{
+    if (left->GetSymType() == top_type_int)
+    {
+        float a = left->ComputeRealConstExpr();
+        float b = right->ComputeRealConstExpr();
+        switch (token.GetValue())
+        {
+            case TOK_PLUS:
+                return a + b;
+            break;
+            case TOK_MINUS:
+                return a - b;
+            break;
+            case TOK_MULT:
+                return a * b;
+            break;
+            case TOK_DIV:
+                return a / b;
+            break;
+        }
+    }
+}
+
+Token* NodeBinaryOp::ComputeConstExpr() const
+{
+    if (GetSymType() == top_type_int) return new IntToken(ComputeIntConstExpr());
+    return new RealToken(ComputeRealConstExpr());
+}
+
 //---NodeUnaryOp---
 
 void NodeUnaryOp::GenerateForInt(AsmCode& asm_code) const
@@ -326,6 +447,11 @@ void NodeUnaryOp::GenerateValue(AsmCode& asm_code) const
     else GenerateForReal(asm_code);
 }
 
+bool NodeUnaryOp::IsConst() const
+{
+    return child->IsConst();
+}
+
 // NodeIntToRealConv
 
 NodeIntToRealConv::NodeIntToRealConv(SyntaxNode* child_, SymType* real_type_):
@@ -352,6 +478,11 @@ void NodeIntToRealConv::GenerateValue(AsmCode& asm_code) const
     child->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_FILD, AsmMemory(REG_ESP), SIZE_SHORT);
     asm_code.AddCmd(ASM_FSTP, AsmMemory(REG_ESP), SIZE_SHORT);
+}
+
+float NodeIntToRealConv::ComputeRealConstExpr() const
+{
+    return child->ComputeRealConstExpr();
 }
 
 //---NodeVar---
@@ -389,6 +520,21 @@ void NodeVar::GenerateLValue(AsmCode& asm_code) const
 void NodeVar::GenerateValue(AsmCode& asm_code) const
 {
     var->GenerateValue(asm_code);
+}
+
+int NodeVar::ComputeIntConstExpr() const
+{
+    return var->GetToken().GetIntValue();
+}
+
+float NodeVar::ComputeRealConstExpr() const
+{
+    return var->GetToken().GetRealValue();
+}
+
+bool NodeVar::IsConst() const
+{
+    return var->IsConst();
 }
 
 //---NodeArrayAccess----

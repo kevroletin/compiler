@@ -233,18 +233,30 @@ void StmtIf::Print(ostream& o, int offset) const
 
 void StmtIf::Generate(AsmCode& asm_code)
 {
+    bool is_const = condition->IsConst();
+    bool is_true;
+    if (is_const) is_true = condition->ComputeIntConstExpr();
     AsmStrImmediate label_else(asm_code.GenLabel("else"));
     AsmStrImmediate label_fin(asm_code.GenLabel("fin"));
-    condition->GenerateValue(asm_code);
-    asm_code.AddCmd(ASM_POP, REG_EAX);
-    asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
-    asm_code.AddCmd(ASM_JZ, label_else, SIZE_NONE);
-    then_branch->Generate(asm_code);
-    asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);
-    asm_code.AddLabel(label_else);
-    if (else_branch != NULL) else_branch->Generate(asm_code);
-    asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);
-    asm_code.AddLabel(label_fin);
+    if (!is_const)
+    {
+        condition->GenerateValue(asm_code);
+        asm_code.AddCmd(ASM_POP, REG_EAX);
+        asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
+        asm_code.AddCmd(ASM_JZ, label_else, SIZE_NONE);
+    }
+    if (!is_const || is_true) then_branch->Generate(asm_code);
+    if (!is_const)
+    {
+        asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);
+        asm_code.AddLabel(label_else);
+    }
+    if (else_branch != NULL && (!is_const || !is_true)) else_branch->Generate(asm_code);
+    if (!is_const)
+    {
+        asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);
+        asm_code.AddLabel(label_fin);
+    }
 }
 
 //---StmtJump---

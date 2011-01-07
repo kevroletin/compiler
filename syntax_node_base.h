@@ -14,6 +14,10 @@ public:
     virtual bool IsLValue() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;    
     virtual void GenerateValue(AsmCode& asm_code) const;
+    virtual bool IsConst() const;
+    virtual Token* ComputeConstExpr() const;
+    virtual int ComputeIntConstExpr() const;
+    virtual float ComputeRealConstExpr() const;
 };
 
 #endif

@@ -110,7 +110,7 @@ public:
 };
 
 class Token{
-private:
+protected:
     TokenType type;
     TokenValue value;
     int line;
@@ -134,12 +134,29 @@ public:
     ~Token();
     TokenType GetType() const;
     TokenValue GetValue() const;
-    const char* GetName() const;
     int GetPos() const;
     int GetLine() const;
     void NameToLowerCase();
-    int GetIntValue() const;
+    virtual const char* GetName() const;
+    virtual int GetIntValue() const;
+    virtual float GetRealValue() const;
     void ChangeSign();
+};
+
+class IntToken: public Token{
+private:
+    int value;
+public:
+    IntToken(int value_);
+    virtual int GetIntValue() const;
+};
+
+class RealToken: public Token{
+private:
+    float value;
+public:
+    RealToken(float value_);
+    virtual float GetRealValue() const;
 };
 
 class Scanner{
