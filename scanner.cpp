@@ -434,7 +434,6 @@ Token::Token(int value)
     type = INT_CONST;
     stringstream s;
     s << value;
-    delete name;
     name = strcpy(new char[s.str().size() + 1], s.str().c_str());
 }
 
@@ -443,8 +442,8 @@ Token::Token(float value)
     type = REAL_CONST;
     stringstream s;
     s << value;
-    delete name;
-    name = strcpy(new char[s.str().size() + 1], s.str().c_str());}
+    name = strcpy(new char[s.str().size() + 1], s.str().c_str());
+}
 
 //---Scanner---
 

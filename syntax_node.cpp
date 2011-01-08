@@ -364,25 +364,22 @@ int NodeBinaryOp::ComputeIntConstExpr() const
 
 float NodeBinaryOp::ComputeRealConstExpr() const
 {
-    if (left->GetSymType() == top_type_int)
+    float a = left->ComputeRealConstExpr();
+    float b = right->ComputeRealConstExpr();
+    switch (token.GetValue())
     {
-        float a = left->ComputeRealConstExpr();
-        float b = right->ComputeRealConstExpr();
-        switch (token.GetValue())
-        {
-            case TOK_PLUS:
-                return a + b;
-            break;
-            case TOK_MINUS:
-                return a - b;
-            break;
-            case TOK_MULT:
-                return a * b;
-            break;
-            case TOK_DIV:
-                return a / b;
-            break;
-        }
+        case TOK_PLUS:
+            return a + b;
+        break;
+        case TOK_MINUS:
+            return a - b;
+        break;
+        case TOK_MULT:
+            return a * b;
+        break;
+        case TOK_DIVISION:
+            return a / b;
+        break;
     }
 }
 
@@ -452,7 +449,7 @@ int NodeUnaryOp::ComputeIntConstExpr() const
     switch (token.GetValue())
     {
         case TOK_NOT:
-            return ~a;
+            return !a;
         break;
         case TOK_PLUS:
             return a;

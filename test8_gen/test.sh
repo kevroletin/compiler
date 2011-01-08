@@ -9,10 +9,11 @@ do
     ../debug -g $i.in > $i.s
     if [ "$?" -eq "0" ]
     then
-        gcc -m32 $i.s -o a.out 2> $i.res
-        if [ -e a.out ]
+        gcc -m32 $i.s -o a 2> $i.res
+        if [ -e a ]
         then
-                ./a.out > $i.res 2> $i.res
+                ./a > $i.res 2> $i.res
+                rm a
         fi
     else
         cp $i.s $i.res

@@ -37,6 +37,7 @@ private:
     SyntaxNode* GetIntExprOrDie();
     int GetIntConstValueOrDie();
     Token GetConstTokOrDie();
+    SymVarConst* ParseConstExprOrDie(Token const_name);
     SymVarConst* ParseConstant(Token const_name);
     SyntaxNode* ParseFunctionCall(SymProc* funct_if);
     SyntaxNode* ParseWriteFunctCall();

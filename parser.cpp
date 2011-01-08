@@ -187,7 +187,7 @@ void Parser::ParseConstDeclarations()
         Token name = scan.GetToken();
         if (FindSymbol(name) != NULL) Error("duplicate declaration");
         CheckNextTokOrDie(TOK_EQUAL);
-        SymVarConst* sym = ParseConstant(name);
+        SymVarConst* sym = ParseConstExprOrDie(name);// ParseConstant(name);
         sym_table_stack.back()->Add(sym);
         CheckTokOrDie(TOK_SEMICOLON);
     }
@@ -667,6 +667,16 @@ SyntaxNode* Parser::ParseWriteFunctCall()
         scan.NextToken();
     }
     return write;
+}
+
+SymVarConst* Parser::ParseConstExprOrDie(Token const_name)
+{
+    SyntaxNode* expr = ParseRelationalExpr();
+    if (!expr->IsConst()) Error("constant expression expected");
+    Token val = expr->ComputeConstExpr();
+    SymVarConst* res = new SymVarConst(const_name, val, expr->GetSymType());
+    //delete expr
+    return res;
 }
 
 SymVarConst* Parser::ParseConstant(Token const_name)

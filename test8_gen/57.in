@@ -1,0 +1,10 @@
+begin
+    if (1) then WriteLn('good') else WriteLn('bad');
+    if (0) then WriteLn('bad') else Writeln('good');
+    
+    if (1 + 2*4) then WriteLn('good') else WriteLn('bad');
+    if (4 mod 2) then WriteLn('bad') else WriteLn('good');
+    
+    if (2.2 < 20) then WriteLn('good') else WriteLn('bad');
+    if (2.2 <> 2.2) then WriteLn('bad') else WriteLn('good');
+end.

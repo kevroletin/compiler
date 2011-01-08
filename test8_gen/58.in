@@ -1,0 +1,6 @@
+const
+  n = 10;
+begin
+  if (n) then WriteLn('good') else WriteLn('bad');
+  if (n - 10) then WriteLn('bad') else WriteLn('good');
+end.

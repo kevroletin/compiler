@@ -1,0 +1,10 @@
+const 
+  a = 10;
+  b = 5;
+  c = a * b;
+  d = a / b;
+  r = 2.0;
+begin
+  if (c = 50) then Writeln('good') else Writeln('bad');
+  if (d = 2.0) then Writeln('good') else Writeln('bad');
+end.
