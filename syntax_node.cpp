@@ -386,12 +386,6 @@ float NodeBinaryOp::ComputeRealConstExpr() const
     }
 }
 
-Token* NodeBinaryOp::ComputeConstExpr() const
-{
-    if (GetSymType() == top_type_int) return new IntToken(ComputeIntConstExpr());
-    return new RealToken(ComputeRealConstExpr());
-}
-
 //---NodeUnaryOp---
 
 void NodeUnaryOp::GenerateForInt(AsmCode& asm_code) const
@@ -450,6 +444,30 @@ void NodeUnaryOp::GenerateValue(AsmCode& asm_code) const
 bool NodeUnaryOp::IsConst() const
 {
     return child->IsConst();
+}
+
+int NodeUnaryOp::ComputeIntConstExpr() const
+{
+    int a = child->ComputeIntConstExpr();
+    switch (token.GetValue())
+    {
+        case TOK_NOT:
+            return ~a;
+        break;
+        case TOK_PLUS:
+            return a;
+        break;
+        case TOK_MINUS:
+            return -a;
+        break;
+    }
+}
+
+float NodeUnaryOp::ComputeRealConstExpr() const
+{
+    float a = child->ComputeRealConstExpr();
+    if (token.GetValue() == TOK_PLUS) return a;
+    return -a;
 }
 
 // NodeIntToRealConv
@@ -524,17 +542,17 @@ void NodeVar::GenerateValue(AsmCode& asm_code) const
 
 int NodeVar::ComputeIntConstExpr() const
 {
-    return var->GetToken().GetIntValue();
+    return ((SymVarConst*)var)->GetValueTok().GetIntValue();
 }
 
 float NodeVar::ComputeRealConstExpr() const
 {
-    return var->GetToken().GetRealValue();
+    return ((SymVarConst*)var)->GetValueTok().GetRealValue();
 }
 
 bool NodeVar::IsConst() const
 {
-    return var->IsConst();
+    return var->GetClassName() & SYM_VAR_CONST;
 }
 
 //---NodeArrayAccess----

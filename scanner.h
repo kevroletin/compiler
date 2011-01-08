@@ -129,7 +129,9 @@ public:
     Token();
     Token(const char* name_, TokenType type_, TokenValue value_, int line_ = -1, int pos_ = -1);
     Token(const Token& token);
-    Token(TokenValue val); 
+    Token(TokenValue val);
+    Token(int value_);
+    Token(float value_);
     Token& operator=(const Token& token);
     ~Token();
     TokenType GetType() const;
@@ -141,22 +143,6 @@ public:
     virtual int GetIntValue() const;
     virtual float GetRealValue() const;
     void ChangeSign();
-};
-
-class IntToken: public Token{
-private:
-    int value;
-public:
-    IntToken(int value_);
-    virtual int GetIntValue() const;
-};
-
-class RealToken: public Token{
-private:
-    float value;
-public:
-    RealToken(float value_);
-    virtual float GetRealValue() const;
 };
 
 class Scanner{

@@ -29,9 +29,10 @@ bool SyntaxNode::IsConst() const
     return false;
 }
 
-Token* SyntaxNode::ComputeConstExpr() const
+Token SyntaxNode::ComputeConstExpr() const
 {
-    return NULL;
+    if (GetSymType() == top_type_int) return Token(ComputeIntConstExpr());
+    return Token(ComputeRealConstExpr());
 }
 
 int SyntaxNode::ComputeIntConstExpr() const

@@ -429,10 +429,7 @@ void Token::ChangeSign()
     }
 }
 
-//---IntToken---
-
-IntToken::IntToken(int value_):
-    value(value_)
+Token::Token(int value)
 {
     type = INT_CONST;
     stringstream s;
@@ -441,26 +438,13 @@ IntToken::IntToken(int value_):
     name = strcpy(new char[s.str().size() + 1], s.str().c_str());
 }
 
-int IntToken::GetIntValue() const
-{
-    return value;
-}
-
-//---RealToken---
-
-RealToken::RealToken(float value_):
-    value(value_)
+Token::Token(float value)
 {
     type = REAL_CONST;
     stringstream s;
     s << value;
     delete name;
     name = strcpy(new char[s.str().size() + 1], s.str().c_str());}
-
-float RealToken::GetRealValue() const
-{
-    return value;
-}
 
 //---Scanner---
 

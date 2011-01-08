@@ -52,7 +52,6 @@ public:
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual bool IsConst() const;
-    virtual Token* ComputeConstExpr() const;
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
 };
@@ -69,6 +68,8 @@ public:
     virtual const SymType* GetSymType() const;
     void GenerateValue(AsmCode& asm_code) const;
     virtual bool IsConst() const;
+    virtual int ComputeIntConstExpr() const;
+    virtual float ComputeRealConstExpr() const;
 };
 
 class NodeIntToRealConv: public NodeUnaryOp{
