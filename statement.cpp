@@ -329,7 +329,7 @@ bool StmtIf::IsAffectToVar(SymVar* var) const
 {
     return condition->IsAffectToVar(var) ||
         (then_branch == NULL || then_branch->IsAffectToVar(var)) ||
-        (else_branch == NULL || ->IsAffectToVar(var));
+        (else_branch == NULL || else_branch->IsAffectToVar(var));
 }
 
 bool StmtIf::IsHaveSideEffect() const

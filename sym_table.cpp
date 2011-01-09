@@ -249,9 +249,9 @@ bool SymProc::ValidateParams(SymProc* src)
     return true;
 }
 
-bool SymProc::IsDummyProc() const
+bool SymProc::IsDummyProc()
 {
-    if (body->IsHaveSideEffect()) return false;
+    if (IsHaveSideEffect()) return false;
     for (vector<SymVarParam*>::const_iterator it = params.begin(); it != params.end(); ++it)
         if ((*it)->IsByRef()) return false;
     return true;
@@ -312,7 +312,7 @@ void SymFunct::Print(ostream& o, int offset) const
     result_type->Print(o, 0);
 }
 
-bool SymFunct::IsDummyProc() const
+bool SymFunct::IsDummyProc()
 {
     return false;
 }

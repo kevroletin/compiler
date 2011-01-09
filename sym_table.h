@@ -95,7 +95,7 @@ public:
     void ObtainLabels(AsmCode& asm_code);
     bool IsHaveBody() const;
     bool ValidateParams(SymProc* src);
-    virtual bool IsDummyProc() const;
+    virtual bool IsDummyProc();
     bool IsHaveSideEffect();
     bool IsAffectToVar(SymVar* var);
 };
@@ -110,7 +110,7 @@ public:
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetResultType() const;
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual bool IsDummyProc() const;
+    virtual bool IsDummyProc();
 };
 
 class SymVar: public Symbol{
