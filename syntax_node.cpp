@@ -56,6 +56,7 @@ const SymType* NodeCall::GetSymType() const
 
 void NodeCall::GenerateValue(AsmCode& asm_code) const
 {
+    if (funct->IsDummyProc()) return;
     if (funct->GetResultType()->GetSize())
         asm_code.AddCmd(ASM_SUB, funct->GetResultType()->GetSize(), REG_ESP);
     for (int i = args.size() - 1 ; 0 <= i ; --i)
@@ -64,6 +65,18 @@ void NodeCall::GenerateValue(AsmCode& asm_code) const
         else
             args[i]->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_CALL, AsmMemory(funct->GetLabel()));
+}
+
+bool NodeCall::IsAffectToVar(SymVar* var) const
+{
+    for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++ it)
+        if ((*it)->IsAffectToVar(var)) return true;
+    return funct->GetBody()->IsAffectToVar(var);
+}
+
+bool NodeCall::IsHaveSideEffect() const
+{
+    funct->GetBody()->IsHaveSideEffect();
 }
 
 //---NodeWriteCall---
@@ -98,6 +111,11 @@ void NodeWriteCall::GenerateValue(AsmCode& asm_code) const
 const SymType* NodeWriteCall::GetSymType() const
 {
     return top_type_untyped;
+}
+
+bool NodeWriteCall::IsHaveSideEffect() const
+{
+    return true;
 }
 
 //---NodeBinaryOp---
@@ -383,6 +401,34 @@ float NodeBinaryOp::ComputeRealConstExpr() const
     }
 }
 
+bool NodeBinaryOp::TryToBecomeConst(SyntaxNode*& link)
+{
+    bool lc = left->IsConst();
+    bool rc = right->IsConst();
+    if (!lc && !rc) return false;
+    if (!lc || !rc)
+    {
+        left->TryToBecomeConst(left);
+        right->TryToBecomeConst(right);
+        return true;
+    }
+    Token tok_val(ComputeConstExpr());
+    SymVarConst* sym = new SymVarConst(tok_val, tok_val, GetSymType());
+    link = new NodeVar(sym);
+    delete this;
+    return true;
+}
+
+bool NodeBinaryOp::IsAffectToVar(SymVar* var) const
+{
+    return left->IsAffectToVar(var) || right->IsAffectToVar(var);
+}
+
+bool NodeBinaryOp::IsHaveSideEffect() const
+{
+    return left->IsHaveSideEffect() || right->IsHaveSideEffect();
+}
+
 //---NodeUnaryOp---
 
 void NodeUnaryOp::GenerateForInt(AsmCode& asm_code) const
@@ -467,7 +513,27 @@ float NodeUnaryOp::ComputeRealConstExpr() const
     return -a;
 }
 
-// NodeIntToRealConv
+bool NodeUnaryOp::TryToBecomeConst(SyntaxNode*& link)
+{
+    if (!child->IsConst()) return false;
+    Token tok_val(child->ComputeConstExpr());
+    SymVarConst* sym = new SymVarConst(tok_val, tok_val, GetSymType());
+    link = new NodeVar(sym);
+    delete this;
+    return true;
+}
+
+bool NodeUnaryOp::IsAffectToVar(SymVar* var) const
+{
+    return child->IsAffectToVar(var);
+}
+
+bool NodeUnaryOp::IsHaveSideEffect() const
+{
+    return child->IsHaveSideEffect();
+}
+
+//---NodeIntToRealConv---
 
 NodeIntToRealConv::NodeIntToRealConv(SyntaxNode* child_, SymType* real_type_):
     NodeUnaryOp(Token(), child_),
@@ -552,6 +618,16 @@ bool NodeVar::IsConst() const
     return var->GetClassName() & SYM_VAR_CONST;
 }
 
+bool NodeVar::IsAffectToVar(SymVar* var_) const
+{
+    return var == var_;
+}
+
+bool NodeVar::IsHaveSideEffect() const
+{
+    return var->GetClassName() & SYM_VAR_GLOBAL;
+}
+
 //---NodeArrayAccess----
 
 NodeArrayAccess::NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_):
@@ -610,6 +686,16 @@ void NodeArrayAccess::GenerateValue(AsmCode& asm_code) const
     }
 }
 
+bool NodeArrayAccess::IsAffectToVar(SymVar* var) const
+{
+    return arr->IsAffectToVar(var);
+}
+
+bool NodeArrayAccess::IsHaveSideEffect() const
+{
+    return arr->IsHaveSideEffect();
+}
+
 //---NodeRecordAccess---
 
 NodeRecordAccess::NodeRecordAccess(SyntaxNode* record_, Token field_):
@@ -651,4 +737,14 @@ void NodeRecordAccess::GenerateValue(AsmCode& asm_code) const
 {
     GenerateLValue(asm_code);
     asm_code.PushMemory(field->GetVarType()->GetSize());
+}
+
+bool NodeRecordAccess::IsAffectToVar(SymVar* var) const
+{
+    return record->IsAffectToVar(var);
+}
+
+bool NodeRecordAccess::IsHaveSideEffect() const
+{
+    return record->IsHaveSideEffect();
 }

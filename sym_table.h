@@ -80,6 +80,7 @@ public:
     int GetArgsCount() const;
     const SymVarParam* GetArg(int arg_num) const;
     SymTable* GetSymTable() const;
+    NodeStatement* GetBody() const;
     void AddBody(NodeStatement* body_);
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetResultType() const;
@@ -91,6 +92,7 @@ public:
     void ObtainLabels(AsmCode& asm_code);
     bool IsHaveBody() const;
     bool ValidateParams(SymProc* src);
+    virtual bool IsDummyProc() const;
 };
 
 class SymFunct: public SymProc{
@@ -103,6 +105,7 @@ public:
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetResultType() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual bool IsDummyProc() const;
 };
 
 class SymVar: public Symbol{

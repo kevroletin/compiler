@@ -1,0 +1,17 @@
+;; Object compiler
+;; EDE project file.
+(ede-proj-project "compiler"
+  :name "compiler"
+  :file "Project.ede"
+  :targets (list 
+   (ede-proj-target-makefile-program "debug"
+    :name "debug"
+    :path ""
+    :source '("main.cpp" "parser.cpp" "exception.cpp" "scanner.cpp" "syntax_node.cpp" "statement_base.cpp" "syntax_node_base.cpp" "sym_table.cpp" "generator.cpp" "statement.cpp")
+    :auxsource '("exception.h" "parser.h" "scanner.h" "syntax_node.h" "sym_table.h" "statement_base.h" "syntax_node_base.h" "generator.h" "statement.h" "asm_commands.h" "optimizer.h")
+    :compiler 'ede-g++-compiler
+    :linker 'ede-g++-linker
+    :configuration-variables 'nil
+    )
+   )
+  )

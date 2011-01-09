@@ -32,6 +32,16 @@ void StmtAssign::Generate(AsmCode& asm_code)
     asm_code.MoveToMemoryFromStack(left->GetSymType()->GetSize());
 }
 
+bool StmtAssign::IsAffectToVar(SymVar* var) const
+{
+    return left->IsAffectToVar(var) || right->IsAffectToVar(var);
+}
+
+bool StmtAssign::IsHaveSideEffect() const
+{
+    return left->IsHaveSideEffect() || right->IsHaveSideEffect();
+}
+
 //---StmtBlock---
 
 void StmtBlock::AddStatement(NodeStatement* new_stmt)
@@ -53,6 +63,20 @@ void StmtBlock::Generate(AsmCode& asm_code)
         (*it)->Generate(asm_code);
 }
 
+bool StmtBlock::IsAffectToVar(SymVar* var) const
+{
+    for (std::vector<NodeStatement*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
+        if ((*it)->IsAffectToVar(var)) return true;
+    return false;
+}
+
+bool StmtBlock::IsHaveSideEffect() const
+{
+    for (std::vector<NodeStatement*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
+        if ((*it)->IsHaveSideEffect()) return true;
+    return false;
+}
+
 //---StmtExpression---
 
 StmtExpression::StmtExpression(SyntaxNode* expression):
@@ -69,6 +93,16 @@ void StmtExpression::Generate(AsmCode& asm_code)
 {
     expr->GenerateValue(asm_code);
     asm_code.AddCmd(ASM_ADD, expr->GetSymType()->GetSize(), REG_ESP);
+}
+
+bool StmtExpression::IsAffectToVar(SymVar* var) const
+{
+    return expr->IsAffectToVar(var);
+}
+
+bool StmtExpression::IsHaveSideEffect() const
+{
+    return expr->IsHaveSideEffect();
 }
 
 //---StmtLoop---
@@ -147,6 +181,18 @@ void StmtFor::Generate(AsmCode& asm_code)
     asm_code.AddCmd(ASM_ADD, 4, REG_ESP);
 }
 
+bool StmtFor::IsAffectToVar(SymVar* var) const
+{
+    return (index == var) || body->IsAffectToVar(var) || init_val->IsAffectToVar(var)
+        || last_val->IsAffectToVar(var);
+}
+
+bool StmtFor::IsHaveSideEffect() const
+{
+    return (index->GetClassName() & SYM_VAR_GLOBAL) || body->IsHaveSideEffect()
+        || init_val->IsHaveSideEffect() || last_val->IsHaveSideEffect();
+}
+
 //---StmtWhile---
 
 StmtWhile::StmtWhile(SyntaxNode* condition_, NodeStatement* body_):
@@ -173,6 +219,16 @@ void StmtWhile::Generate(AsmCode& asm_code)
     body->Generate(asm_code);
     asm_code.AddCmd(ASM_JMP, continue_label, SIZE_NONE);
     asm_code.AddLabel(break_label);
+}
+
+bool StmtWhile::IsAffectToVar(SymVar* var) const
+{
+    return condition->IsAffectToVar(var) || body->IsAffectToVar(var);
+}
+
+bool StmtWhile::IsHaveSideEffect() const
+{
+    return condition->IsHaveSideEffect() || body->IsHaveSideEffect();
 }
 
 //---StmtUntil---
@@ -207,6 +263,16 @@ void StmtUntil::Generate(AsmCode& asm_code)
     asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
     asm_code.AddCmd(ASM_JZ, start_label, SIZE_NONE);
     asm_code.AddLabel(break_label);
+}
+
+bool StmtUntil::IsAffectToVar(SymVar* var) const
+{
+    return condition->IsAffectToVar(var) || body->IsAffectToVar(var);
+}
+
+bool StmtUntil::IsHaveSideEffect() const
+{
+    return condition->IsHaveSideEffect() || body->IsHaveSideEffect();
 }
 
 //---StmtIf---
@@ -259,6 +325,16 @@ void StmtIf::Generate(AsmCode& asm_code)
     }
 }
 
+bool StmtIf::IsAffectToVar(SymVar* var) const
+{
+    return condition->IsAffectToVar(var) || then_branch->IsAffectToVar(var) || else_branch->IsAffectToVar(var);
+}
+
+bool StmtIf::IsHaveSideEffect() const
+{
+    return condition->IsHaveSideEffect() || then_branch->IsHaveSideEffect() || else_branch->IsHaveSideEffect();
+}
+
 //---StmtJump---
 
 StmtJump::StmtJump(Token tok, StmtLoop* loop_):
@@ -278,6 +354,16 @@ void StmtJump::Generate(AsmCode& asm_code)
     asm_code.AddCmd(ASM_JMP, label, SIZE_NONE);
 }
 
+bool StmtJump::IsAffectToVar(SymVar* var) const
+{
+    return false;
+}
+
+bool StmtJump::IsHaveSideEffect() const
+{
+    return true;
+}
+
 //---StmtExit---
 
 StmtExit::StmtExit(AsmStrImmediate exit_label):
@@ -293,4 +379,14 @@ void StmtExit::Print(ostream& o, int offset) const
 void StmtExit::Generate(AsmCode& asm_code)
 {
     asm_code.AddCmd(ASM_JMP, label, SIZE_NONE);
+}
+
+bool StmtExit::IsAffectToVar(SymVar* var) const
+{
+    return false;
+}
+
+bool StmtExit::IsHaveSideEffect() const
+{
+    return true;
 }

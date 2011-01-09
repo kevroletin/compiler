@@ -45,3 +45,22 @@ float SyntaxNode::ComputeRealConstExpr() const
     return 0;
 }
 
+bool SyntaxNode::TryToBecomeConst(SyntaxNode*& link)
+{
+    return false;
+}
+
+
+bool SyntaxNode::IsHaveSideEffect() const
+{
+    return true;
+}
+
+bool SyntaxNode::IsAffectToVar(SymVar*) const
+{
+    return true;
+}
+
+    
+
+

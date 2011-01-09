@@ -145,6 +145,11 @@ SymTable* SymProc::GetSymTable() const
     return sym_table;
 }
 
+NodeStatement* SymProc::GetBody() const
+{
+    return body;
+}
+
 void SymProc::AddBody(NodeStatement* body_)
 {
     body = body_;
@@ -237,6 +242,14 @@ bool SymProc::ValidateParams(SymProc* src)
     return true;
 }
 
+bool SymProc::IsDummyProc() const
+{
+    if (!body->IsHaveSideEffect()) return false;
+    for (vector<SymVarParam*>::const_iterator it = params.begin(); it != params.end(); ++it)
+        if ((*it)->IsByRef()) return false;
+    return true;
+}
+
 //---SymFunct---
 
 SymFunct::SymFunct(Token token_, SymTable* syn_table, const SymType* result_type_):
@@ -275,6 +288,11 @@ void SymFunct::Print(ostream& o, int offset) const
     PrintPrototype(o, offset);
     o << ": ";
     result_type->Print(o, 0);
+}
+
+bool SymFunct::IsDummyProc() const
+{
+    return false;
 }
 
 //---SymVar---

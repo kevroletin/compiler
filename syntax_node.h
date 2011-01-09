@@ -11,7 +11,7 @@ class NodeCallBase: public SyntaxNode{
 protected:
     std::vector<SyntaxNode*> args;
     void PrintArgs(ostream& o, int offset = 0) const;
-public:    
+public:
     void AddArg(SyntaxNode* arg);
 };
 
@@ -25,6 +25,8 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class NodeWriteCall: public NodeCallBase{
@@ -35,6 +37,7 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual const SymType* GetSymType() const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class NodeBinaryOp: public SyntaxNode{
@@ -54,6 +57,9 @@ public:
     virtual bool IsConst() const;
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
+    virtual bool TryToBecomeConst(SyntaxNode*& link);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class NodeUnaryOp: public SyntaxNode{
@@ -70,6 +76,9 @@ public:
     virtual bool IsConst() const;
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
+    virtual bool TryToBecomeConst(SyntaxNode*& link);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class NodeIntToRealConv: public NodeUnaryOp{
@@ -97,6 +106,8 @@ public:
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
     virtual bool IsConst() const;
+    virtual bool IsAffectToVar(SymVar* var_) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class NodeArrayAccess: public SyntaxNode{
@@ -111,6 +122,8 @@ public:
     virtual bool IsLValue() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const; 
+    virtual bool IsAffectToVar(SymVar* var_) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class NodeRecordAccess: public SyntaxNode{
@@ -124,6 +137,8 @@ public:
     virtual bool IsLValue() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const; 
+    virtual bool IsAffectToVar(SymVar* var_) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 #endif

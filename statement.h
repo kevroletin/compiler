@@ -19,6 +19,8 @@ public:
     const SyntaxNode* GetRight() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class StmtBlock: public NodeStatement{
@@ -28,6 +30,8 @@ public:
     void AddStatement(NodeStatement* new_stmt);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class StmtExpression: public NodeStatement{
@@ -37,6 +41,8 @@ public:
     StmtExpression(SyntaxNode* expression);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class StmtLoop: public NodeStatement{
@@ -62,6 +68,8 @@ public:
     StmtFor(const SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value, bool is_inc, NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class StmtWhile: public StmtLoop{
@@ -71,6 +79,8 @@ public:
     StmtWhile(SyntaxNode* condition_, NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class StmtUntil: public StmtLoop{
@@ -81,6 +91,8 @@ public:
     void AddCondition(SyntaxNode* condition);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class StmtIf: public NodeStatement{
@@ -92,6 +104,8 @@ public:
     StmtIf(SyntaxNode* condition_, NodeStatement* then_branch_, NodeStatement* else_branch_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class StmtJump: public NodeStatement{
@@ -102,6 +116,8 @@ public:
     StmtJump(Token tok, StmtLoop* loop_);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 class StmtExit: public NodeStatement{
@@ -111,6 +127,8 @@ public:
     StmtExit(AsmStrImmediate exit_label);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
+    virtual bool IsAffectToVar(SymVar* var) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 #endif

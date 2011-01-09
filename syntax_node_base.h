@@ -6,6 +6,7 @@
 #include <ostream>
 
 class SymType;
+class SymVar;
 
 extern SymType* top_type_int;
 extern SymType* top_type_real;
@@ -23,6 +24,9 @@ public:
     virtual Token ComputeConstExpr() const;
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
+    virtual bool TryToBecomeConst(SyntaxNode*& link);
+    virtual bool IsAffectToVar(SymVar*) const;
+    virtual bool IsHaveSideEffect() const;
 };
 
 #endif

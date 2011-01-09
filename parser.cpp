@@ -675,7 +675,7 @@ SymVarConst* Parser::ParseConstExprOrDie(Token const_name)
     if (!expr->IsConst()) Error("constant expression expected");
     Token val = expr->ComputeConstExpr();
     SymVarConst* res = new SymVarConst(const_name, val, expr->GetSymType());
-    //delete expr
+    delete expr;
     return res;
 }
 
