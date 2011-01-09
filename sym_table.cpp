@@ -116,6 +116,9 @@ void SymProc::PrintPrototype(ostream& o, int offset) const
 
 SymProc::SymProc(Token name):
     Symbol(name),
+    have_side_effect(false),
+    known_side_effect(false),
+    search_affection(NULL),
     sym_table(NULL)
 {
 }
@@ -157,6 +160,9 @@ void SymProc::AddBody(NodeStatement* body_)
 
 SymProc::SymProc(Token token, SymTable* syn_table_):
     Symbol(token),
+    have_side_effect(false),
+    known_side_effect(false),
+    search_affection(NULL),
     sym_table(syn_table_)
 {
 }
@@ -200,6 +206,7 @@ void SymProc::Print(ostream& o, int offset) const
 
 void SymProc::GenerateDeclaration(AsmCode& asm_code)
 {
+    if (IsDummyProc()) return;
     asm_code.AddLabel(label);
     asm_code.AddCmd(ASM_PUSH, REG_EBP);
     asm_code.AddCmd(ASM_MOV, REG_ESP, REG_EBP);
@@ -244,10 +251,25 @@ bool SymProc::ValidateParams(SymProc* src)
 
 bool SymProc::IsDummyProc() const
 {
-    if (!body->IsHaveSideEffect()) return false;
+    if (body->IsHaveSideEffect()) return false;
     for (vector<SymVarParam*>::const_iterator it = params.begin(); it != params.end(); ++it)
         if ((*it)->IsByRef()) return false;
     return true;
+}
+
+bool SymProc::IsHaveSideEffect()
+{
+    if (known_side_effect) return have_side_effect;
+    known_side_effect = true;
+    have_side_effect = body->IsHaveSideEffect();
+    return have_side_effect;
+}
+
+bool SymProc::IsAffectToVar(SymVar* var)
+{
+    if (search_affection == var) return false;
+    search_affection = var;
+    return body->IsAffectToVar(var);
 }
 
 //---SymFunct---

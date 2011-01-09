@@ -65,6 +65,9 @@ public:
 
 class SymProc: public Symbol{
 protected:
+    bool have_side_effect;
+    bool known_side_effect;
+    SymVar* search_affection;
     vector<SymVarParam*> params;
     SymTable* sym_table;
     NodeStatement* body;
@@ -93,6 +96,8 @@ public:
     bool IsHaveBody() const;
     bool ValidateParams(SymProc* src);
     virtual bool IsDummyProc() const;
+    bool IsHaveSideEffect();
+    bool IsAffectToVar(SymVar* var);
 };
 
 class SymFunct: public SymProc{

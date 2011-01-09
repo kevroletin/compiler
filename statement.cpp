@@ -327,12 +327,16 @@ void StmtIf::Generate(AsmCode& asm_code)
 
 bool StmtIf::IsAffectToVar(SymVar* var) const
 {
-    return condition->IsAffectToVar(var) || then_branch->IsAffectToVar(var) || else_branch->IsAffectToVar(var);
+    return condition->IsAffectToVar(var) ||
+        (then_branch == NULL || then_branch->IsAffectToVar(var)) ||
+        (else_branch == NULL || ->IsAffectToVar(var));
 }
 
 bool StmtIf::IsHaveSideEffect() const
 {
-    return condition->IsHaveSideEffect() || then_branch->IsHaveSideEffect() || else_branch->IsHaveSideEffect();
+    return condition->IsHaveSideEffect() ||
+        (then_branch == NULL || then_branch->IsHaveSideEffect()) ||
+        (else_branch == NULL || else_branch->IsHaveSideEffect());
 }
 
 //---StmtJump---

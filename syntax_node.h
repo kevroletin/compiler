@@ -17,16 +17,16 @@ public:
 
 class NodeCall: public NodeCallBase{
 private:
-    const SymProc* funct;
+    SymProc* funct;
 public: 
-    NodeCall(const SymProc* funct_);
+    NodeCall(SymProc* funct_);
     const SymType* GetCurrentArgType() const;
     bool IsCurrentArfByRef() const;
     virtual void Print(ostream& o, int offset = 0) const;
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
-    virtual bool IsAffectToVar(SymVar* var) const;
-    virtual bool IsHaveSideEffect() const;
+    virtual bool IsAffectToVar(SymVar* var);
+    virtual bool IsHaveSideEffect();
 };
 
 class NodeWriteCall: public NodeCallBase{
@@ -37,7 +37,7 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual const SymType* GetSymType() const;
-    virtual bool IsHaveSideEffect() const;
+    virtual bool IsHaveSideEffect();
 };
 
 class NodeBinaryOp: public SyntaxNode{
@@ -58,8 +58,8 @@ public:
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
     virtual bool TryToBecomeConst(SyntaxNode*& link);
-    virtual bool IsAffectToVar(SymVar* var) const;
-    virtual bool IsHaveSideEffect() const;
+    virtual bool IsAffectToVar(SymVar* var);
+    virtual bool IsHaveSideEffect();
 };
 
 class NodeUnaryOp: public SyntaxNode{
@@ -77,8 +77,8 @@ public:
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
     virtual bool TryToBecomeConst(SyntaxNode*& link);
-    virtual bool IsAffectToVar(SymVar* var) const;
-    virtual bool IsHaveSideEffect() const;
+    virtual bool IsAffectToVar(SymVar* var);
+    virtual bool IsHaveSideEffect();
 };
 
 class NodeIntToRealConv: public NodeUnaryOp{
@@ -107,7 +107,7 @@ public:
     virtual float ComputeRealConstExpr() const;
     virtual bool IsConst() const;
     virtual bool IsAffectToVar(SymVar* var_) const;
-    virtual bool IsHaveSideEffect() const;
+    virtual bool IsHaveSideEffect();
 };
 
 class NodeArrayAccess: public SyntaxNode{
@@ -122,13 +122,13 @@ public:
     virtual bool IsLValue() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const; 
-    virtual bool IsAffectToVar(SymVar* var_) const;
-    virtual bool IsHaveSideEffect() const;
+    virtual bool IsAffectToVar(SymVar* var_);
+    virtual bool IsHaveSideEffect();
 };
 
 class NodeRecordAccess: public SyntaxNode{
 private:
-    const SyntaxNode* record;
+    SyntaxNode* record;
     const SymVarLocal* field;
 public:
     NodeRecordAccess(SyntaxNode* record_, Token field_);
@@ -137,8 +137,8 @@ public:
     virtual bool IsLValue() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const; 
-    virtual bool IsAffectToVar(SymVar* var_) const;
-    virtual bool IsHaveSideEffect() const;
+    virtual bool IsAffectToVar(SymVar* var_);
+    virtual bool IsHaveSideEffect();
 };
 
 #endif

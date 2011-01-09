@@ -51,12 +51,12 @@ bool SyntaxNode::TryToBecomeConst(SyntaxNode*& link)
 }
 
 
-bool SyntaxNode::IsHaveSideEffect() const
+bool SyntaxNode::IsHaveSideEffect()
 {
     return true;
 }
 
-bool SyntaxNode::IsAffectToVar(SymVar*) const
+bool SyntaxNode::IsAffectToVar(SymVar*)
 {
     return true;
 }

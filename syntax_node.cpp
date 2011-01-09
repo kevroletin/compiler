@@ -24,7 +24,7 @@ void NodeCallBase::AddArg(SyntaxNode* arg)
 
 //---NodeCall---
 
-NodeCall::NodeCall(const SymProc* funct_):
+NodeCall::NodeCall(SymProc* funct_):
     funct(funct_)
 {
 }
@@ -67,16 +67,16 @@ void NodeCall::GenerateValue(AsmCode& asm_code) const
     asm_code.AddCmd(ASM_CALL, AsmMemory(funct->GetLabel()));
 }
 
-bool NodeCall::IsAffectToVar(SymVar* var) const
+bool NodeCall::IsAffectToVar(SymVar* var)
 {
     for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++ it)
         if ((*it)->IsAffectToVar(var)) return true;
-    return funct->GetBody()->IsAffectToVar(var);
+    return funct->IsAffectToVar(var);
 }
 
-bool NodeCall::IsHaveSideEffect() const
+bool NodeCall::IsHaveSideEffect()
 {
-    funct->GetBody()->IsHaveSideEffect();
+    funct->IsHaveSideEffect();
 }
 
 //---NodeWriteCall---
@@ -113,7 +113,7 @@ const SymType* NodeWriteCall::GetSymType() const
     return top_type_untyped;
 }
 
-bool NodeWriteCall::IsHaveSideEffect() const
+bool NodeWriteCall::IsHaveSideEffect()
 {
     return true;
 }
@@ -419,12 +419,12 @@ bool NodeBinaryOp::TryToBecomeConst(SyntaxNode*& link)
     return true;
 }
 
-bool NodeBinaryOp::IsAffectToVar(SymVar* var) const
+bool NodeBinaryOp::IsAffectToVar(SymVar* var)
 {
     return left->IsAffectToVar(var) || right->IsAffectToVar(var);
 }
 
-bool NodeBinaryOp::IsHaveSideEffect() const
+bool NodeBinaryOp::IsHaveSideEffect()
 {
     return left->IsHaveSideEffect() || right->IsHaveSideEffect();
 }
@@ -523,12 +523,12 @@ bool NodeUnaryOp::TryToBecomeConst(SyntaxNode*& link)
     return true;
 }
 
-bool NodeUnaryOp::IsAffectToVar(SymVar* var) const
+bool NodeUnaryOp::IsAffectToVar(SymVar* var)
 {
     return child->IsAffectToVar(var);
 }
 
-bool NodeUnaryOp::IsHaveSideEffect() const
+bool NodeUnaryOp::IsHaveSideEffect()
 {
     return child->IsHaveSideEffect();
 }
@@ -623,7 +623,7 @@ bool NodeVar::IsAffectToVar(SymVar* var_) const
     return var == var_;
 }
 
-bool NodeVar::IsHaveSideEffect() const
+bool NodeVar::IsHaveSideEffect()
 {
     return var->GetClassName() & SYM_VAR_GLOBAL;
 }
@@ -686,12 +686,12 @@ void NodeArrayAccess::GenerateValue(AsmCode& asm_code) const
     }
 }
 
-bool NodeArrayAccess::IsAffectToVar(SymVar* var) const
+bool NodeArrayAccess::IsAffectToVar(SymVar* var)
 {
     return arr->IsAffectToVar(var);
 }
 
-bool NodeArrayAccess::IsHaveSideEffect() const
+bool NodeArrayAccess::IsHaveSideEffect()
 {
     return arr->IsHaveSideEffect();
 }
@@ -739,12 +739,12 @@ void NodeRecordAccess::GenerateValue(AsmCode& asm_code) const
     asm_code.PushMemory(field->GetVarType()->GetSize());
 }
 
-bool NodeRecordAccess::IsAffectToVar(SymVar* var) const
+bool NodeRecordAccess::IsAffectToVar(SymVar* var)
 {
     return record->IsAffectToVar(var);
 }
 
-bool NodeRecordAccess::IsHaveSideEffect() const
+bool NodeRecordAccess::IsHaveSideEffect()
 {
     return record->IsHaveSideEffect();
 }

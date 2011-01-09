@@ -25,8 +25,8 @@ public:
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
     virtual bool TryToBecomeConst(SyntaxNode*& link);
-    virtual bool IsAffectToVar(SymVar*) const;
-    virtual bool IsHaveSideEffect() const;
+    virtual bool IsAffectToVar(SymVar*);
+    virtual bool IsHaveSideEffect();
 };
 
 #endif
