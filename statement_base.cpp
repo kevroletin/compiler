@@ -2,6 +2,15 @@
 
 //---NodeStatement---
 
+void NodeStatement::Optimize()
+{
+}
+
+StmtClassName NodeStatement::GetClassName() const
+{
+    return STMT;
+}
+
 void NodeStatement::Generate(AsmCode& asm_code)
 {
 }

@@ -1,32 +1,5 @@
 #include "statement.h"
-
-#define DUMP_TO_CERR
-//---DataDumper---
-
-#include <iostream>
-#include <set>
-
-static ostream& __debug_out = cout;
-
-void Dump(SyntaxNodeBase* node)
-{
-    if (node == NULL)
-    {
-        cerr << "NULL\n";
-        return;
-    }
-    __debug_out << "---Dump of: SyntaxNode---\n";
-    __debug_out << "have side effect: " << node->IsHaveSideEffect() << '\n';
-    std::set<SymVar*> t;
-    node->GetAllAffectedVars(t);
-    for (std::set<SymVar*>::iterator it = t.begin(); it != t.end(); ++it)
-    {
-        (*it)->Print(__debug_out, 0);
-        __debug_out << "\n";
-    }
-    __debug_out << "---end of dump---\n";
-}
-
+//#define DEBUG
 //---StmtAssgn---
 
 StmtAssign::StmtAssign(SyntaxNode* left_, SyntaxNode* right_):
@@ -84,22 +57,102 @@ bool StmtAssign::IsHaveSideEffect()
 
 void StmtAssign::GetAllAffectedVars(VarsContainer& res_cont)
 {
-    res_cont.insert(left->GetAffectedVar());
     right->GetAllAffectedVars(res_cont);
+    left->GetAllAffectedVars(res_cont);
+    res_cont.insert(left->GetAffectedVar());
 }
+
+void StmtAssign::GetAllDependences(VarsContainer& res_cont)
+{
+    right->GetAllDependences(res_cont);
+    left->GetAllDependences(res_cont);
+}
+
+StmtClassName StmtAssign::GetClassName() const
+{
+    return STMT_ASSIGN;
+} 
 
 //---StmtBlock---
 
+void StmtBlock::Optimize()
+{
+    OptimizeLoops();
+    OptimizeConstants();
+    for (std::vector<NodeStatement*>::iterator it= statements.begin(); it != statements.end(); ++it)
+        (*it)->Optimize();
+}
+
+void StmtBlock::OptimizeLoops()
+{
+    std::vector<NodeStatement*> optimized_body;
+    for (std::vector<NodeStatement*>::iterator it= statements.begin(); it != statements.end(); ++it)
+        if ((*it)->GetClassName() == STMT_LOOP)
+        {
+            StmtLoop* loop = (StmtLoop*)*it;
+            loop->TakeOutVars(optimized_body);
+            if (loop->GetBody()->GetSize() || loop->IsConditionAffectToVars()) optimized_body.push_back(loop);
+        }
+        else
+        {
+            optimized_body.push_back(*it);
+        }
+    statements.assign(optimized_body.begin(), optimized_body.end());
+}
+
+void StmtBlock::OptimizeConstants()
+{
+}
+
+NodeStatement* StmtBlock::GetStmt(unsigned i)
+{
+    return statements[i];
+}
+
+bool StmtBlock::IsEmpty() const
+{
+    return statements.empty();
+}
+
+unsigned StmtBlock::GetSize() const
+{
+    return statements.size();
+}
+
 void StmtBlock::AddStatement(NodeStatement* new_stmt)
 {
-    if (new_stmt != NULL) statements.push_back(new_stmt);
+    if (new_stmt == NULL) return;
+    if (new_stmt->GetClassName() == STMT_BLOCK)
+        CopyContent((StmtBlock*)new_stmt);
+    else
+        statements.push_back(new_stmt);
+}
+
+void StmtBlock::CopyContent(StmtBlock* src)
+{
+    for (std::vector<NodeStatement*>::iterator it = src->statements.begin(); it != src->statements.end(); ++it)
+      AddStatement(*it);
 }
 
 void StmtBlock::Print(ostream& o, int offset)
 {
     PrintSpaces(o, offset) << "begin\n";
     for (vector<NodeStatement*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
+    {
+        (*it)->Print(o, offset + 1); continue;
+        NodeStatement* node = *it;
+        PrintSpaces(o, offset + 1) << "{se: " << node->IsHaveSideEffect();
+        std::set<SymVar*> t;
+        node->GetAllAffectedVars(t);
+        if (!t.empty()) o << "; av: ";
+        for (std::set<SymVar*>::iterator i = t.begin(); i != t.end(); ++i)
+        {
+            if (i != t.begin()) o << ", ";
+            o << (*i)->GetToken().GetName();
+        }
+        o << "}\n";
         (*it)->Print(o, offset + 1);
+    }
     PrintSpaces(o, offset) << "end\n";
 }
 
@@ -158,6 +211,17 @@ void StmtBlock::GetAllAffectedVars(VarsContainer& res_cont)
         ((*it)->GetAllAffectedVars(res_cont));
 }
 
+void StmtBlock::GetAllDependences(VarsContainer& res_cont)
+{
+    for (std::vector<NodeStatement*>::iterator it = statements.begin(); it != statements.end(); ++it)
+        ((*it)->GetAllDependences(res_cont));
+}
+
+StmtClassName StmtBlock::GetClassName() const
+{
+    return STMT_BLOCK;
+} 
+
 //---StmtExpression---
 
 StmtExpression::StmtExpression(SyntaxNode* expression):
@@ -201,7 +265,32 @@ void StmtExpression::GetAllAffectedVars(VarsContainer& res_cont)
     expr->GetAllAffectedVars(res_cont);
 }
 
+void StmtExpression::GetAllDependences(VarsContainer& res_cont)
+{
+    expr->GetAllDependences(res_cont);
+}
+
+StmtClassName StmtExpression::GetClassName() const
+{
+    return STMT_EXPRESSION;
+} 
+
+bool StmtExpression::CanBeReplaced()
+{
+    return expr->CanBeReplaced();
+}
+
 //---StmtLoop---
+
+bool StmtLoop::IsConditionAffectToVars()
+{
+    return true;
+}
+
+StmtBlock* StmtLoop::GetBody() const
+{
+    return body;
+}
 
 void StmtLoop::ObtainLabels(AsmCode& asm_code)
 {
@@ -209,9 +298,56 @@ void StmtLoop::ObtainLabels(AsmCode& asm_code)
     continue_label = asm_code.GenLabel("continue");;
 }
 
-StmtLoop::StmtLoop(NodeStatement* body_):
-    body(body_)
+void StmtLoop::ConditonsToAffectedVars()
 {
+}
+
+#ifdef DEBUG
+#include <iostream>
+#endif
+
+void StmtLoop::TakeOutVars(std::vector<NodeStatement*>& before_loop)
+{
+//    return; 
+    body->OptimizeLoops();
+    ConditonsToAffectedVars();
+    for (int i = 0; i < body->GetSize(); ++i)
+    {
+        GetAllAffectedVars(affected_vars);
+        GetAllDependences(dependences);
+    }
+    StmtBlock* new_body = new StmtBlock();
+    for (int i = 0; i < body->GetSize(); ++i)
+    {
+        bool fixed = !body->GetStmt(i)->CanBeReplaced();
+        fixed |= body->GetStmt(i)->IsDependOnVars(affected_vars);
+        fixed |= body->GetStmt(i)->IsAffectToVars(dependences);
+        if (fixed)
+            new_body->AddStatement(body->GetStmt(i));
+        else
+            before_loop.push_back(body->GetStmt(i));
+    }
+#ifdef DEBUG
+    cerr << ": {";
+    for (set<SymVar*>::iterator it = affected_vars.begin(); it != affected_vars.end(); ++it)
+    {
+        if (it != affected_vars.begin()) cerr << ',';
+        cerr << (*it)->GetToken().GetName();
+    }
+    cerr << "}\n";
+    cerr << "----before------:\n"; body->Print(cerr);
+    cerr << "----before_loop-:\n";
+    for (int i = 0; i < before_loop.size(); ++i)
+        before_loop[i]->Print(cerr);
+    cerr << "----new_body----:\n"; body->Print(cerr);
+#endif
+    delete body;
+    body = new_body;    
+}
+
+StmtLoop::StmtLoop(NodeStatement* body_)
+{
+    AddBody(body_);
 }
 
 AsmStrImmediate StmtLoop::GetBreakLabel() const
@@ -226,11 +362,36 @@ AsmStrImmediate StmtLoop::GetContinueLabel() const
 
 void StmtLoop::AddBody(NodeStatement* body_)
 {
-    if (body != NULL) delete body;
-    body = body_;
+    if (body_ == NULL) return;
+    if (body_->GetClassName() == STMT_BLOCK) body = (StmtBlock*)body_;
+    else
+    {
+        body = new StmtBlock();
+        body->AddStatement(body_);
+    }
 }
 
+StmtClassName StmtLoop::GetClassName() const
+{
+    return STMT_LOOP;
+} 
+
 //---StmtFor---
+
+void StmtFor::ConditonsToAffectedVars()
+{
+    init_val->GetAllAffectedVars(affected_vars);
+    last_val->GetAllAffectedVars(affected_vars);
+    affected_vars.insert(index);
+}
+
+bool StmtFor::IsConditionAffectToVars()
+{
+    set<SymVar* > t;
+    init_val->GetAllAffectedVars(t);
+    last_val->GetAllAffectedVars(t);
+    return !t.empty();
+}
 
 StmtFor::StmtFor(SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value, bool is_inc, NodeStatement* body_):
     StmtLoop(body_),
@@ -312,7 +473,27 @@ void StmtFor::GetAllAffectedVars(VarsContainer& res_cont)
     last_val->GetAllAffectedVars(res_cont);
 }
 
+void StmtFor::GetAllDependences(VarsContainer& res_cont)
+{
+    res_cont.insert(index);
+    body->GetAllDependences(res_cont);
+    init_val->GetAllDependences(res_cont);
+    last_val->GetAllDependences(res_cont);
+}
+
 //---StmtWhile---
+
+void StmtWhile::ConditonsToAffectedVars()
+{
+    condition->GetAllAffectedVars(affected_vars);
+}
+
+bool StmtWhile::IsConditionAffectToVars()
+{
+    set<SymVar*> t;
+    condition->GetAllAffectedVars(t);
+    return !t.empty();
+}
 
 StmtWhile::StmtWhile(SyntaxNode* condition_, NodeStatement* body_):
     StmtLoop(body_),
@@ -366,6 +547,12 @@ void StmtWhile::GetAllAffectedVars(VarsContainer& res_cont)
 {
     condition->GetAllAffectedVars(res_cont);
     body->GetAllAffectedVars(res_cont);
+}
+
+void StmtWhile::GetAllDependences(VarsContainer& res_cont)
+{
+    condition->GetAllDependences(res_cont);
+    body->GetAllDependences(res_cont);
 }
 
 //---StmtUntil---
@@ -499,6 +686,24 @@ void StmtIf::GetAllAffectedVars(VarsContainer& res_cont)
     if (else_branch != NULL) else_branch->GetAllAffectedVars(res_cont);
 }
 
+void StmtIf::GetAllDependences(VarsContainer& res_cont)
+{
+    condition->GetAllDependences(res_cont);
+    if (then_branch != NULL) then_branch->GetAllDependences(res_cont);
+    if (else_branch != NULL) else_branch->GetAllDependences(res_cont);
+}
+
+StmtClassName StmtIf::GetClassName() const
+{
+    return STMT_IF;
+} 
+
+bool StmtIf::CanBeReplaced()
+{
+    return (then_branch == NULL) || then_branch->CanBeReplaced() &&
+        (else_branch == NULL || else_branch->CanBeReplaced());    
+}
+
 //---StmtJump---
 
 StmtJump::StmtJump(Token tok, StmtLoop* loop_):
@@ -542,6 +747,16 @@ void StmtJump::GetAllAffectedVars(VarsContainer& res_cont)
 {
 }
 
+StmtClassName StmtJump::GetClassName() const
+{
+    return STMT_JUMP;
+} 
+
+bool StmtJump::CanBeReplaced()
+{
+    return false;
+}
+
 //---StmtExit---
 
 StmtExit::StmtExit(AsmStrImmediate exit_label):
@@ -581,4 +796,14 @@ bool StmtExit::IsHaveSideEffect()
 
 void StmtExit::GetAllAffectedVars(VarsContainer& res_cont)
 {
+}
+
+StmtClassName StmtExit::GetClassName() const
+{
+    return STMT_EXIT;
+} 
+
+bool StmtExit::CanBeReplaced()
+{
+    return false;
 }

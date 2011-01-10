@@ -124,11 +124,17 @@ void SymProc::PrintPrototype(ostream& o, int offset) const
     }
 }
 
+bool SymProc::IsAffectToParam(int index)
+{
+    return params[index]->IsByRef() && IsAffectToVar(params[index]);
+}
+
 SymProc::SymProc(Token name):
     Symbol(name),
     have_side_effect(false),
     known_side_effect(false),
     search_affection(NULL),
+    searching(false),
     sym_table(NULL)
 {
 }
@@ -173,6 +179,7 @@ SymProc::SymProc(Token token, SymTable* syn_table_):
     have_side_effect(false),
     known_side_effect(false),
     search_affection(NULL),
+    searching(false),
     sym_table(syn_table_)
 {
 }
@@ -268,8 +275,8 @@ bool SymProc::ValidateParams(SymProc* src)
 bool SymProc::IsDummyProc()
 {
     if (IsHaveSideEffect()) return false;
-    for (vector<SymVarParam*>::const_iterator it = params.begin(); it != params.end(); ++it)
-        if ((*it)->IsByRef()) return false;
+    for (int i = 0; i < params.size(); ++i)
+        if (IsAffectToParam(i)) return false;
     return true;
 }
 
@@ -285,7 +292,25 @@ bool SymProc::IsAffectToVar(SymVar* var)
 {
     if (search_affection == var) return false;
     search_affection = var;
-    return body->IsAffectToVar(var);
+    bool res = body->IsAffectToVar(var);
+    search_affection = NULL;
+    return res;
+}
+
+void SymProc::GetAllAffectedVars(VarsContainer& res_cont)
+{
+    if (searching) return;
+    searching = true;
+    body->GetAllAffectedVars(res_cont);
+    searching = false;
+}
+
+void SymProc::GetAllDependences(VarsContainer& res_cont)
+{
+    if (searching) return;
+    searching = true;
+    body->GetAllDependences(res_cont);
+    searching = false;
 }
 
 //---SymFunct---
@@ -876,3 +901,10 @@ void SymTable::GenerateDeclarations(AsmCode& asm_code) const
     for (std::vector<SymProc*>::const_iterator it = proc_decl_order.begin(); it != proc_decl_order.end(); ++it)
         (*it)->GenerateDeclaration(asm_code);
 }
+
+void SymTable::Optimize()
+{
+    for (std::vector<SymProc*>::const_iterator it = proc_decl_order.begin(); it != proc_decl_order.end(); ++it)
+        (*it)->GetBody()->Optimize();
+}
+

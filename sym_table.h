@@ -70,6 +70,7 @@ protected:
     bool have_side_effect;
     bool known_side_effect;
     SymVar* search_affection;
+    bool searching;
     vector<SymVarParam*> params;
     SymTable* sym_table;
     NodeStatement* body;
@@ -77,6 +78,7 @@ protected:
     AsmStrImmediate exit_label;
     virtual void PrintPrototype(ostream& o, int offset) const;
 public:
+    bool IsAffectToParam(int index);
     SymProc(Token token_, SymTable* syn_table_);
     SymProc(Token name);
     ~SymProc();
@@ -101,6 +103,8 @@ public:
     virtual bool IsDummyProc();
     bool IsHaveSideEffect();
     bool IsAffectToVar(SymVar* var);
+    void GetAllAffectedVars(VarsContainer& res_cont);
+    void GetAllDependences(VarsContainer& res_cont);    
 };
 
 class SymFunct: public SymProc{
@@ -295,6 +299,7 @@ public:
     unsigned GetLocalsSize() const;
     unsigned GetParamsSize() const;
     void GenerateDeclarations(AsmCode& asm_code) const;
+    void Optimize();
 };
 
 #endif

@@ -24,13 +24,22 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual StmtClassName GetClassName() const;
 };
 
 class StmtBlock: public NodeStatement{
-private:
+protected:
     std::vector<NodeStatement*> statements;
 public:
+    virtual void Optimize();
+    void OptimizeLoops();
+    void OptimizeConstants();
+    NodeStatement* GetStmt(unsigned i);
+    bool IsEmpty() const;
+    unsigned GetSize() const;
     void AddStatement(NodeStatement* new_stmt);
+    void CopyContent(StmtBlock* src);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
@@ -40,6 +49,8 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual StmtClassName GetClassName() const;
 };
 
 class StmtExpression: public NodeStatement{
@@ -54,19 +65,29 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual StmtClassName GetClassName() const;
+    virtual bool CanBeReplaced();
 };
 
 class StmtLoop: public NodeStatement{
 protected:
     AsmStrImmediate break_label;
     AsmStrImmediate continue_label;
-    NodeStatement* body;
+    StmtBlock* body;
     void ObtainLabels(AsmCode& asm_code);
+    set<SymVar*> affected_vars;
+    set<SymVar*> dependences;
+    virtual void ConditonsToAffectedVars();
 public:
+    StmtBlock* GetBody() const;
+    void TakeOutVars(std::vector<NodeStatement*>& before_loop);
     StmtLoop(NodeStatement* body_);
     AsmStrImmediate GetBreakLabel() const;
     AsmStrImmediate GetContinueLabel() const;
     void AddBody(NodeStatement* body);
+    virtual StmtClassName GetClassName() const;
+    virtual bool IsConditionAffectToVars();
 };
 
 class StmtFor: public StmtLoop{
@@ -75,6 +96,7 @@ private:
     SyntaxNode* init_val;
     SyntaxNode* last_val;
     bool inc;
+    virtual void ConditonsToAffectedVars();
 public:
     StmtFor(SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value, bool is_inc, NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
@@ -84,11 +106,14 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual bool IsConditionAffectToVars();
 };
 
 class StmtWhile: public StmtLoop{
 protected:
     SyntaxNode* condition;    
+    virtual void ConditonsToAffectedVars();
 public:
     StmtWhile(SyntaxNode* condition_ = NULL , NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
@@ -98,6 +123,8 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual bool IsConditionAffectToVars();
 };
 
 class StmtUntil: public StmtWhile{
@@ -123,6 +150,9 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual StmtClassName GetClassName() const;
+    virtual bool CanBeReplaced();
 };
 
 class StmtJump: public NodeStatement{
@@ -138,6 +168,8 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual StmtClassName GetClassName() const;
+    virtual bool CanBeReplaced();
 };
 
 class StmtExit: public NodeStatement{
@@ -152,6 +184,8 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual StmtClassName GetClassName() const;
+    virtual bool CanBeReplaced();
 };
 
 #endif

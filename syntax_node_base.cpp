@@ -2,9 +2,18 @@
 
 //---SyntaxNodeBase---
 
-bool SyntaxNodeBase::IsDependOnVars(std::set<SymVar*>&)
+bool SyntaxNodeBase::IsDependOnVars(std::set<SymVar*>& vars)
 {
-    return true;
+    for (set<SymVar*>::iterator it = vars.begin(); it != vars.end(); ++it)
+        if (IsDependOnVar(*it)) return true;
+    return false;
+}
+
+bool SyntaxNodeBase::IsAffectToVars(std::set<SymVar*>& vars)
+{
+    for (set<SymVar*>::iterator it = vars.begin(); it != vars.end(); ++it)
+        if (IsAffectToVar(*it)) return true;
+    return false;
 }
 
 void SyntaxNodeBase::Print(ostream& o, int offset) 
@@ -32,6 +41,15 @@ bool SyntaxNodeBase::IsAffectToVar(SymVar*)
 
 void SyntaxNodeBase::GetAllAffectedVars(std::set<SymVar*>&)
 {
+}
+
+void SyntaxNodeBase::GetAllDependences(VarsContainer&)
+{
+}
+
+bool SyntaxNodeBase::CanBeReplaced()
+{
+    return true;
 }
 
 //---SyntaxNode---

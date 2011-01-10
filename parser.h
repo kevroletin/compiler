@@ -16,7 +16,7 @@
 
 class Parser{
 private:
-    NodeStatement* body;
+    StmtBlock* body;
     Scanner& scan;
     SymTable top_sym_table;
     SymType* top_type_bool;
@@ -64,10 +64,11 @@ private:
     void ParseFunctionDefinition();
     NodeStatement* ParseBlockStatement();
     NodeStatement* ParseStatement();
-    NodeStatement* AddLoopBody(StmtLoop* loop);
-    NodeStatement* ParseForStatement();
-    NodeStatement* ParseWhileStatement();
-    NodeStatement* ParseUntilStatement();
+    NodeStatement* ParseLoopStatement();
+    StmtLoop* AddLoopBody(StmtLoop* loop);
+    StmtLoop* ParseForStatement();
+    StmtLoop* ParseWhileStatement();
+    StmtLoop* ParseUntilStatement();
     NodeStatement* ParseIfStatement();
     NodeStatement* ParseAssignStatement();
     NodeStatement* ParseJumpStatement();

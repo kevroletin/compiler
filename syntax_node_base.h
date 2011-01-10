@@ -18,13 +18,16 @@ typedef std::set<SymVar*> VarsContainer;
 
 class SyntaxNodeBase{
 public:
-    bool IsDependOnVars(std::set<SymVar*>&);
+    bool IsDependOnVars(std::set<SymVar*>& vars);
+    bool IsAffectToVars(std::set<SymVar*>& vars);
     virtual bool IsAffectToVar(SymVar*);
-    virtual bool IsDependOnVar(SymVar*);
+    virtual bool IsDependOnVar(SymVar*);    
     virtual bool IsHaveSideEffect();    
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(std::ostream& o, int offset = 0);
     virtual void GetAllAffectedVars(VarsContainer&);
+    virtual void GetAllDependences(VarsContainer&);
+    virtual bool CanBeReplaced();
 };
 
 class SyntaxNode: public SyntaxNodeBase{

@@ -80,6 +80,7 @@ bool NodeCall::IsAffectToVar(SymVar* var)
     for (int i = 0; i < args.size(); ++i)
     {
         if (args[i]->IsAffectToVar(var)) return true;
+        if ((args[i]->GetAffectedVar() == var) && funct->IsAffectToParam(i)) return true;
     }
     return funct->IsAffectToVar(var);
 }
@@ -95,7 +96,7 @@ bool NodeCall::IsHaveSideEffect()
 {
     for (int i = 0; i < args.size(); ++i)
     {
-        if (funct->GetArg(i)->IsByRef()) return true;
+        if (funct->IsAffectToParam(i)) return true;
     }
     funct->IsHaveSideEffect();
 }
@@ -105,8 +106,18 @@ void NodeCall::GetAllAffectedVars(VarsContainer& res_cont)
     for (int i = 0; i < args.size(); ++i)
     {
         args[i]->GetAllAffectedVars(res_cont);
+        if (funct->IsAffectToParam(i)) res_cont.insert(args[i]->GetAffectedVar());
     }
-    funct->GetBody()->GetAllAffectedVars(res_cont);
+    funct->GetAllAffectedVars(res_cont);
+}
+
+void NodeCall::GetAllDependences(VarsContainer& res_cont)
+{
+    for (int i = 0; i < args.size(); ++i)
+    {
+        args[i]->GetAllDependences(res_cont);
+    }
+    funct->GetAllDependences(res_cont);
 }
 
 //---NodeWriteCall---
@@ -170,6 +181,17 @@ void NodeWriteCall::GetAllAffectedVars(VarsContainer& res_cont)
 {
     for (std::vector<SyntaxNode*>::iterator it = args.begin(); it != args.end(); ++ it)
         (*it)->GetAllAffectedVars(res_cont);
+}
+
+void NodeWriteCall::GetAllDependences(VarsContainer& res_cont)
+{
+    for (std::vector<SyntaxNode*>::iterator it = args.begin(); it != args.end(); ++ it)
+        (*it)->GetAllDependences(res_cont);
+}
+
+bool NodeWriteCall::CanBeReplaced()
+{
+    return false;
 }
 
 //---NodeBinaryOp---
@@ -503,6 +525,12 @@ void NodeBinaryOp::GetAllAffectedVars(VarsContainer& res_cont)
     right->GetAllAffectedVars(res_cont);
 }
 
+void NodeBinaryOp::GetAllDependences(VarsContainer& res_cont)
+{
+    left->GetAllDependences(res_cont);
+    right->GetAllDependences(res_cont);
+}
+
 //---NodeUnaryOp---
 
 void NodeUnaryOp::GenerateForInt(AsmCode& asm_code) const
@@ -623,6 +651,11 @@ bool NodeUnaryOp::IsHaveSideEffect()
 void NodeUnaryOp::GetAllAffectedVars(VarsContainer& res_cont)
 {
     return child->GetAllAffectedVars(res_cont);
+}
+
+void NodeUnaryOp::GetAllDependences(VarsContainer& res_cont)
+{
+    return child->GetAllDependences(res_cont);
 }
 
 //---NodeIntToRealConv---
@@ -747,6 +780,11 @@ void NodeVar::GetAllAffectedVars(VarsContainer& res_cont)
 {
 }
 
+void NodeVar::GetAllDependences(VarsContainer& res_cont)
+{
+    res_cont.insert(var);
+}
+
 //---NodeArrayAccess----
 
 NodeArrayAccess::NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_):
@@ -837,6 +875,13 @@ bool NodeArrayAccess::IsHaveSideEffect()
 void NodeArrayAccess::GetAllAffectedVars(VarsContainer& res_cont)
 {
     index->GetAllAffectedVars(res_cont);
+    arr->GetAllAffectedVars(res_cont);
+}
+
+void NodeArrayAccess::GetAllDependences(VarsContainer& res_cont)
+{
+    index->GetAllDependences(res_cont);
+    arr->GetAllDependences(res_cont);
 }
 
 //---NodeRecordAccess---
@@ -913,4 +958,9 @@ bool NodeRecordAccess::IsHaveSideEffect()
 
 void NodeRecordAccess::GetAllAffectedVars(VarsContainer& res_cont)
 {
+}
+
+void NodeRecordAccess::GetAllDependences(VarsContainer& res_cont)
+{
+    res_cont.insert(GetAffectedVar());
 }

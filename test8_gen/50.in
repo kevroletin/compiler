@@ -9,6 +9,6 @@ begin
 		    Write(j, ' ');
 		    if j = i then break;
 		end;
-	    Writeln;
+	    WriteLn;
 	end;
 end.

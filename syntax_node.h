@@ -30,6 +30,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer&);
+    virtual void GetAllDependences(VarsContainer&);
 };
 
 class NodeWriteCall: public NodeCallBase{
@@ -45,6 +46,8 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual bool CanBeReplaced();
+    virtual void GetAllDependences(VarsContainer&);
 };
 
 class NodeBinaryOp: public SyntaxNode{
@@ -70,6 +73,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer&);
 };
 
 class NodeUnaryOp: public SyntaxNode{
@@ -92,6 +96,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer&);
 };
 
 class NodeIntToRealConv: public NodeUnaryOp{
@@ -126,6 +131,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var_);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer&);
 };
 
 class NodeArrayAccess: public SyntaxNode{
@@ -146,6 +152,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer&);
 };
 
 class NodeRecordAccess: public SyntaxNode{
@@ -165,6 +172,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer&);
 };
 
 #endif
