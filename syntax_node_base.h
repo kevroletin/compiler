@@ -22,7 +22,8 @@ public:
     virtual bool IsAffectToVar(SymVar*);
     virtual bool IsDependOnVar(SymVar*);
     virtual bool IsHaveSideEffect();    
-    virtual void Print(std::ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(std::ostream& o, int offset = 0);
     virtual void GetAllAffectedVars(VarsContainer&);
 };
 
@@ -30,6 +31,7 @@ class SyntaxNode: public SyntaxNodeBase{
 public:
     virtual const SymType* GetSymType() const;
     virtual bool IsLValue() const;
+    virtual SymVar* GetAffectedVar() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;    
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual bool IsConst() const;

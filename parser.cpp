@@ -426,7 +426,7 @@ NodeStatement* Parser::ParseForStatement()
 {
     CheckTokOrDie(TOK_FOR);
     if (!scan.GetToken().IsVar()) Error("identifier expected");
-    const SymVar* index = (SymVar*)FindSymbolOrDie(scan.GetToken(), SYM_VAR, "identifier not found");
+    SymVar* index = (SymVar*)FindSymbolOrDie(scan.GetToken(), SYM_VAR, "identifier not found");
     if (index->GetVarType() != top_type_int) Error("integer variable expected");
     CheckNextTokOrDie(TOK_ASSIGN);
     SyntaxNode* first = GetIntExprOrDie();
@@ -443,7 +443,7 @@ NodeStatement* Parser::ParseWhileStatement()
     CheckTokOrDie(TOK_WHILE);
     SyntaxNode* cond = GetIntExprOrDie();
     CheckTokOrDie(TOK_DO);
-    return AddLoopBody(new StmtWhile(cond, body));
+    return AddLoopBody(new StmtWhile(cond));
 }
 
 NodeStatement* Parser::ParseUntilStatement()

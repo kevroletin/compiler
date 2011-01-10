@@ -49,6 +49,7 @@ public:
     Token GetToken() const;
     virtual SymbolClass GetClassName() const;
     virtual void PrintVerbose(ostream& o, int offset) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual void Print(ostream& o, int offset = 0) const;
 };
 
@@ -59,6 +60,7 @@ public:
     SymType(Token token);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetActualType() const;
     virtual unsigned GetSize() const;
 };
@@ -89,6 +91,7 @@ public:
     virtual const SymType* GetResultType() const;
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     void GenerateDeclaration(AsmCode& asm_code);
     AsmStrImmediate GetLabel() const;
     AsmStrImmediate GetExitLabel() const;
@@ -110,6 +113,7 @@ public:
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetResultType() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual bool IsDummyProc();
 };
 
@@ -120,6 +124,7 @@ public:
     SymVar(Token token, const SymType* type_);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int ofefset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual void PrintVerbose(ostream& o, int offset) const;
     const SymType* GetVarType() const;
     void PrintAsNode(ostream& o, int offset = 0) const;
@@ -166,6 +171,7 @@ public:
     const SymType* GetElemType();
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual unsigned GetSize() const;
 };
@@ -178,6 +184,7 @@ public:
     const SymVarLocal* FindField(Token& field_name);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual unsigned GetSize() const;
 };
@@ -188,6 +195,7 @@ private:
 public:
     SymTypeAlias(Token name, SymType* ratget_);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetActualType() const;
@@ -200,6 +208,7 @@ private:
 public:
     SymTypePointer(SymType* ref_type_);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual SymbolClass GetClassName() const;
 };
 
@@ -213,6 +222,7 @@ public:
     Token GetValueTok() const;
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual void PrintVerbose(ostream& o, int offset = 0) const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;

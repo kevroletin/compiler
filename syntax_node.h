@@ -23,6 +23,7 @@ public:
     const SymType* GetCurrentArgType() const;
     bool IsCurrentArfByRef() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual bool IsAffectToVar(SymVar* var);
@@ -37,6 +38,7 @@ private:
 public:
     NodeWriteCall(bool new_line_ = false);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual const SymType* GetSymType() const;
     virtual bool IsAffectToVar(SymVar* var);
@@ -57,6 +59,7 @@ private:
 public:
     NodeBinaryOp(const Token& name, SyntaxNode* left_, SyntaxNode* right_);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual bool IsConst() const;
@@ -78,6 +81,7 @@ protected:
 public:
     NodeUnaryOp(const Token& name, SyntaxNode* child_);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;
     void GenerateValue(AsmCode& asm_code) const;
     virtual bool IsConst() const;
@@ -96,6 +100,7 @@ private:
 public:
     NodeIntToRealConv(SyntaxNode* child_, SymType* real_type_);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual float ComputeRealConstExpr() const;
@@ -103,13 +108,15 @@ public:
 
 class NodeVar: public SyntaxNode{
 private:
-    const SymVar* var;
+    SymVar* var;
 public:
-    NodeVar(const SymVar* var_);
+    NodeVar(SymVar* var_);
     const SymVar* GetVar();
     virtual const SymType* GetSymType() const;
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual bool IsLValue() const;
+    virtual SymVar* GetAffectedVar() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual int ComputeIntConstExpr() const;
@@ -129,8 +136,10 @@ private:
 public:
     NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;    
     virtual bool IsLValue() const;
+    virtual SymVar* GetAffectedVar() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const; 
     virtual bool IsAffectToVar(SymVar* var);
@@ -146,8 +155,10 @@ private:
 public:
     NodeRecordAccess(SyntaxNode* record_, Token field_);
     virtual void Print(ostream& o, int offset = 0) const;
+    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;    
     virtual bool IsLValue() const;
+    virtual SymVar* GetAffectedVar() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const; 
     virtual bool IsAffectToVar(SymVar* var);

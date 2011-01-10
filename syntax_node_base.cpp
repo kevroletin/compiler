@@ -7,7 +7,11 @@ bool SyntaxNodeBase::IsDependOnVars(std::set<SymVar*>&)
     return true;
 }
 
-void SyntaxNodeBase::Print(ostream& o, int offset) const 
+void SyntaxNodeBase::Print(ostream& o, int offset) 
+{
+}
+
+void SyntaxNodeBase::Print(ostream& o, int offset) const
 {
 }
 
@@ -40,6 +44,11 @@ const SymType* SyntaxNode::GetSymType() const
 bool SyntaxNode::IsLValue() const
 {
     return false;
+}
+
+SymVar* SyntaxNode::GetAffectedVar() const
+{
+    return NULL;
 }
 
 void SyntaxNode::GenerateLValue(AsmCode& asm_code) const

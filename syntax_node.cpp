@@ -41,6 +41,14 @@ bool NodeCall::IsCurrentArfByRef() const
     return funct->GetArg(args.size())->IsByRef();
 }
 
+void NodeCall::Print(ostream& o, int offset)
+{
+    PrintSpaces(o, offset) << "() " << funct->GetName() << " [";
+    GetSymType()->Print(o , offset);
+    o << "]\n";
+    PrintArgs(o, offset);
+}
+
 void NodeCall::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << "() " << funct->GetName() << " [";
@@ -106,6 +114,12 @@ void NodeCall::GetAllAffectedVars(VarsContainer& res_cont)
 NodeWriteCall::NodeWriteCall(bool new_line_):
     new_line(new_line_)
 {
+}
+
+void NodeWriteCall::Print(ostream& o, int offset)
+{
+    PrintSpaces(o, offset) << "() " << (new_line ? "writeln" : "write" ) << " [untyped]\n";
+    PrintArgs(o, offset);
 }
 
 void NodeWriteCall::Print(ostream& o, int offset) const
@@ -304,6 +318,15 @@ NodeBinaryOp::NodeBinaryOp(const Token& name, SyntaxNode* left_, SyntaxNode* rig
     left(left_),
     right(right_)
 {
+}
+
+void NodeBinaryOp::Print(ostream& o, int offset)
+{
+    PrintSpaces(o, offset) << token.GetName() << " [";
+    GetSymType()->Print(o , offset);
+    o << "]\n";
+    left->Print(o, offset + 1);
+    right->Print(o, offset + 1);
 }
 
 void NodeBinaryOp::Print(ostream& o, int offset) const
@@ -515,6 +538,14 @@ NodeUnaryOp::NodeUnaryOp(const Token& name, SyntaxNode* child_):
 {
 }
 
+void NodeUnaryOp::Print(ostream& o, int offset)
+{
+    PrintSpaces(o, offset) << token.GetName() << " [";
+    GetSymType()->Print(o , offset);
+    o << "]\n";
+    child->Print(o, offset + 1);
+}
+
 void NodeUnaryOp::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << token.GetName() << " [";
@@ -602,6 +633,14 @@ NodeIntToRealConv::NodeIntToRealConv(SyntaxNode* child_, SymType* real_type_):
 {
 }
 
+void NodeIntToRealConv::Print(ostream& o, int offset)
+{
+    PrintSpaces(o, offset) << "IntToReal [";
+    real_type->Print(o, 0);
+    o << "]\n";
+    child->Print(o, offset + 1);
+}
+
 void NodeIntToRealConv::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << "IntToReal [";
@@ -629,7 +668,7 @@ float NodeIntToRealConv::ComputeRealConstExpr() const
 
 //---NodeVar---
 
-NodeVar::NodeVar(const SymVar* var_):
+NodeVar::NodeVar(SymVar* var_):
     var(var_)
 {
 }
@@ -644,6 +683,11 @@ const SymType* NodeVar::GetSymType() const
     return var->GetVarType()->GetActualType();
 }
 
+void NodeVar::Print(ostream& o, int offset)
+{
+    var->PrintAsNode(o, offset);
+}
+
 void NodeVar::Print(ostream& o, int offset) const
 {
     var->PrintAsNode(o, offset);
@@ -652,6 +696,11 @@ void NodeVar::Print(ostream& o, int offset) const
 bool NodeVar::IsLValue() const
 {
     return !(var->GetClassName() & SYM_VAR_CONST);
+}
+
+SymVar* NodeVar::GetAffectedVar() const
+{
+    return var;
 }
 
 void NodeVar::GenerateLValue(AsmCode& asm_code) const
@@ -691,7 +740,7 @@ bool NodeVar::IsDependOnVar(SymVar* var_)
 
 bool NodeVar::IsHaveSideEffect()
 {
-    return var->GetClassName() & SYM_VAR_GLOBAL;
+    return false;
 }
 
 void NodeVar::GetAllAffectedVars(VarsContainer& res_cont)
@@ -704,6 +753,15 @@ NodeArrayAccess::NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_):
     arr(arr_),
     index(index_)
 {
+}
+
+void NodeArrayAccess::Print(ostream& o, int offset)
+{
+    PrintSpaces(o, offset) << "[] [";
+    GetSymType()->Print(o, offset);
+    o << "]\n";
+    arr->Print(o, offset+1);
+    index->Print(o, offset+1);
 }
 
 void NodeArrayAccess::Print(ostream& o, int offset) const
@@ -723,6 +781,11 @@ const SymType* NodeArrayAccess::GetSymType() const
 bool NodeArrayAccess::IsLValue() const
 {
     return true;
+}
+
+SymVar* NodeArrayAccess::GetAffectedVar() const
+{
+    return arr->GetAffectedVar();
 }
 
 void NodeArrayAccess::ComputeIndexToEax(AsmCode& asm_code) const
@@ -758,21 +821,22 @@ void NodeArrayAccess::GenerateValue(AsmCode& asm_code) const
 
 bool NodeArrayAccess::IsAffectToVar(SymVar* var)
 {
-    return false;;
+    return index->IsAffectToVar(var);
 }
 
 bool NodeArrayAccess::IsDependOnVar(SymVar* var)
 {
-    return arr->IsDependOnVar(var);
+    return arr->IsDependOnVar(var) || index->IsDependOnVar(var);
 }
 
 bool NodeArrayAccess::IsHaveSideEffect()
 {
-    return arr->IsHaveSideEffect();
+    return index->IsHaveSideEffect();
 }
 
 void NodeArrayAccess::GetAllAffectedVars(VarsContainer& res_cont)
 {
+    index->GetAllAffectedVars(res_cont);
 }
 
 //---NodeRecordAccess---
@@ -783,6 +847,15 @@ NodeRecordAccess::NodeRecordAccess(SyntaxNode* record_, Token field_):
     const SymVarLocal* var = ((SymTypeRecord*)record_->GetSymType())->FindField(field_);
     if (var == NULL) Error("unknown record field identifier", field_);
     field = var;
+}
+
+void NodeRecordAccess::Print(ostream& o, int offset)
+{
+    PrintSpaces(o, offset) << ". [";
+    GetSymType()->Print(o , offset);
+    o << "]\n";
+    record->Print(o, offset + 1);
+    field->PrintAsNode(o, offset + 1);
 }
 
 void NodeRecordAccess::Print(ostream& o, int offset) const
@@ -802,6 +875,11 @@ const SymType* NodeRecordAccess::GetSymType() const
 bool NodeRecordAccess::IsLValue() const
 {
     return true;
+}
+
+SymVar* NodeRecordAccess::GetAffectedVar() const
+{
+    return record->GetAffectedVar();
 }
 
 void NodeRecordAccess::GenerateLValue(AsmCode& asm_code) const
@@ -830,7 +908,7 @@ bool NodeRecordAccess::IsDependOnVar(SymVar* var)
 
 bool NodeRecordAccess::IsHaveSideEffect()
 {
-    return record->IsHaveSideEffect();
+    return false;
 }
 
 void NodeRecordAccess::GetAllAffectedVars(VarsContainer& res_cont)
