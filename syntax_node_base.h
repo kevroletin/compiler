@@ -4,6 +4,7 @@
 #include "scanner.h"
 #include "generator.h"
 #include <ostream>
+#include <set>
 
 class SymType;
 class SymVar;
@@ -13,9 +14,20 @@ extern SymType* top_type_real;
 extern SymType* top_type_untyped;
 extern SymType* top_type_str;
 
-class SyntaxNode{
+typedef std::set<SymVar*> VarsContainer;
+
+class SyntaxNodeBase{
 public:
+    bool IsDependOnVars(std::set<SymVar*>&);
+    virtual bool IsAffectToVar(SymVar*);
+    virtual bool IsDependOnVar(SymVar*);
+    virtual bool IsHaveSideEffect();    
     virtual void Print(std::ostream& o, int offset = 0) const;
+    virtual void GetAllAffectedVars(VarsContainer&);
+};
+
+class SyntaxNode: public SyntaxNodeBase{
+public:
     virtual const SymType* GetSymType() const;
     virtual bool IsLValue() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;    
@@ -25,8 +37,6 @@ public:
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
     virtual bool TryToBecomeConst(SyntaxNode*& link);
-    virtual bool IsAffectToVar(SymVar*);
-    virtual bool IsHaveSideEffect();
 };
 
 #endif

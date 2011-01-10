@@ -1,10 +1,36 @@
 #include "syntax_node_base.h"
 
-//---SyntaxNode---
+//---SyntaxNodeBase---
 
-void SyntaxNode::Print(ostream& o, int offset) const 
+bool SyntaxNodeBase::IsDependOnVars(std::set<SymVar*>&)
+{
+    return true;
+}
+
+void SyntaxNodeBase::Print(ostream& o, int offset) const 
 {
 }
+
+bool SyntaxNodeBase::IsHaveSideEffect()
+{
+    return true;
+}
+
+bool SyntaxNodeBase::IsDependOnVar(SymVar*)
+{
+    return true;
+}
+
+bool SyntaxNodeBase::IsAffectToVar(SymVar*)
+{
+    return true;
+}
+
+void SyntaxNodeBase::GetAllAffectedVars(std::set<SymVar*>&)
+{
+}
+
+//---SyntaxNode---
 
 const SymType* SyntaxNode::GetSymType() const
 {
@@ -49,18 +75,6 @@ bool SyntaxNode::TryToBecomeConst(SyntaxNode*& link)
 {
     return false;
 }
-
-
-bool SyntaxNode::IsHaveSideEffect()
-{
-    return true;
-}
-
-bool SyntaxNode::IsAffectToVar(SymVar*)
-{
-    return true;
-}
-
     
 
 

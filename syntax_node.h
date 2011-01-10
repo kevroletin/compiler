@@ -26,7 +26,9 @@ public:
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsHaveSideEffect();
+    virtual bool IsDependOnVar(SymVar* var);
+    virtual bool IsHaveSideEffect();    
+    virtual void GetAllAffectedVars(VarsContainer&);
 };
 
 class NodeWriteCall: public NodeCallBase{
@@ -37,7 +39,10 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual const SymType* GetSymType() const;
-    virtual bool IsHaveSideEffect();
+    virtual bool IsAffectToVar(SymVar* var);
+    virtual bool IsDependOnVar(SymVar* var);
+    virtual bool IsHaveSideEffect();    
+    virtual void GetAllAffectedVars(VarsContainer& res_cont);
 };
 
 class NodeBinaryOp: public SyntaxNode{
@@ -59,7 +64,9 @@ public:
     virtual float ComputeRealConstExpr() const;
     virtual bool TryToBecomeConst(SyntaxNode*& link);
     virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsHaveSideEffect();
+    virtual bool IsDependOnVar(SymVar* var);
+    virtual bool IsHaveSideEffect();    
+    virtual void GetAllAffectedVars(VarsContainer& res_cont);
 };
 
 class NodeUnaryOp: public SyntaxNode{
@@ -78,7 +85,9 @@ public:
     virtual float ComputeRealConstExpr() const;
     virtual bool TryToBecomeConst(SyntaxNode*& link);
     virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsHaveSideEffect();
+    virtual bool IsDependOnVar(SymVar* var);
+    virtual bool IsHaveSideEffect();    
+    virtual void GetAllAffectedVars(VarsContainer& res_cont);
 };
 
 class NodeIntToRealConv: public NodeUnaryOp{
@@ -106,8 +115,10 @@ public:
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
     virtual bool IsConst() const;
-    virtual bool IsAffectToVar(SymVar* var_) const;
-    virtual bool IsHaveSideEffect();
+    virtual bool IsAffectToVar(SymVar* var_);
+    virtual bool IsDependOnVar(SymVar* var_);
+    virtual bool IsHaveSideEffect();    
+    virtual void GetAllAffectedVars(VarsContainer& res_cont);
 };
 
 class NodeArrayAccess: public SyntaxNode{
@@ -122,8 +133,10 @@ public:
     virtual bool IsLValue() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const; 
-    virtual bool IsAffectToVar(SymVar* var_);
-    virtual bool IsHaveSideEffect();
+    virtual bool IsAffectToVar(SymVar* var);
+    virtual bool IsDependOnVar(SymVar* var);
+    virtual bool IsHaveSideEffect();    
+    virtual void GetAllAffectedVars(VarsContainer& res_cont);
 };
 
 class NodeRecordAccess: public SyntaxNode{
@@ -137,8 +150,10 @@ public:
     virtual bool IsLValue() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const; 
-    virtual bool IsAffectToVar(SymVar* var_);
-    virtual bool IsHaveSideEffect();
+    virtual bool IsAffectToVar(SymVar* var);
+    virtual bool IsDependOnVar(SymVar* var);
+    virtual bool IsHaveSideEffect();    
+    virtual void GetAllAffectedVars(VarsContainer& res_cont);
 };
 
 #endif

@@ -69,14 +69,36 @@ void NodeCall::GenerateValue(AsmCode& asm_code) const
 
 bool NodeCall::IsAffectToVar(SymVar* var)
 {
-    for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++ it)
-        if ((*it)->IsAffectToVar(var)) return true;
+    for (int i = 0; i < args.size(); ++i)
+    {
+        if (args[i]->IsAffectToVar(var)) return true;
+    }
     return funct->IsAffectToVar(var);
+}
+
+bool NodeCall::IsDependOnVar(SymVar* var)
+{
+    for (std::vector<SyntaxNode*>::iterator it = args.begin(); it != args.end(); ++it)
+        if ((*it)->IsDependOnVar(var)) return true;
+    return funct->GetBody()->IsDependOnVar(var);
 }
 
 bool NodeCall::IsHaveSideEffect()
 {
+    for (int i = 0; i < args.size(); ++i)
+    {
+        if (funct->GetArg(i)->IsByRef()) return true;
+    }
     funct->IsHaveSideEffect();
+}
+
+void NodeCall::GetAllAffectedVars(VarsContainer& res_cont)
+{
+    for (int i = 0; i < args.size(); ++i)
+    {
+        args[i]->GetAllAffectedVars(res_cont);
+    }
+    funct->GetBody()->GetAllAffectedVars(res_cont);
 }
 
 //---NodeWriteCall---
@@ -116,6 +138,24 @@ const SymType* NodeWriteCall::GetSymType() const
 bool NodeWriteCall::IsHaveSideEffect()
 {
     return true;
+}
+
+bool NodeWriteCall::IsAffectToVar(SymVar* var)
+{
+    for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++ it)
+        if ((*it)->IsAffectToVar(var)) return true;
+}
+
+bool NodeWriteCall::IsDependOnVar(SymVar* var)
+{
+    for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++ it)
+        if ((*it)->IsDependOnVar(var)) return true;
+}
+
+void NodeWriteCall::GetAllAffectedVars(VarsContainer& res_cont)
+{
+    for (std::vector<SyntaxNode*>::iterator it = args.begin(); it != args.end(); ++ it)
+        (*it)->GetAllAffectedVars(res_cont);
 }
 
 //---NodeBinaryOp---
@@ -424,9 +464,20 @@ bool NodeBinaryOp::IsAffectToVar(SymVar* var)
     return left->IsAffectToVar(var) || right->IsAffectToVar(var);
 }
 
+bool NodeBinaryOp::IsDependOnVar(SymVar* var)
+{
+    return left->IsDependOnVar(var) || right->IsDependOnVar(var);
+}
+
 bool NodeBinaryOp::IsHaveSideEffect()
 {
     return left->IsHaveSideEffect() || right->IsHaveSideEffect();
+}
+
+void NodeBinaryOp::GetAllAffectedVars(VarsContainer& res_cont)
+{
+    left->GetAllAffectedVars(res_cont);
+    right->GetAllAffectedVars(res_cont);
 }
 
 //---NodeUnaryOp---
@@ -528,9 +579,19 @@ bool NodeUnaryOp::IsAffectToVar(SymVar* var)
     return child->IsAffectToVar(var);
 }
 
+bool NodeUnaryOp::IsDependOnVar(SymVar* var)
+{
+    return child->IsDependOnVar(var);
+}
+
 bool NodeUnaryOp::IsHaveSideEffect()
 {
     return child->IsHaveSideEffect();
+}
+
+void NodeUnaryOp::GetAllAffectedVars(VarsContainer& res_cont)
+{
+    return child->GetAllAffectedVars(res_cont);
 }
 
 //---NodeIntToRealConv---
@@ -618,7 +679,12 @@ bool NodeVar::IsConst() const
     return var->GetClassName() & SYM_VAR_CONST;
 }
 
-bool NodeVar::IsAffectToVar(SymVar* var_) const
+bool NodeVar::IsAffectToVar(SymVar* var_)
+{
+    return false;
+}
+
+bool NodeVar::IsDependOnVar(SymVar* var_)
 {
     return var == var_;
 }
@@ -626,6 +692,10 @@ bool NodeVar::IsAffectToVar(SymVar* var_) const
 bool NodeVar::IsHaveSideEffect()
 {
     return var->GetClassName() & SYM_VAR_GLOBAL;
+}
+
+void NodeVar::GetAllAffectedVars(VarsContainer& res_cont)
+{
 }
 
 //---NodeArrayAccess----
@@ -688,12 +758,21 @@ void NodeArrayAccess::GenerateValue(AsmCode& asm_code) const
 
 bool NodeArrayAccess::IsAffectToVar(SymVar* var)
 {
-    return arr->IsAffectToVar(var);
+    return false;;
+}
+
+bool NodeArrayAccess::IsDependOnVar(SymVar* var)
+{
+    return arr->IsDependOnVar(var);
 }
 
 bool NodeArrayAccess::IsHaveSideEffect()
 {
     return arr->IsHaveSideEffect();
+}
+
+void NodeArrayAccess::GetAllAffectedVars(VarsContainer& res_cont)
+{
 }
 
 //---NodeRecordAccess---
@@ -741,10 +820,19 @@ void NodeRecordAccess::GenerateValue(AsmCode& asm_code) const
 
 bool NodeRecordAccess::IsAffectToVar(SymVar* var)
 {
-    return record->IsAffectToVar(var);
+    return false;
+}
+
+bool NodeRecordAccess::IsDependOnVar(SymVar* var)
+{
+    return record->IsDependOnVar(var);
 }
 
 bool NodeRecordAccess::IsHaveSideEffect()
 {
     return record->IsHaveSideEffect();
+}
+
+void NodeRecordAccess::GetAllAffectedVars(VarsContainer& res_cont)
+{
 }

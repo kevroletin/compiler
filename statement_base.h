@@ -3,16 +3,14 @@
 
 #include "scanner.h"
 #include "generator.h"
+#include "syntax_node_base.h"
 #include <vector>
 
 class SymVar;
 
-class NodeStatement{
+class NodeStatement: public SyntaxNodeBase{
 public:
-    virtual void Print(ostream& o, int offset = 0) const;
     virtual void Generate(AsmCode& asm_code);
-    virtual bool IsAffectToVar(SymVar*) const;
-    virtual bool IsHaveSideEffect() const;    
 };
 
 #endif
