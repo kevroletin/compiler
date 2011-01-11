@@ -1,6 +1,4 @@
 #include "statement.h"
-//#define DEBUG
-//---StmtAssgn---
 
 StmtAssign::StmtAssign(SyntaxNode* left_, SyntaxNode* right_):
     left(left_),
@@ -41,17 +39,17 @@ void StmtAssign::Generate(AsmCode& asm_code)
 
 bool StmtAssign::IsAffectToVar(SymVar* var)
 {
-    return (left->GetAffectedVar() == var) || right->IsAffectToVar(var);
+    return (left->GetAffectedVar() == var) || left->IsAffectToVar(var) || right->IsAffectToVar(var);
 }
 
 bool StmtAssign::IsDependOnVar(SymVar* var)
 {
-    return right->IsDependOnVar(var);
+    return left->IsDependOnVar(var) || right->IsDependOnVar(var);
 }
 
 bool StmtAssign::IsHaveSideEffect()
 {
-    return (left->GetAffectedVar()->GetClassName() & SYM_VAR_GLOBAL)
+    return (left->IsHaveSideEffect()) || (left->GetAffectedVar()->GetClassName() & SYM_VAR_GLOBAL)
         || right->IsHaveSideEffect();
 }
 
@@ -62,10 +60,10 @@ void StmtAssign::GetAllAffectedVars(VarsContainer& res_cont)
     res_cont.insert(left->GetAffectedVar());
 }
 
-void StmtAssign::GetAllDependences(VarsContainer& res_cont)
+void StmtAssign::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     right->GetAllDependences(res_cont);
-    left->GetAllDependences(res_cont);
+    left->GetAllDependences(res_cont, false);
 }
 
 StmtClassName StmtAssign::GetClassName() const
@@ -139,7 +137,7 @@ void StmtBlock::Print(ostream& o, int offset)
     PrintSpaces(o, offset) << "begin\n";
     for (vector<NodeStatement*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
     {
-        (*it)->Print(o, offset + 1); continue;
+//        (*it)->Print(o, offset + 1); continue;
         NodeStatement* node = *it;
         PrintSpaces(o, offset + 1) << "{se: " << node->IsHaveSideEffect();
         std::set<SymVar*> t;
@@ -150,6 +148,13 @@ void StmtBlock::Print(ostream& o, int offset)
             if (i != t.begin()) o << ", ";
             o << (*i)->GetToken().GetName();
         }
+        node->GetAllDependences(t);
+        if (!t.empty()) o << "; dp: ";
+        for (std::set<SymVar*>::iterator i = t.begin(); i != t.end(); ++i)
+        {
+            if (i != t.begin()) o << ", ";
+            o << (*i)->GetToken().GetName();
+        }        
         o << "}\n";
         (*it)->Print(o, offset + 1);
     }
@@ -211,7 +216,7 @@ void StmtBlock::GetAllAffectedVars(VarsContainer& res_cont)
         ((*it)->GetAllAffectedVars(res_cont));
 }
 
-void StmtBlock::GetAllDependences(VarsContainer& res_cont)
+void StmtBlock::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     for (std::vector<NodeStatement*>::iterator it = statements.begin(); it != statements.end(); ++it)
         ((*it)->GetAllDependences(res_cont));
@@ -265,7 +270,7 @@ void StmtExpression::GetAllAffectedVars(VarsContainer& res_cont)
     expr->GetAllAffectedVars(res_cont);
 }
 
-void StmtExpression::GetAllDependences(VarsContainer& res_cont)
+void StmtExpression::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     expr->GetAllDependences(res_cont);
 }
@@ -298,19 +303,16 @@ void StmtLoop::ObtainLabels(AsmCode& asm_code)
     continue_label = asm_code.GenLabel("continue");;
 }
 
-void StmtLoop::ConditonsToAffectedVars()
+void StmtLoop::CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& deps)
 {
 }
 
-#ifdef DEBUG
-#include <iostream>
-#endif
-
 void StmtLoop::TakeOutVars(std::vector<NodeStatement*>& before_loop)
 {
-//    return; 
     body->OptimizeLoops();
-    ConditonsToAffectedVars();
+    set<SymVar*> affected_vars;
+    set<SymVar*> dependences;
+    CalculateDependences(affected_vars, dependences);
     for (int i = 0; i < body->GetSize(); ++i)
     {
         GetAllAffectedVars(affected_vars);
@@ -327,20 +329,6 @@ void StmtLoop::TakeOutVars(std::vector<NodeStatement*>& before_loop)
         else
             before_loop.push_back(body->GetStmt(i));
     }
-#ifdef DEBUG
-    cerr << ": {";
-    for (set<SymVar*>::iterator it = affected_vars.begin(); it != affected_vars.end(); ++it)
-    {
-        if (it != affected_vars.begin()) cerr << ',';
-        cerr << (*it)->GetToken().GetName();
-    }
-    cerr << "}\n";
-    cerr << "----before------:\n"; body->Print(cerr);
-    cerr << "----before_loop-:\n";
-    for (int i = 0; i < before_loop.size(); ++i)
-        before_loop[i]->Print(cerr);
-    cerr << "----new_body----:\n"; body->Print(cerr);
-#endif
     delete body;
     body = new_body;    
 }
@@ -378,11 +366,13 @@ StmtClassName StmtLoop::GetClassName() const
 
 //---StmtFor---
 
-void StmtFor::ConditonsToAffectedVars()
+void StmtFor::CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& deps)
 {
-    init_val->GetAllAffectedVars(affected_vars);
-    last_val->GetAllAffectedVars(affected_vars);
-    affected_vars.insert(index);
+    init_val->GetAllAffectedVars(affected_cont);
+    last_val->GetAllAffectedVars(affected_cont);
+    init_val->GetAllDependences(deps);
+    last_val->GetAllDependences(deps);    
+    affected_cont.insert(index);
 }
 
 bool StmtFor::IsConditionAffectToVars()
@@ -473,7 +463,7 @@ void StmtFor::GetAllAffectedVars(VarsContainer& res_cont)
     last_val->GetAllAffectedVars(res_cont);
 }
 
-void StmtFor::GetAllDependences(VarsContainer& res_cont)
+void StmtFor::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     res_cont.insert(index);
     body->GetAllDependences(res_cont);
@@ -483,16 +473,17 @@ void StmtFor::GetAllDependences(VarsContainer& res_cont)
 
 //---StmtWhile---
 
-void StmtWhile::ConditonsToAffectedVars()
-{
-    condition->GetAllAffectedVars(affected_vars);
-}
-
 bool StmtWhile::IsConditionAffectToVars()
 {
     set<SymVar*> t;
     condition->GetAllAffectedVars(t);
     return !t.empty();
+}
+
+void StmtWhile::CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& deps)
+{
+    condition->GetAllAffectedVars(affected_cont);
+    condition->GetAllDependences(deps);    
 }
 
 StmtWhile::StmtWhile(SyntaxNode* condition_, NodeStatement* body_):
@@ -549,7 +540,7 @@ void StmtWhile::GetAllAffectedVars(VarsContainer& res_cont)
     body->GetAllAffectedVars(res_cont);
 }
 
-void StmtWhile::GetAllDependences(VarsContainer& res_cont)
+void StmtWhile::GetAllDependences(VarsContainer& res_cont, bool with_selfcont)
 {
     condition->GetAllDependences(res_cont);
     body->GetAllDependences(res_cont);
@@ -686,7 +677,7 @@ void StmtIf::GetAllAffectedVars(VarsContainer& res_cont)
     if (else_branch != NULL) else_branch->GetAllAffectedVars(res_cont);
 }
 
-void StmtIf::GetAllDependences(VarsContainer& res_cont)
+void StmtIf::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     condition->GetAllDependences(res_cont);
     if (then_branch != NULL) then_branch->GetAllDependences(res_cont);

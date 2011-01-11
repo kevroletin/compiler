@@ -45,7 +45,9 @@ void NodeCall::Print(ostream& o, int offset)
 {
     PrintSpaces(o, offset) << "() " << funct->GetName() << " [";
     GetSymType()->Print(o , offset);
-    o << "]\n";
+    o << "]";
+    if (funct->IsDummyProc()) o << " <not generated>";
+    o << "\n";
     PrintArgs(o, offset);
 }
 
@@ -111,7 +113,7 @@ void NodeCall::GetAllAffectedVars(VarsContainer& res_cont)
     funct->GetAllAffectedVars(res_cont);
 }
 
-void NodeCall::GetAllDependences(VarsContainer& res_cont)
+void NodeCall::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     for (int i = 0; i < args.size(); ++i)
     {
@@ -183,7 +185,7 @@ void NodeWriteCall::GetAllAffectedVars(VarsContainer& res_cont)
         (*it)->GetAllAffectedVars(res_cont);
 }
 
-void NodeWriteCall::GetAllDependences(VarsContainer& res_cont)
+void NodeWriteCall::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     for (std::vector<SyntaxNode*>::iterator it = args.begin(); it != args.end(); ++ it)
         (*it)->GetAllDependences(res_cont);
@@ -525,7 +527,7 @@ void NodeBinaryOp::GetAllAffectedVars(VarsContainer& res_cont)
     right->GetAllAffectedVars(res_cont);
 }
 
-void NodeBinaryOp::GetAllDependences(VarsContainer& res_cont)
+void NodeBinaryOp::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     left->GetAllDependences(res_cont);
     right->GetAllDependences(res_cont);
@@ -653,7 +655,7 @@ void NodeUnaryOp::GetAllAffectedVars(VarsContainer& res_cont)
     return child->GetAllAffectedVars(res_cont);
 }
 
-void NodeUnaryOp::GetAllDependences(VarsContainer& res_cont)
+void NodeUnaryOp::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     return child->GetAllDependences(res_cont);
 }
@@ -780,9 +782,9 @@ void NodeVar::GetAllAffectedVars(VarsContainer& res_cont)
 {
 }
 
-void NodeVar::GetAllDependences(VarsContainer& res_cont)
+void NodeVar::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
-    res_cont.insert(var);
+    if (with_self) res_cont.insert(var);
 }
 
 //---NodeArrayAccess----
@@ -878,10 +880,10 @@ void NodeArrayAccess::GetAllAffectedVars(VarsContainer& res_cont)
     arr->GetAllAffectedVars(res_cont);
 }
 
-void NodeArrayAccess::GetAllDependences(VarsContainer& res_cont)
+void NodeArrayAccess::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     index->GetAllDependences(res_cont);
-    arr->GetAllDependences(res_cont);
+    arr->GetAllDependences(res_cont, with_self);
 }
 
 //---NodeRecordAccess---
@@ -960,7 +962,7 @@ void NodeRecordAccess::GetAllAffectedVars(VarsContainer& res_cont)
 {
 }
 
-void NodeRecordAccess::GetAllDependences(VarsContainer& res_cont)
+void NodeRecordAccess::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
-    res_cont.insert(GetAffectedVar());
+    if (with_self) res_cont.insert(GetAffectedVar());
 }

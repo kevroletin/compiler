@@ -43,7 +43,7 @@ void SyntaxNodeBase::GetAllAffectedVars(std::set<SymVar*>&)
 {
 }
 
-void SyntaxNodeBase::GetAllDependences(VarsContainer&)
+void SyntaxNodeBase::GetAllDependences(VarsContainer&, bool with_self)
 {
 }
 

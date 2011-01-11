@@ -24,7 +24,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
     virtual StmtClassName GetClassName() const;
 };
 
@@ -49,7 +49,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
     virtual StmtClassName GetClassName() const;
 };
 
@@ -65,7 +65,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
     virtual StmtClassName GetClassName() const;
     virtual bool CanBeReplaced();
 };
@@ -76,9 +76,7 @@ protected:
     AsmStrImmediate continue_label;
     StmtBlock* body;
     void ObtainLabels(AsmCode& asm_code);
-    set<SymVar*> affected_vars;
-    set<SymVar*> dependences;
-    virtual void ConditonsToAffectedVars();
+    virtual void CalculateDependences(set<SymVar*>& affectte_cont, set<SymVar*>& deps);
 public:
     StmtBlock* GetBody() const;
     void TakeOutVars(std::vector<NodeStatement*>& before_loop);
@@ -96,9 +94,10 @@ private:
     SyntaxNode* init_val;
     SyntaxNode* last_val;
     bool inc;
-    virtual void ConditonsToAffectedVars();
+    virtual void CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& deps);
 public:
-    StmtFor(SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value, bool is_inc, NodeStatement* body_ = NULL);
+    StmtFor(SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value,
+            bool is_inc, NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
@@ -106,14 +105,13 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& res_cont);
-    virtual bool IsConditionAffectToVars();
+    virtual void GetAllDependences(VarsContainer&, bool with_self = true);    virtual bool IsConditionAffectToVars();
 };
 
 class StmtWhile: public StmtLoop{
 protected:
     SyntaxNode* condition;    
-    virtual void ConditonsToAffectedVars();
+    virtual void CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& deps);
 public:
     StmtWhile(SyntaxNode* condition_ = NULL , NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
@@ -123,7 +121,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
     virtual bool IsConditionAffectToVars();
 };
 
@@ -150,7 +148,7 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& res_cont);
+    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
     virtual StmtClassName GetClassName() const;
     virtual bool CanBeReplaced();
 };
