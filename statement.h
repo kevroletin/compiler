@@ -26,6 +26,7 @@ public:
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer&, bool with_self = true);
     virtual StmtClassName GetClassName() const;
+    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
 };
 
 class StmtBlock: public NodeStatement{
@@ -50,6 +51,7 @@ public:
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer&, bool with_self = true);
+    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
     virtual StmtClassName GetClassName() const;
 };
 
@@ -66,6 +68,7 @@ public:
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer&, bool with_self = true);
+    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
     virtual StmtClassName GetClassName() const;
     virtual bool CanBeReplaced();
 };
@@ -105,7 +108,9 @@ public:
     virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer&, bool with_self = true);    virtual bool IsConditionAffectToVars();
+    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
+    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
+    virtual bool IsConditionAffectToVars();
 };
 
 class StmtWhile: public StmtLoop{
@@ -122,6 +127,7 @@ public:
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer&, bool with_self = true);
+    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
     virtual bool IsConditionAffectToVars();
 };
 
@@ -149,8 +155,10 @@ public:
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer&, bool with_self = true);
+    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
     virtual StmtClassName GetClassName() const;
     virtual bool CanBeReplaced();
+    
 };
 
 class StmtJump: public NodeStatement{

@@ -16,6 +16,67 @@ bool SyntaxNodeBase::IsAffectToVars(std::set<SymVar*>& vars)
     return false;
 }
 
+void SyntaxNodeBase::AddToDependencyGraph(DependedVerts& v, DependencyGraph& g,
+                                          SymVar* dep_sym, SyntaxNodeBase* expr)
+{
+    std::set<SymVar*> t;
+    expr->GetAllDependences(t);
+    for (std::set<SymVar*>::iterator it= t.begin(); it != t.end(); ++it)
+    {
+        v.insert(*it);
+        g[*it].insert(dep_sym);
+    }
+}
+
+void SyntaxNodeBase::AddToDependencyGraph(DependedVerts& v, DependencyGraph& g,
+                                          SymVar* dep_sym, set<SymVar*>& src)
+{
+    for (std::set<SymVar*>::iterator it= src.begin(); it != src.end(); ++it)
+    {
+        v.insert(*it);
+        g[*it].insert(dep_sym);
+    }
+}
+
+void SyntaxNodeBase::AddToDependencyGraph(DependedVerts& v, DependencyGraph& g, set<SymVar*>& depended, set<SymVar*>& src)
+{
+    for (set<SymVar*>::iterator it = depended.begin(); it != depended.end(); ++it)
+        AddToDependencyGraph(v, g, *it, src);
+}
+
+void SyntaxNodeBase::AddToDependencyGraph(DependedVerts& v, DependencyGraph& g,
+                                          SyntaxNodeBase* depended, set<SymVar*>& src)
+{
+    std::set<SymVar*> t;
+    depended->GetAllAffectedVars(t);
+    for (std::set<SymVar*>::iterator it= t.begin(); it != t.end(); ++it)
+    {
+        AddToDependencyGraph(v, g, *it, src);
+    }
+}
+
+void SyntaxNodeBase::AddToDependencyGraph(DependedVerts& v, DependencyGraph& g,
+                                          SyntaxNodeBase* depended, SyntaxNodeBase* expr)
+{
+    std::set<SymVar*> t;
+    depended->GetAllAffectedVars(t);
+    for (std::set<SymVar*>::iterator it= t.begin(); it != t.end(); ++it)
+    {
+        AddToDependencyGraph(v, g, *it, expr);
+    }
+}
+
+void SyntaxNodeBase::ComputeAllDependences(DependedVerts& v, DependencyGraph& g)
+{
+    for (set<SymVar*>::iterator a = v.begin(); a != v.end(); ++a)
+        for (set<SymVar*>::iterator b = v.begin(); b != v.end(); ++b)
+            for (set<SymVar*>::iterator c = v.begin(); b != v.end(); ++b)
+            {
+                if (g[*a].find(*b) != v.end() && g[*b].find(*c) != v.end())
+                    g[*a].insert(*c);
+            }
+}
+
 void SyntaxNodeBase::Print(ostream& o, int offset) 
 {
 }
@@ -50,6 +111,10 @@ void SyntaxNodeBase::GetAllDependences(VarsContainer&, bool with_self)
 bool SyntaxNodeBase::CanBeReplaced()
 {
     return true;
+}
+
+void SyntaxNodeBase::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+{
 }
 
 //---SyntaxNode---

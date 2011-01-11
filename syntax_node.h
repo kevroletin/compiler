@@ -31,6 +31,7 @@ public:
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer&, bool with_self = true);
+    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
 };
 
 class NodeWriteCall: public NodeCallBase{

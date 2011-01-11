@@ -71,6 +71,13 @@ StmtClassName StmtAssign::GetClassName() const
     return STMT_ASSIGN;
 } 
 
+void StmtAssign::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+{
+    left->MakeDependencesGraph(v, g);
+    right->MakeDependencesGraph(v, g);
+    AddToDependencyGraph(v, g, left->GetAffectedVar(), right);
+}
+
 //---StmtBlock---
 
 void StmtBlock::Optimize()
@@ -219,7 +226,13 @@ void StmtBlock::GetAllAffectedVars(VarsContainer& res_cont)
 void StmtBlock::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     for (std::vector<NodeStatement*>::iterator it = statements.begin(); it != statements.end(); ++it)
-        ((*it)->GetAllDependences(res_cont));
+        (*it)->GetAllDependences(res_cont);
+}
+
+void StmtBlock::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+{
+    for (std::vector<NodeStatement*>::iterator it = statements.begin(); it != statements.end(); ++it)
+        (*it)->MakeDependencesGraph(v, g);
 }
 
 StmtClassName StmtBlock::GetClassName() const
@@ -273,6 +286,11 @@ void StmtExpression::GetAllAffectedVars(VarsContainer& res_cont)
 void StmtExpression::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     expr->GetAllDependences(res_cont);
+}
+
+void StmtExpression::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+{
+    expr->MakeDependencesGraph(v, g);
 }
 
 StmtClassName StmtExpression::GetClassName() const
@@ -471,6 +489,15 @@ void StmtFor::GetAllDependences(VarsContainer& res_cont, bool with_self)
     last_val->GetAllDependences(res_cont);
 }
 
+void StmtFor::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+{
+    AddToDependencyGraph(v, g, index, init_val);
+    AddToDependencyGraph(v, g, index, last_val);   
+    body->MakeDependencesGraph(v, g);
+    init_val->MakeDependencesGraph(v, g);
+    last_val->MakeDependencesGraph(v, g);
+}
+
 //---StmtWhile---
 
 bool StmtWhile::IsConditionAffectToVars()
@@ -544,6 +571,12 @@ void StmtWhile::GetAllDependences(VarsContainer& res_cont, bool with_selfcont)
 {
     condition->GetAllDependences(res_cont);
     body->GetAllDependences(res_cont);
+}
+
+void StmtWhile::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+{
+    condition->MakeDependencesGraph(v, g);
+    body->MakeDependencesGraph(v, g);
 }
 
 //---StmtUntil---
@@ -682,6 +715,13 @@ void StmtIf::GetAllDependences(VarsContainer& res_cont, bool with_self)
     condition->GetAllDependences(res_cont);
     if (then_branch != NULL) then_branch->GetAllDependences(res_cont);
     if (else_branch != NULL) else_branch->GetAllDependences(res_cont);
+}
+
+void StmtIf::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+{
+    condition->MakeDependencesGraph(v, g);
+    then_branch->MakeDependencesGraph(v, g);
+    else_branch->MakeDependencesGraph(v, g);
 }
 
 StmtClassName StmtIf::GetClassName() const

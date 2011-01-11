@@ -122,6 +122,21 @@ void NodeCall::GetAllDependences(VarsContainer& res_cont, bool with_self)
     funct->GetAllDependences(res_cont);
 }
 
+void NodeCall::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+{
+    set<SymVar*> t;
+    for (int i = 0; i < args.size(); ++i) args[i]->GetAllDependences(t);
+    for (int i = 0; i < args.size(); ++i)
+    {
+        args[i]->MakeDependencesGraph(v, g);
+        if (funct->GetArg(i)->IsByRef())
+            AddToDependencyGraph(v, g, args[i], t);
+    }
+    set<SymVar*> a;
+    funct->GetAllAffectedVars(a);
+    AddToDependencyGraph(v, g, a, t);
+}
+
 //---NodeWriteCall---
 
 NodeWriteCall::NodeWriteCall(bool new_line_):
