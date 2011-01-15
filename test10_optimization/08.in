@@ -1,0 +1,8 @@
+var
+  b: Integer;
+begin
+  while(1) do
+  begin
+    if b < 1 then break;
+  end;
+end.

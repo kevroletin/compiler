@@ -155,11 +155,12 @@ void StmtBlock::Print(ostream& o, int offset)
             if (i != t.begin()) o << ", ";
             o << (*i)->GetToken().GetName();
         }
-        node->GetAllDependences(t);
-        if (!t.empty()) o << "; dp: ";
-        for (std::set<SymVar*>::iterator i = t.begin(); i != t.end(); ++i)
+        std::set<SymVar*> d;
+        node->GetAllDependences(d);
+        if (!d.empty()) o << "; dp: ";
+        for (std::set<SymVar*>::iterator i = d.begin(); i != d.end(); ++i)
         {
-            if (i != t.begin()) o << ", ";
+            if (i != d.begin()) o << ", ";
             o << (*i)->GetToken().GetName();
         }        
         o << "}\n";
@@ -285,7 +286,7 @@ void StmtExpression::GetAllAffectedVars(VarsContainer& res_cont)
 
 void StmtExpression::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
-    expr->GetAllDependences(res_cont);
+    expr->GetAllDependences(res_cont, false);
 }
 
 void StmtExpression::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
@@ -325,18 +326,19 @@ void StmtLoop::CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& d
 {
 }
 
+void StmtLoop::CalculateDependences(DependedVerts& v, DependencyGraph& g)
+{
+}
+
 void StmtLoop::TakeOutVars(std::vector<NodeStatement*>& before_loop)
 {
     body->OptimizeLoops();
+    StmtBlock* new_body = new StmtBlock();
     set<SymVar*> affected_vars;
     set<SymVar*> dependences;
     CalculateDependences(affected_vars, dependences);
-    for (int i = 0; i < body->GetSize(); ++i)
-    {
-        GetAllAffectedVars(affected_vars);
-        GetAllDependences(dependences);
-    }
-    StmtBlock* new_body = new StmtBlock();
+    GetAllAffectedVars(affected_vars);
+    GetAllDependences(dependences);
     for (int i = 0; i < body->GetSize(); ++i)
     {
         bool fixed = !body->GetStmt(i)->CanBeReplaced();
@@ -391,6 +393,10 @@ void StmtFor::CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& de
     init_val->GetAllDependences(deps);
     last_val->GetAllDependences(deps);    
     affected_cont.insert(index);
+}
+
+void StmtFor::CalculateDependences(DependedVerts& v, DependencyGraph& g)
+{
 }
 
 bool StmtFor::IsConditionAffectToVars()
@@ -464,7 +470,7 @@ bool StmtFor::IsAffectToVar(SymVar* var)
 bool StmtFor::IsDependOnVar(SymVar* var)
 {
     return body->IsDependOnVar(var) || init_val->IsDependOnVar(var)
-        || last_val->IsAffectToVar(var);
+        || last_val->IsDependOnVar(var);
 }
 
 bool StmtFor::IsHaveSideEffect()
@@ -511,6 +517,11 @@ void StmtWhile::CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& 
 {
     condition->GetAllAffectedVars(affected_cont);
     condition->GetAllDependences(deps);    
+}
+
+void StmtWhile::CalculateDependences(DependedVerts& v, DependencyGraph& g)
+{
+    condition->MakeDependencesGraph(v, g);
 }
 
 StmtWhile::StmtWhile(SyntaxNode* condition_, NodeStatement* body_):

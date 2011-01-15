@@ -1,0 +1,18 @@
+var
+  i : Integer;
+
+procedure SEProc;
+begin
+  i := 10;
+end;
+
+procedure Proc;
+var i : Integer;
+begin
+  i := 10;
+end;
+
+begin
+  SEProc;
+  Proc;
+end.

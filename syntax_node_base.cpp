@@ -4,6 +4,12 @@
 
 bool SyntaxNodeBase::IsDependOnVars(std::set<SymVar*>& vars)
 {
+    std::set<SymVar*> t;
+    GetAllDependences(t);
+    for (set<SymVar*>::iterator it = vars.begin(); it != vars.end(); ++it)
+        if (t.find(*it) != t.end()) return true;
+    return false;
+
     for (set<SymVar*>::iterator it = vars.begin(); it != vars.end(); ++it)
         if (IsDependOnVar(*it)) return true;
     return false;
@@ -11,6 +17,12 @@ bool SyntaxNodeBase::IsDependOnVars(std::set<SymVar*>& vars)
 
 bool SyntaxNodeBase::IsAffectToVars(std::set<SymVar*>& vars)
 {
+    std::set<SymVar*> t;
+    GetAllAffectedVars(t);
+    for (set<SymVar*>::iterator it = vars.begin(); it != vars.end(); ++it)
+        if (t.find(*it) != t.end()) return true;
+    return false;
+
     for (set<SymVar*>::iterator it = vars.begin(); it != vars.end(); ++it)
         if (IsAffectToVar(*it)) return true;
     return false;

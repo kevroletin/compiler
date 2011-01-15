@@ -1,0 +1,21 @@
+var
+  a, b: Integer;
+
+procedure BB; forward;
+
+procedure AA;
+begin
+  a := 10;
+  BB;
+end;
+
+procedure BB;
+begin
+  b := 10;
+  AA;
+end;
+
+begin
+  AA;
+  BB;
+end.

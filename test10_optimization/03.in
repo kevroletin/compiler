@@ -1,0 +1,16 @@
+var 
+  i, j: Integer;
+  
+procedure SEProc(a: Integer; var b: Integer);
+begin
+  b := a;
+end;
+
+procedure Proc(a: Integer; var b: Integer);
+begin
+end;
+
+begin
+  SEProc(i, j);
+  Proc(i, j);
+end.

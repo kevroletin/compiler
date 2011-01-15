@@ -1,0 +1,5 @@
+begin
+  while(0) do begin
+    Write(5);
+  end;
+end.

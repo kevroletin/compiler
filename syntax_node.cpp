@@ -100,7 +100,7 @@ bool NodeCall::IsHaveSideEffect()
     {
         if (funct->IsAffectToParam(i)) return true;
     }
-    funct->IsHaveSideEffect();
+    return funct->IsHaveSideEffect();
 }
 
 void NodeCall::GetAllAffectedVars(VarsContainer& res_cont)
@@ -110,7 +110,7 @@ void NodeCall::GetAllAffectedVars(VarsContainer& res_cont)
         args[i]->GetAllAffectedVars(res_cont);
         if (funct->IsAffectToParam(i)) res_cont.insert(args[i]->GetAffectedVar());
     }
-    funct->GetAllAffectedVars(res_cont);
+    return funct->GetAllAffectedVars(res_cont);
 }
 
 void NodeCall::GetAllDependences(VarsContainer& res_cont, bool with_self)
@@ -432,9 +432,6 @@ int NodeBinaryOp::ComputeIntConstExpr() const
             break;
             case TOK_SHL:
                 return a << b;
-            break;
-            case TOK_NOT:
-//                return a ~ b;
             break;
             case TOK_GREATER:
                 return a > b;
@@ -869,7 +866,7 @@ void NodeArrayAccess::GenerateValue(AsmCode& asm_code) const
         asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EAX));
     else
     {
-        asm_code.AddCmd(ASM_PUSH, REG_EAX);
+        aqsm_code.AddCmd(ASM_PUSH, REG_EAX);
         asm_code.PushMemory(GetSymType()->GetSize());
     }
 }

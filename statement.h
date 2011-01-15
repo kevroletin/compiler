@@ -80,6 +80,7 @@ protected:
     StmtBlock* body;
     void ObtainLabels(AsmCode& asm_code);
     virtual void CalculateDependences(set<SymVar*>& affectte_cont, set<SymVar*>& deps);
+    virtual void CalculateDependences(DependedVerts& v, DependencyGraph& g);
 public:
     StmtBlock* GetBody() const;
     void TakeOutVars(std::vector<NodeStatement*>& before_loop);
@@ -98,6 +99,7 @@ private:
     SyntaxNode* last_val;
     bool inc;
     virtual void CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& deps);
+    virtual void CalculateDependences(DependedVerts& v, DependencyGraph& g);
 public:
     StmtFor(SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value,
             bool is_inc, NodeStatement* body_ = NULL);
@@ -117,6 +119,7 @@ class StmtWhile: public StmtLoop{
 protected:
     SyntaxNode* condition;    
     virtual void CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& deps);
+    virtual void CalculateDependences(DependedVerts& v, DependencyGraph& g);
 public:
     StmtWhile(SyntaxNode* condition_ = NULL , NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
