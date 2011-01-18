@@ -129,11 +129,15 @@ bool SymProc::IsAffectToParam(int index)
     return params[index]->IsByRef() && IsAffectToVar(params[index]);
 }
 
+bool SymProc::IsDependOnParam(int index)
+{
+    return IsDependOnVar(params[index]);
+}
+
 SymProc::SymProc(Token name):
     Symbol(name),
     have_side_effect(false),
     known_side_effect(false),
-    search_affection(NULL),
     searching(false),
     sym_table(NULL)
 {
@@ -178,7 +182,6 @@ SymProc::SymProc(Token token, SymTable* syn_table_):
     Symbol(token),
     have_side_effect(false),
     known_side_effect(false),
-    search_affection(NULL),
     searching(false),
     sym_table(syn_table_)
 {
@@ -290,10 +293,19 @@ bool SymProc::IsHaveSideEffect()
 
 bool SymProc::IsAffectToVar(SymVar* var)
 {
-    if (search_affection == var) return false;
-    search_affection = var;
+    if (searching) return false;
+    searching = true;
     bool res = body->IsAffectToVar(var);
-    search_affection = NULL;
+    searching = false;
+    return res;
+}
+
+bool SymProc::IsDependOnVar(SymVar* var)
+{
+    if (searching) return false;
+    searching = true;
+    bool res = body->IsDependOnVar(var);
+    searching = false;
     return res;
 }
 
@@ -311,6 +323,15 @@ void SymProc::GetAllDependences(VarsContainer& res_cont)
     searching = true;
     body->GetAllDependences(res_cont);
     searching = false;
+}
+
+bool SymProc::CanBeReplaced()
+{
+    if (searching) return true; 
+    searching = true;
+    bool res = body->CanBeReplaced();
+    searching = false;
+    return res;
 }
 
 //---SymFunct---

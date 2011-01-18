@@ -22,21 +22,16 @@ class SyntaxNodeBase{
 public:
     bool IsDependOnVars(std::set<SymVar*>& vars);
     bool IsAffectToVars(std::set<SymVar*>& vars);
-    void AddToDependencyGraph(DependedVerts& v, DependencyGraph& g, SymVar* dep_sym, SyntaxNodeBase* expr);
-    void AddToDependencyGraph(DependedVerts& v, DependencyGraph& g, SymVar* dep_sym, set<SymVar*>& src);
-    void AddToDependencyGraph(DependedVerts& v, DependencyGraph& g, SyntaxNodeBase* depended, SyntaxNodeBase* expr);
-    void AddToDependencyGraph(DependedVerts& v, DependencyGraph& g, SyntaxNodeBase* depended, set<SymVar*>& src);
-    void AddToDependencyGraph(DependedVerts& v, DependencyGraph& g, set<SymVar*>& depended, set<SymVar*>& src);
-    void ComputeAllDependences(DependedVerts& v, DependencyGraph& g);
-    virtual bool IsAffectToVar(SymVar*);
-    virtual bool IsDependOnVar(SymVar*);    
+    bool IsAffectToVars();
+    bool IsAffectToVar(SymVar* var);
+    bool IsDependOnVar(SymVar* var);    
     virtual bool IsHaveSideEffect();    
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(std::ostream& o, int offset = 0);
     virtual void GetAllAffectedVars(VarsContainer&);
     virtual void GetAllDependences(VarsContainer&, bool with_self = true);
     virtual bool CanBeReplaced();
-    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
+    virtual bool ContainJump();
 };
 
 class SyntaxNode: public SyntaxNodeBase{

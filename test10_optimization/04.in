@@ -1,3 +1,4 @@
+//рекурсия
 var
   a, b: Integer;
 
@@ -15,7 +16,14 @@ begin
   AA;
 end;
 
+//генерируется
+procedure SEProc;
+begin
+  AA;
+end;
+
 begin
   AA;
   BB;
+  SEProc;
 end.

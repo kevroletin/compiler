@@ -1,8 +1,11 @@
+//управляющие конструкции выносить нельзя
 var
   b: Integer;
 begin
   while(1) do
   begin
     if b < 1 then break;
+    continue;
+    b := 40;
   end;
 end.

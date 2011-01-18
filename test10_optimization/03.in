@@ -1,11 +1,13 @@
 var 
   i, j: Integer;
   
+//генерируется
 procedure SEProc(a: Integer; var b: Integer);
 begin
   b := a;
 end;
 
+//не генерируется
 procedure Proc(a: Integer; var b: Integer);
 begin
 end;

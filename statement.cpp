@@ -37,16 +37,6 @@ void StmtAssign::Generate(AsmCode& asm_code)
     asm_code.MoveToMemoryFromStack(left->GetSymType()->GetSize());
 }
 
-bool StmtAssign::IsAffectToVar(SymVar* var)
-{
-    return (left->GetAffectedVar() == var) || left->IsAffectToVar(var) || right->IsAffectToVar(var);
-}
-
-bool StmtAssign::IsDependOnVar(SymVar* var)
-{
-    return left->IsDependOnVar(var) || right->IsDependOnVar(var);
-}
-
 bool StmtAssign::IsHaveSideEffect()
 {
     return (left->IsHaveSideEffect()) || (left->GetAffectedVar()->GetClassName() & SYM_VAR_GLOBAL)
@@ -71,11 +61,9 @@ StmtClassName StmtAssign::GetClassName() const
     return STMT_ASSIGN;
 } 
 
-void StmtAssign::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+bool StmtAssign::CanBeReplaced()
 {
-    left->MakeDependencesGraph(v, g);
-    right->MakeDependencesGraph(v, g);
-    AddToDependencyGraph(v, g, left->GetAffectedVar(), right);
+    return left->CanBeReplaced() && right->CanBeReplaced();
 }
 
 //---StmtBlock---
@@ -96,7 +84,7 @@ void StmtBlock::OptimizeLoops()
         {
             StmtLoop* loop = (StmtLoop*)*it;
             loop->TakeOutVars(optimized_body);
-            if (loop->GetBody()->GetSize() || loop->IsConditionAffectToVars()) optimized_body.push_back(loop);
+            if (!loop->IsDummyLoop()) optimized_body.push_back(loop);
         }
         else
         {
@@ -183,34 +171,6 @@ void StmtBlock::Generate(AsmCode& asm_code)
         (*it)->Generate(asm_code);
 }
 
-bool StmtBlock::IsAffectToVar(SymVar* var) const
-{
-    for (std::vector<NodeStatement*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
-        if ((*it)->IsAffectToVar(var)) return true;
-    return false;
-}
-
-bool StmtBlock::IsHaveSideEffect() const
-{
-    for (std::vector<NodeStatement*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
-        if ((*it)->IsHaveSideEffect()) return true;
-    return false;
-}
-
-bool StmtBlock::IsAffectToVar(SymVar* var)
-{
-    for (std::vector<NodeStatement*>::iterator it = statements.begin(); it != statements.end(); ++it)
-        if ((*it)->IsAffectToVar(var)) return true;
-    return false;
-}
-
-bool StmtBlock::IsDependOnVar(SymVar* var)
-{
-    for (std::vector<NodeStatement*>::iterator it = statements.begin(); it != statements.end(); ++it)
-        if ((*it)->IsDependOnVar(var)) return true;
-    return false;
-}
-
 bool StmtBlock::IsHaveSideEffect()
 {
     for (std::vector<NodeStatement*>::iterator it = statements.begin(); it != statements.end(); ++it)
@@ -230,16 +190,17 @@ void StmtBlock::GetAllDependences(VarsContainer& res_cont, bool with_self)
         (*it)->GetAllDependences(res_cont);
 }
 
-void StmtBlock::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
-{
-    for (std::vector<NodeStatement*>::iterator it = statements.begin(); it != statements.end(); ++it)
-        (*it)->MakeDependencesGraph(v, g);
-}
-
 StmtClassName StmtBlock::GetClassName() const
 {
     return STMT_BLOCK;
 } 
+
+bool StmtBlock::CanBeReplaced()
+{
+    for (std::vector<NodeStatement*>::iterator it = statements.begin(); it != statements.end(); ++it)
+        if (!(*it)->CanBeReplaced()) return false;
+    return true;
+}
 
 //---StmtExpression---
 
@@ -264,16 +225,6 @@ void StmtExpression::Generate(AsmCode& asm_code)
     asm_code.AddCmd(ASM_ADD, expr->GetSymType()->GetSize(), REG_ESP);
 }
 
-bool StmtExpression::IsAffectToVar(SymVar* var)
-{
-    return expr->IsAffectToVar(var);
-}
-
-bool StmtExpression::IsDependOnVar(SymVar* var)
-{
-    return expr->IsDependOnVar(var);
-}
-
 bool StmtExpression::IsHaveSideEffect()
 {
     return expr->IsHaveSideEffect();
@@ -286,12 +237,7 @@ void StmtExpression::GetAllAffectedVars(VarsContainer& res_cont)
 
 void StmtExpression::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
-    expr->GetAllDependences(res_cont, false);
-}
-
-void StmtExpression::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
-{
-    expr->MakeDependencesGraph(v, g);
+    expr->GetAllDependences(res_cont);
 }
 
 StmtClassName StmtExpression::GetClassName() const
@@ -326,10 +272,6 @@ void StmtLoop::CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& d
 {
 }
 
-void StmtLoop::CalculateDependences(DependedVerts& v, DependencyGraph& g)
-{
-}
-
 void StmtLoop::TakeOutVars(std::vector<NodeStatement*>& before_loop)
 {
     body->OptimizeLoops();
@@ -341,13 +283,13 @@ void StmtLoop::TakeOutVars(std::vector<NodeStatement*>& before_loop)
     GetAllDependences(dependences);
     for (int i = 0; i < body->GetSize(); ++i)
     {
-        bool fixed = !body->GetStmt(i)->CanBeReplaced();
-        fixed |= body->GetStmt(i)->IsDependOnVars(affected_vars);
-        fixed |= body->GetStmt(i)->IsAffectToVars(dependences);
-        if (fixed)
-            new_body->AddStatement(body->GetStmt(i));
-        else
-            before_loop.push_back(body->GetStmt(i));
+        NodeStatement* stmt = body->GetStmt(i);
+        bool fixed = !stmt->CanBeReplaced();
+        fixed |= stmt->ContainJump();
+        fixed |= stmt->IsDependOnVars(affected_vars);
+        fixed |= stmt->IsAffectToVars(dependences);
+        if (fixed) new_body->AddStatement(stmt);
+        else before_loop.push_back(stmt);
     }
     delete body;
     body = new_body;    
@@ -366,6 +308,16 @@ AsmStrImmediate StmtLoop::GetBreakLabel() const
 AsmStrImmediate StmtLoop::GetContinueLabel() const
 {
     return continue_label;
+}
+
+bool StmtLoop::IsDummyLoop()
+{
+    if (IsConditionAffectToVars()) return false;
+    for (int i = 0; i < body->GetSize(); ++i)
+    {
+        if (!body->GetStmt(i)->ContainJump() || body->GetStmt(i)->IsAffectToVars()) return false;
+    }
+    return true;
 }
 
 void StmtLoop::AddBody(NodeStatement* body_)
@@ -393,10 +345,6 @@ void StmtFor::CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& de
     init_val->GetAllDependences(deps);
     last_val->GetAllDependences(deps);    
     affected_cont.insert(index);
-}
-
-void StmtFor::CalculateDependences(DependedVerts& v, DependencyGraph& g)
-{
 }
 
 bool StmtFor::IsConditionAffectToVars()
@@ -461,18 +409,6 @@ void StmtFor::Generate(AsmCode& asm_code)
     asm_code.AddCmd(ASM_ADD, 4, REG_ESP);
 }
 
-bool StmtFor::IsAffectToVar(SymVar* var)
-{
-    return (index == var) || body->IsAffectToVar(var) || init_val->IsAffectToVar(var)
-        || last_val->IsAffectToVar(var);
-}
-
-bool StmtFor::IsDependOnVar(SymVar* var)
-{
-    return body->IsDependOnVar(var) || init_val->IsDependOnVar(var)
-        || last_val->IsDependOnVar(var);
-}
-
 bool StmtFor::IsHaveSideEffect()
 {
     return (index->GetClassName() & SYM_VAR_GLOBAL) || body->IsHaveSideEffect()
@@ -495,13 +431,9 @@ void StmtFor::GetAllDependences(VarsContainer& res_cont, bool with_self)
     last_val->GetAllDependences(res_cont);
 }
 
-void StmtFor::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+bool StmtFor::CanBeReplaced()
 {
-    AddToDependencyGraph(v, g, index, init_val);
-    AddToDependencyGraph(v, g, index, last_val);   
-    body->MakeDependencesGraph(v, g);
-    init_val->MakeDependencesGraph(v, g);
-    last_val->MakeDependencesGraph(v, g);
+    return init_val->CanBeReplaced() && last_val->CanBeReplaced() && body->CanBeReplaced();
 }
 
 //---StmtWhile---
@@ -517,11 +449,6 @@ void StmtWhile::CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& 
 {
     condition->GetAllAffectedVars(affected_cont);
     condition->GetAllDependences(deps);    
-}
-
-void StmtWhile::CalculateDependences(DependedVerts& v, DependencyGraph& g)
-{
-    condition->MakeDependencesGraph(v, g);
 }
 
 StmtWhile::StmtWhile(SyntaxNode* condition_, NodeStatement* body_):
@@ -557,16 +484,6 @@ void StmtWhile::Generate(AsmCode& asm_code)
     asm_code.AddLabel(break_label);
 }
 
-bool StmtWhile::IsAffectToVar(SymVar* var)
-{
-    return condition->IsAffectToVar(var) || body->IsAffectToVar(var);
-}
-
-bool StmtWhile::IsDependOnVar(SymVar* var)
-{
-    return condition->IsDependOnVar(var) || body->IsDependOnVar(var);
-}
-
 bool StmtWhile::IsHaveSideEffect()
 {
     return condition->IsHaveSideEffect() || body->IsHaveSideEffect();
@@ -578,16 +495,15 @@ void StmtWhile::GetAllAffectedVars(VarsContainer& res_cont)
     body->GetAllAffectedVars(res_cont);
 }
 
-void StmtWhile::GetAllDependences(VarsContainer& res_cont, bool with_selfcont)
+void StmtWhile::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     condition->GetAllDependences(res_cont);
     body->GetAllDependences(res_cont);
 }
 
-void StmtWhile::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+bool StmtWhile::CanBeReplaced()
 {
-    condition->MakeDependencesGraph(v, g);
-    body->MakeDependencesGraph(v, g);
+    return condition->CanBeReplaced() && body->CanBeReplaced();
 }
 
 //---StmtUntil---
@@ -693,20 +609,6 @@ void StmtIf::Generate(AsmCode& asm_code)
     }
 }
 
-bool StmtIf::IsAffectToVar(SymVar* var)
-{
-    return condition->IsAffectToVar(var) ||
-        (then_branch != NULL && then_branch->IsAffectToVar(var)) ||
-        (else_branch != NULL && else_branch->IsAffectToVar(var));
-}
-
-bool StmtIf::IsDependOnVar(SymVar* var)
-{
-    return condition->IsDependOnVar(var) ||
-        (then_branch != NULL && then_branch->IsDependOnVar(var)) ||
-        (else_branch != NULL && else_branch->IsDependOnVar(var));    
-}
-
 bool StmtIf::IsHaveSideEffect()
 {
     return condition->IsHaveSideEffect() ||
@@ -728,13 +630,6 @@ void StmtIf::GetAllDependences(VarsContainer& res_cont, bool with_self)
     if (else_branch != NULL) else_branch->GetAllDependences(res_cont);
 }
 
-void StmtIf::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
-{
-    condition->MakeDependencesGraph(v, g);
-    then_branch->MakeDependencesGraph(v, g);
-    else_branch->MakeDependencesGraph(v, g);
-}
-
 StmtClassName StmtIf::GetClassName() const
 {
     return STMT_IF;
@@ -742,8 +637,14 @@ StmtClassName StmtIf::GetClassName() const
 
 bool StmtIf::CanBeReplaced()
 {
-    return (then_branch == NULL) || then_branch->CanBeReplaced() &&
-        (else_branch == NULL || else_branch->CanBeReplaced());    
+    return ((then_branch == NULL) || then_branch->CanBeReplaced()) &&
+        ((else_branch == NULL || else_branch->CanBeReplaced()));    
+}
+
+bool StmtIf::ContainJump()
+{
+    return ((then_branch == NULL) || then_branch->ContainJump()) &&
+        ((else_branch == NULL || else_branch->ContainJump()));    
 }
 
 //---StmtJump---
@@ -770,21 +671,6 @@ void StmtJump::Generate(AsmCode& asm_code)
     asm_code.AddCmd(ASM_JMP, label, SIZE_NONE);
 }
 
-bool StmtJump::IsAffectToVar(SymVar* var)
-{
-    return false;
-}
-
-bool StmtJump::IsDependOnVar(SymVar* var)
-{
-    return false;
-}
-
-bool StmtJump::IsHaveSideEffect()
-{
-    return true;
-}
-
 void StmtJump::GetAllAffectedVars(VarsContainer& res_cont)
 {
 }
@@ -794,9 +680,9 @@ StmtClassName StmtJump::GetClassName() const
     return STMT_JUMP;
 } 
 
-bool StmtJump::CanBeReplaced()
+bool StmtJump::ContainJump()
 {
-    return false;
+    return true;
 }
 
 //---StmtExit---
@@ -819,21 +705,6 @@ void StmtExit::Print(ostream& o, int offset) const
 void StmtExit::Generate(AsmCode& asm_code)
 {
     asm_code.AddCmd(ASM_JMP, label, SIZE_NONE);
-}
-
-bool StmtExit::IsAffectToVar(SymVar* var)
-{
-    return false;
-}
-
-bool StmtExit::IsDependOnVar(SymVar* var)
-{
-    return false;
-}
-
-bool StmtExit::IsHaveSideEffect()
-{
-    return true;
 }
 
 void StmtExit::GetAllAffectedVars(VarsContainer& res_cont)

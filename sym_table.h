@@ -69,7 +69,6 @@ class SymProc: public Symbol{
 protected:
     bool have_side_effect;
     bool known_side_effect;
-    SymVar* search_affection;
     bool searching;
     vector<SymVarParam*> params;
     SymTable* sym_table;
@@ -79,6 +78,7 @@ protected:
     virtual void PrintPrototype(ostream& o, int offset) const;
 public:
     bool IsAffectToParam(int index);
+    bool IsDependOnParam(int index);
     SymProc(Token token_, SymTable* syn_table_);
     SymProc(Token name);
     ~SymProc();
@@ -103,8 +103,10 @@ public:
     virtual bool IsDummyProc();
     bool IsHaveSideEffect();
     bool IsAffectToVar(SymVar* var);
+    bool IsDependOnVar(SymVar* var);
     void GetAllAffectedVars(VarsContainer& res_cont);
     void GetAllDependences(VarsContainer& res_cont);    
+    virtual bool CanBeReplaced();
 };
 
 class SymFunct: public SymProc{

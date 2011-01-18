@@ -77,23 +77,6 @@ void NodeCall::GenerateValue(AsmCode& asm_code) const
     asm_code.AddCmd(ASM_CALL, AsmMemory(funct->GetLabel()));
 }
 
-bool NodeCall::IsAffectToVar(SymVar* var)
-{
-    for (int i = 0; i < args.size(); ++i)
-    {
-        if (args[i]->IsAffectToVar(var)) return true;
-        if ((args[i]->GetAffectedVar() == var) && funct->IsAffectToParam(i)) return true;
-    }
-    return funct->IsAffectToVar(var);
-}
-
-bool NodeCall::IsDependOnVar(SymVar* var)
-{
-    for (std::vector<SyntaxNode*>::iterator it = args.begin(); it != args.end(); ++it)
-        if ((*it)->IsDependOnVar(var)) return true;
-    return funct->GetBody()->IsDependOnVar(var);
-}
-
 bool NodeCall::IsHaveSideEffect()
 {
     for (int i = 0; i < args.size(); ++i)
@@ -117,24 +100,18 @@ void NodeCall::GetAllDependences(VarsContainer& res_cont, bool with_self)
 {
     for (int i = 0; i < args.size(); ++i)
     {
-        args[i]->GetAllDependences(res_cont);
+        if (funct->IsDependOnParam(i)) args[i]->GetAllDependences(res_cont);
     }
     funct->GetAllDependences(res_cont);
 }
 
-void NodeCall::MakeDependencesGraph(DependedVerts& v, DependencyGraph& g)
+bool NodeCall::CanBeReplaced()
 {
-    set<SymVar*> t;
-    for (int i = 0; i < args.size(); ++i) args[i]->GetAllDependences(t);
     for (int i = 0; i < args.size(); ++i)
     {
-        args[i]->MakeDependencesGraph(v, g);
-        if (funct->GetArg(i)->IsByRef())
-            AddToDependencyGraph(v, g, args[i], t);
+        if (!args[i]->CanBeReplaced()) return false;
     }
-    set<SymVar*> a;
-    funct->GetAllAffectedVars(a);
-    AddToDependencyGraph(v, g, a, t);
+    return funct->CanBeReplaced();
 }
 
 //---NodeWriteCall---
@@ -180,18 +157,6 @@ const SymType* NodeWriteCall::GetSymType() const
 bool NodeWriteCall::IsHaveSideEffect()
 {
     return true;
-}
-
-bool NodeWriteCall::IsAffectToVar(SymVar* var)
-{
-    for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++ it)
-        if ((*it)->IsAffectToVar(var)) return true;
-}
-
-bool NodeWriteCall::IsDependOnVar(SymVar* var)
-{
-    for (std::vector<SyntaxNode*>::const_iterator it = args.begin(); it != args.end(); ++ it)
-        if ((*it)->IsDependOnVar(var)) return true;
 }
 
 void NodeWriteCall::GetAllAffectedVars(VarsContainer& res_cont)
@@ -518,16 +483,6 @@ bool NodeBinaryOp::TryToBecomeConst(SyntaxNode*& link)
     return true;
 }
 
-bool NodeBinaryOp::IsAffectToVar(SymVar* var)
-{
-    return left->IsAffectToVar(var) || right->IsAffectToVar(var);
-}
-
-bool NodeBinaryOp::IsDependOnVar(SymVar* var)
-{
-    return left->IsDependOnVar(var) || right->IsDependOnVar(var);
-}
-
 bool NodeBinaryOp::IsHaveSideEffect()
 {
     return left->IsHaveSideEffect() || right->IsHaveSideEffect();
@@ -645,16 +600,6 @@ bool NodeUnaryOp::TryToBecomeConst(SyntaxNode*& link)
     link = new NodeVar(sym);
     delete this;
     return true;
-}
-
-bool NodeUnaryOp::IsAffectToVar(SymVar* var)
-{
-    return child->IsAffectToVar(var);
-}
-
-bool NodeUnaryOp::IsDependOnVar(SymVar* var)
-{
-    return child->IsDependOnVar(var);
 }
 
 bool NodeUnaryOp::IsHaveSideEffect()
@@ -775,16 +720,6 @@ bool NodeVar::IsConst() const
     return var->GetClassName() & SYM_VAR_CONST;
 }
 
-bool NodeVar::IsAffectToVar(SymVar* var_)
-{
-    return false;
-}
-
-bool NodeVar::IsDependOnVar(SymVar* var_)
-{
-    return var == var_;
-}
-
 bool NodeVar::IsHaveSideEffect()
 {
     return false;
@@ -866,19 +801,9 @@ void NodeArrayAccess::GenerateValue(AsmCode& asm_code) const
         asm_code.AddCmd(ASM_PUSH, AsmMemory(REG_EAX));
     else
     {
-        aqsm_code.AddCmd(ASM_PUSH, REG_EAX);
+        asm_code.AddCmd(ASM_PUSH, REG_EAX);
         asm_code.PushMemory(GetSymType()->GetSize());
     }
-}
-
-bool NodeArrayAccess::IsAffectToVar(SymVar* var)
-{
-    return index->IsAffectToVar(var);
-}
-
-bool NodeArrayAccess::IsDependOnVar(SymVar* var)
-{
-    return arr->IsDependOnVar(var) || index->IsDependOnVar(var);
 }
 
 bool NodeArrayAccess::IsHaveSideEffect()
@@ -953,16 +878,6 @@ void NodeRecordAccess::GenerateValue(AsmCode& asm_code) const
 {
     GenerateLValue(asm_code);
     asm_code.PushMemory(field->GetVarType()->GetSize());
-}
-
-bool NodeRecordAccess::IsAffectToVar(SymVar* var)
-{
-    return false;
-}
-
-bool NodeRecordAccess::IsDependOnVar(SymVar* var)
-{
-    return record->IsDependOnVar(var);
 }
 
 bool NodeRecordAccess::IsHaveSideEffect()

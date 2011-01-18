@@ -1,5 +1,15 @@
+//операцию вывода нельзя выносить
+
+procedure Proc;
 begin
-  while(0) do begin
+  Write(5);
+end;
+
+begin
+  while (1) do begin
     Write(5);
+  end;
+  while (1) do begin
+    Proc;
   end;
 end.

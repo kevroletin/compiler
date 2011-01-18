@@ -1,0 +1,1 @@
+../debug -b $1.in | highlight -M -s darkness -n -j 3 -S pas

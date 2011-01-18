@@ -1,0 +1,8 @@
+//вложенные циклы
+var
+  i, j, k: Integer;
+begin
+  for i := 1 to 10 do
+    for j := 1 to 50 do
+      k := 5;
+end.

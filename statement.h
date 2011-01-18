@@ -20,13 +20,11 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
     virtual StmtClassName GetClassName() const;
-    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
+    virtual bool CanBeReplaced();
 };
 
 class StmtBlock: public NodeStatement{
@@ -44,15 +42,11 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
-    virtual bool IsAffectToVar(SymVar* var) const;
-    virtual bool IsHaveSideEffect() const;
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
-    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
     virtual StmtClassName GetClassName() const;
+    virtual bool CanBeReplaced();
 };
 
 class StmtExpression: public NodeStatement{
@@ -63,12 +57,9 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
-    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
     virtual StmtClassName GetClassName() const;
     virtual bool CanBeReplaced();
 };
@@ -80,7 +71,6 @@ protected:
     StmtBlock* body;
     void ObtainLabels(AsmCode& asm_code);
     virtual void CalculateDependences(set<SymVar*>& affectte_cont, set<SymVar*>& deps);
-    virtual void CalculateDependences(DependedVerts& v, DependencyGraph& g);
 public:
     StmtBlock* GetBody() const;
     void TakeOutVars(std::vector<NodeStatement*>& before_loop);
@@ -88,6 +78,7 @@ public:
     AsmStrImmediate GetBreakLabel() const;
     AsmStrImmediate GetContinueLabel() const;
     void AddBody(NodeStatement* body);
+    bool IsDummyLoop();
     virtual StmtClassName GetClassName() const;
     virtual bool IsConditionAffectToVars();
 };
@@ -99,39 +90,33 @@ private:
     SyntaxNode* last_val;
     bool inc;
     virtual void CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& deps);
-    virtual void CalculateDependences(DependedVerts& v, DependencyGraph& g);
 public:
     StmtFor(SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value,
             bool is_inc, NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
-    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
     virtual bool IsConditionAffectToVars();
+    virtual bool CanBeReplaced();
 };
 
 class StmtWhile: public StmtLoop{
 protected:
     SyntaxNode* condition;    
     virtual void CalculateDependences(set<SymVar*>& affected_cont, set<SymVar*>& deps);
-    virtual void CalculateDependences(DependedVerts& v, DependencyGraph& g);
 public:
     StmtWhile(SyntaxNode* condition_ = NULL , NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
-    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
     virtual bool IsConditionAffectToVars();
+    virtual bool CanBeReplaced();
 };
 
 class StmtUntil: public StmtWhile{
@@ -153,15 +138,12 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
-    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
     virtual StmtClassName GetClassName() const;
     virtual bool CanBeReplaced();
-    
+    virtual bool ContainJump();
 };
 
 class StmtJump: public NodeStatement{
@@ -173,12 +155,9 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
-    virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual StmtClassName GetClassName() const;
-    virtual bool CanBeReplaced();
+    virtual bool ContainJump();
 };
 
 class StmtExit: public NodeStatement{
@@ -189,9 +168,6 @@ public:
     virtual void Print(ostream& o, int offset = 0) const;
     virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
-    virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual StmtClassName GetClassName() const;
     virtual bool CanBeReplaced();

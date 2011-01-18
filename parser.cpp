@@ -405,17 +405,6 @@ NodeStatement* Parser::ParseLoopStatement()
             loop = ParseWhileStatement();
     }
     return loop;
-/*    
-    if (current_proc != NULL) return loop;
-    StmtBlock* before_loop = new StmtBlock();
-    loop->TakeOutVars(before_loop);
-    if (before_loop->IsEmpty())
-    {
-        delete before_loop;
-        return loop;
-    }
-    before_loop->AddStatement(loop);
-    return before_loop;*/
 }
 
 StmtLoop* Parser::AddLoopBody(StmtLoop* loop)

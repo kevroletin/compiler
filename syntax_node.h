@@ -26,12 +26,10 @@ public:
     virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer&, bool with_self = true);
-    virtual void MakeDependencesGraph(DependedVerts& v, DependencyGraph& g);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self);
+    virtual bool CanBeReplaced();
 };
 
 class NodeWriteCall: public NodeCallBase{
@@ -43,12 +41,10 @@ public:
     virtual void Print(ostream& o, int offset = 0);
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual const SymType* GetSymType() const;
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual bool CanBeReplaced();
-    virtual void GetAllDependences(VarsContainer& deps_cont, bool with_self = true);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
 };
 
 class NodeBinaryOp: public SyntaxNode{
@@ -70,11 +66,9 @@ public:
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
     virtual bool TryToBecomeConst(SyntaxNode*& link);
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& deps_cont, bool with_self = true);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
 };
 
 class NodeUnaryOp: public SyntaxNode{
@@ -93,11 +87,9 @@ public:
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
     virtual bool TryToBecomeConst(SyntaxNode*& link);
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& deps_cont, bool with_self = true);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
 };
 
 class NodeIntToRealConv: public NodeUnaryOp{
@@ -128,11 +120,9 @@ public:
     virtual int ComputeIntConstExpr() const;
     virtual float ComputeRealConstExpr() const;
     virtual bool IsConst() const;
-    virtual bool IsAffectToVar(SymVar* var_);
-    virtual bool IsDependOnVar(SymVar* var_);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& deps_cont, bool with_self = true);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
 };
 
 class NodeArrayAccess: public SyntaxNode{
@@ -149,11 +139,9 @@ public:
     virtual SymVar* GetAffectedVar() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const; 
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& deps_cont, bool with_self = true);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
 };
 
 class NodeRecordAccess: public SyntaxNode{
@@ -169,11 +157,9 @@ public:
     virtual SymVar* GetAffectedVar() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const; 
-    virtual bool IsAffectToVar(SymVar* var);
-    virtual bool IsDependOnVar(SymVar* var);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
-    virtual void GetAllDependences(VarsContainer& deps_cont, bool with_self = true);
+    virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
 };
 
 #endif
