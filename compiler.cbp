@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="compiler" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="./debug" prefix_auto="0" extension_auto="0" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="./compiler" prefix_auto="0" extension_auto="0" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g -o3" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="asm_commands.h" />
+		<Unit filename="exception.cpp" />
+		<Unit filename="exception.h" />
+		<Unit filename="generator.cpp" />
+		<Unit filename="generator.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="parser.cpp" />
+		<Unit filename="parser.h" />
+		<Unit filename="scanner.cpp" />
+		<Unit filename="scanner.h" />
+		<Unit filename="statement.cpp" />
+		<Unit filename="statement.h" />
+		<Unit filename="statement_base.cpp" />
+		<Unit filename="statement_base.h" />
+		<Unit filename="sym_table.cpp" />
+		<Unit filename="sym_table.h" />
+		<Unit filename="syntax_node.cpp" />
+		<Unit filename="syntax_node.h" />
+		<Unit filename="syntax_node_base.cpp" />
+		<Unit filename="syntax_node_base.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

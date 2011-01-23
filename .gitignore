@@ -1,11 +1,10 @@
-*.cbp
 *.depend
 *.layout
 docs
 bin
 debug
-Makefile
 *.o
 *.s
 *.res
 .deps
+.#*#

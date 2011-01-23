@@ -9,16 +9,24 @@
 
 void PrintHelp()
 {
-    cout << "Pascal Compiler\n\
-Usage: compiler [option] source.pas\n\
+    cout << "Simplyfied Pascal Compiler\n\
 \n\
-avaible options are:\n\
+Usage: compiler [option] filename\n\
+Avaible options are:\n\
+\n\
+optimization off\n\
 \t-b\tprint Both syntax tree and symtable\n\
 \t-h\tshow this message\n\
-\t-g\tGenerate asm code\n\
+\t-g\tGenerate code for x86_32 GNU assembler\n\
 \t-l\tshow Lexems stream\n\
 \t-s\tprint Syntax tree\n\
-\t-t\tprint symTable\n";
+\t-t\tprint symTable\n\
+\n\
+optimization on\n\
+\t-B\tprint Both syntax tree and symtable\n\
+\t-G\tGenerate code for x86_32 GNU assembler\n\
+\t-S\tprint Syntax tree\n\
+\t-T\tprint symTable\n";
 }
 
 string my_argv[] = {"compiler.exe", "-l", "test/16.in" };

@@ -11,7 +11,7 @@
     :auxsource '("exception.h" "parser.h" "scanner.h" "syntax_node.h" "sym_table.h" "statement_base.h" "syntax_node_base.h" "generator.h" "statement.h" "asm_commands.h" "optimizer.h")
     :compiler 'ede-g++-compiler
     :linker 'ede-g++-linker
-    :configuration-variables 'nil
+    :configuration-variables '(("DEBUG_FLAG"))
     )
    )
   )
