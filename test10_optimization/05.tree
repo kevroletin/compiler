@@ -1,0 +1,17 @@
+i: integer							i: integer
+begin								begin
+  := 								  := 
+    i [integer]							    i [integer]
+    10 [integer]						    10 [integer]
+							      >	  5 [integer]
+  while								  while
+    i [integer]							    i [integer]
+    begin							    begin
+      := 							      := 
+        i [integer]						        i [integer]
+        - [integer]						        - [integer]
+          i [integer]						          i [integer]
+          1 [integer]						          1 [integer]
+      5 [integer]					      <
+    end								    end
+end								end

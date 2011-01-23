@@ -1,1 +1,1 @@
-function f(d: real; m: real): integer; forward;
+3:10 ERROR at 'F': function prototype differs from preveous declaration

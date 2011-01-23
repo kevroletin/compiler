@@ -1,0 +1,12 @@
+.data
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$5
+    addl	$4, %esp
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

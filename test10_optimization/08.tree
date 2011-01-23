@@ -1,0 +1,27 @@
+b: integer							b: integer
+begin								begin
+  := 								  := 
+    b [integer]							    b [integer]
+    5 [integer]							    5 [integer]
+  while								  while
+    b [integer]							    b [integer]
+    begin							    begin
+      () write [untyped]					      () write [untyped]
+        b [integer]						        b [integer]
+      if							      if
+        < [integer]						        < [integer]
+          b [integer]						          b [integer]
+          5 [integer]						          5 [integer]
+      then							      then
+        break							        break
+      := 							      := 
+        b [integer]						        b [integer]
+        - [integer]						        - [integer]
+          b [integer]						          b [integer]
+          1 [integer]						          1 [integer]
+      continue							      continue
+      := 							      := 
+        b [integer]						        b [integer]
+        0 [integer]						        0 [integer]
+    end								    end
+end								end

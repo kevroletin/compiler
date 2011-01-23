@@ -101,7 +101,8 @@ void Parser::Generate(ostream& o)
     asm_code.Print(o);
 }
 
-Parser::Parser(Scanner& scanner):
+Parser::Parser(Scanner& scanner, bool optimize):
+    optimization(optimize),
     body(NULL),
     scan(scanner),
     current_proc(NULL)
@@ -573,8 +574,11 @@ void Parser::Parse()
     if (scan.GetToken().GetValue() != TOK_BEGIN) Error("'begin' expected");
     body = (StmtBlock*)ParseStatement();
     if (scan.GetToken().GetValue() != TOK_DOT) Error("'.' expected");
-    sym_table_stack.back()->Optimize();
-    body->Optimize();
+    if (optimization)
+    {
+        sym_table_stack.back()->Optimize();
+        body->Optimize();
+    }
 }
 
 void Parser::CheckTokOrDie(TokenValue tok_val)

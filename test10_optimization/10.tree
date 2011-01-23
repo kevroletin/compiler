@@ -1,0 +1,22 @@
+i: integer							i: integer
+j: integer							j: integer
+k: integer							k: integer
+begin								begin
+  for to 						      |	  := 
+    i [integer]						      |	    k [integer]
+    1 [integer]						      |	    5 [integer]
+    10 [integer]					      <
+  begin							      <
+    for to 						      <
+      j [integer]					      <
+      1 [integer]					      <
+      50 [integer]					      <
+    begin						      <
+      := 						      <
+        k [integer]					      <
+        5 [integer]					      <
+    end							      <
+  end							      <
+  () write [untyped]						  () write [untyped]
+    k [integer]							    k [integer]
+end								end

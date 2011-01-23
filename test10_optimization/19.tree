@@ -1,0 +1,29 @@
+a: integer							a: integer
+procedure p(a: integer; var b: integer);			procedure p(a: integer; var b: integer);
+var								var
+  a: integer							  a: integer
+  b: integer							  b: integer
+  i: integer							  i: integer
+begin								begin
+  for to 						      |	  := 
+    i [integer]						      |	    a [integer]
+    1 [integer]						      |	    + [integer]
+    1 [integer]						      |	      b [integer]
+  begin							      |	      1 [integer]
+    := 							      <
+      a [integer]					      <
+      + [integer]					      <
+        b [integer]					      <
+        1 [integer]					      <
+  end							      <
+end								end
+begin								begin
+  := 								  := 
+    a [integer]							    a [integer]
+    1 [integer]							    1 [integer]
+  () p [untyped]						  () p [untyped]
+    a [integer]							    a [integer]
+    a [integer]							    a [integer]
+  () write [untyped]						  () write [untyped]
+    a [integer]							    a [integer]
+end								end

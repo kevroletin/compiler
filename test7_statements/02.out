@@ -9,7 +9,9 @@ begin
     - [integer]
       5 [integer]
       4 [integer]
-  := 
-    a [integer]
-    0 [integer]
+  begin
+    := 
+      a [integer]
+      0 [integer]
+  end
 end

@@ -1,0 +1,24 @@
+.data
+    i: .space 4
+    j: .space 4
+    k: .space 4
+    format_str_d: .string "%d"
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$5
+    pushl	$k
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	(k)
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

@@ -1,0 +1,12 @@
+procedure proc(a: integer);				      |	procedure proc(a: integer); {won't be generated}
+var								var
+  a: integer							  a: integer
+begin								begin
+  + [integer]						      |	  3 [integer]
+    1 [integer]						      <
+    2 [integer]						      <
+end								end
+begin								begin
+  () proc [untyped]						  () proc [untyped]
+    5 [integer]							    5 [integer]
+end								end

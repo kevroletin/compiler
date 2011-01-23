@@ -1,0 +1,87 @@
+.data
+    c: .space 4
+    i: .space 4
+    rec1: .space 8
+    rec2: .space 8
+    format_str_d: .string "%d"
+    format_str_new_line: .string "\n"
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$20
+    pushl	$rec1
+    popl	%eax
+    leal	4(%eax), %eax
+    pushl	%eax
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	$30
+    pushl	$rec2
+    popl	%eax
+    leal	4(%eax), %eax
+    pushl	%eax
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	$1
+    pushl	$i
+    popl	%eax
+    popl	%ebx
+    movl	%ebx, (%eax)
+    pushl	$2
+    jmp	continue_3
+  for_check_1:
+    pushl	$10
+    pushl	$rec1
+    popl	%eax
+    leal	(%eax), %eax
+    pushl	%eax
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	$rec1
+    popl	%eax
+    leal	4(%eax), %eax
+    pushl	%eax
+    popl	%ebx
+    movl	(%ebx), %eax
+    pushl	%eax
+    pushl	$c
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	$i
+    popl	%eax
+    addl	$1, (%eax)
+  continue_3:
+    pushl	(i)
+    popl	%eax
+    cmpl	%eax, (%esp)
+    jnl	for_check_1
+  break_2:
+    addl	$4, %esp
+    pushl	$rec1
+    popl	%eax
+    leal	(%eax), %eax
+    pushl	%eax
+    popl	%ebx
+    movl	(%ebx), %eax
+    pushl	%eax
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    pushl	(c)
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    pushl	$format_str_new_line
+    calll	(printf)
+    addl	$4, %esp
+    addl	$0, %esp
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

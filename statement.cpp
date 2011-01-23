@@ -1,5 +1,12 @@
 #include "statement.h"
 
+void StmtAssign::Optimize()
+{
+    right->TryToBecomeConst(right);
+    left->Optimize();
+    right->Optimize();
+}
+
 StmtAssign::StmtAssign(SyntaxNode* left_, SyntaxNode* right_):
     left(left_),
     right(right_)
@@ -14,13 +21,6 @@ const SyntaxNode* StmtAssign::GetLeft() const
 const SyntaxNode* StmtAssign::GetRight() const
 {
     return right;
-}
-
-void StmtAssign::Print(ostream& o, int offset)
-{
-    PrintSpaces(o, offset) << ":= \n";
-    left->Print(o, offset + 1);
-    right->Print(o, offset + 1);
 }
 
 void StmtAssign::Print(ostream& o, int offset) const
@@ -71,7 +71,6 @@ bool StmtAssign::CanBeReplaced()
 void StmtBlock::Optimize()
 {
     OptimizeLoops();
-    OptimizeConstants();
     for (std::vector<NodeStatement*>::iterator it= statements.begin(); it != statements.end(); ++it)
         (*it)->Optimize();
 }
@@ -86,15 +85,22 @@ void StmtBlock::OptimizeLoops()
             loop->TakeOutVars(optimized_body);
             if (!loop->IsDummyLoop()) optimized_body.push_back(loop);
         }
+        else if ((*it)->GetClassName() == STMT_IF)
+        {
+            StmtIf* if_stmt = (StmtIf*)*it;
+            NodeStatement* new_stmt;
+            if (!if_stmt->OptimizeIf(new_stmt)) optimized_body.push_back(*it);
+            else
+            {
+                if (new_stmt != NULL) optimized_body.push_back(new_stmt);
+                delete *it;
+            }
+        }
         else
         {
             optimized_body.push_back(*it);
         }
     statements.assign(optimized_body.begin(), optimized_body.end());
-}
-
-void StmtBlock::OptimizeConstants()
-{
 }
 
 NodeStatement* StmtBlock::GetStmt(unsigned i)
@@ -127,12 +133,14 @@ void StmtBlock::CopyContent(StmtBlock* src)
       AddStatement(*it);
 }
 
-void StmtBlock::Print(ostream& o, int offset)
+
+/*void StmtBlock::Print(ostream& o, int offset)
 {
     PrintSpaces(o, offset) << "begin\n";
     for (vector<NodeStatement*>::const_iterator it = statements.begin(); it != statements.end(); ++it)
     {
 //        (*it)->Print(o, offset + 1); continue;
+//debug        
         NodeStatement* node = *it;
         PrintSpaces(o, offset + 1) << "{se: " << node->IsHaveSideEffect();
         std::set<SymVar*> t;
@@ -155,7 +163,7 @@ void StmtBlock::Print(ostream& o, int offset)
         (*it)->Print(o, offset + 1);
     }
     PrintSpaces(o, offset) << "end\n";
-}
+    }*/
 
 void StmtBlock::Print(ostream& o, int offset) const
 {
@@ -204,14 +212,15 @@ bool StmtBlock::CanBeReplaced()
 
 //---StmtExpression---
 
+void StmtExpression::Optimize()
+{
+    expr->TryToBecomeConst(expr);
+    expr->Optimize();
+}
+
 StmtExpression::StmtExpression(SyntaxNode* expression):
     expr(expression)
 {
-}
-
-void StmtExpression::Print(ostream& o, int offset)
-{
-    expr->Print(o, offset);
 }
 
 void StmtExpression::Print(ostream& o, int offset) const
@@ -364,15 +373,6 @@ StmtFor::StmtFor(SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value,
 {
 }
 
-void StmtFor::Print(ostream& o, int offset)
-{
-    PrintSpaces(o, offset) << "for " << (inc ? "to \n" : "downto \n");
-    index->PrintAsNode(o, offset + 1);
-    init_val->Print(o, offset + 1);
-    last_val->Print(o, offset + 1);
-    body->Print(o, offset);
-}
-
 void StmtFor::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << "for " << (inc ? "to \n" : "downto \n");
@@ -436,6 +436,13 @@ bool StmtFor::CanBeReplaced()
     return init_val->CanBeReplaced() && last_val->CanBeReplaced() && body->CanBeReplaced();
 }
 
+void StmtFor::Optimize()
+{
+    init_val->Optimize();
+    last_val->Optimize();
+    body->Optimize();
+}
+
 //---StmtWhile---
 
 bool StmtWhile::IsConditionAffectToVars()
@@ -455,13 +462,6 @@ StmtWhile::StmtWhile(SyntaxNode* condition_, NodeStatement* body_):
     StmtLoop(body_),
     condition(condition_)
 {
-}
-
-void StmtWhile::Print(ostream& o, int offset)
-{
-    PrintSpaces(o, offset) << "while\n";
-    condition->Print(o, offset + 1);
-    body->Print(o, offset + 1);
 }
 
 void StmtWhile::Print(ostream& o, int offset) const
@@ -506,6 +506,12 @@ bool StmtWhile::CanBeReplaced()
     return condition->CanBeReplaced() && body->CanBeReplaced();
 }
 
+void StmtWhile::Optimize()
+{
+    condition->Optimize();
+    body->Optimize();
+}
+
 //---StmtUntil---
 
 StmtUntil::StmtUntil(SyntaxNode* condition_, NodeStatement* body_):
@@ -516,13 +522,6 @@ StmtUntil::StmtUntil(SyntaxNode* condition_, NodeStatement* body_):
 void StmtUntil::AddCondition(SyntaxNode* condition_)
 {
     condition = condition_;
-}
-
-void StmtUntil::Print(ostream& o, int offset)
-{
-    PrintSpaces(o, offset) << "until\n";
-    condition->Print(o, offset + 1);
-    body->Print(o, offset + 1);
 }
 
 void StmtUntil::Print(ostream& o, int offset) const
@@ -548,6 +547,22 @@ void StmtUntil::Generate(AsmCode& asm_code)
 
 //---StmtIf---
 
+bool StmtIf::OptimizeIf(NodeStatement*& res)
+{
+    if (!condition->IsConst()) return false;
+    if (condition->ComputeIntConstExpr())
+    {
+        res = then_branch;
+        then_branch = NULL;
+    }
+    else
+    {
+        res = else_branch;
+        else_branch = NULL;
+    }
+    return true;
+}
+
 StmtIf::StmtIf(SyntaxNode* condition_, NodeStatement* then_branch_, NodeStatement* else_branch_):
     condition(condition_),
     then_branch(then_branch_),
@@ -555,21 +570,13 @@ StmtIf::StmtIf(SyntaxNode* condition_, NodeStatement* then_branch_, NodeStatemen
 {
 }
 
-void StmtIf::Print(ostream& o, int offset)
-{
-    PrintSpaces(o, offset) << "if\n";
-    condition->Print(o, offset + 1);
-    PrintSpaces(o, offset) << "then\n";
-    then_branch->Print(o, offset + 1);
-    if (else_branch != NULL)
-    {
-        PrintSpaces(o, offset) << "else\n";
-        else_branch->Print(o, offset + 1);
-    }
-}
-
 void StmtIf::Print(ostream& o, int offset) const
 {
+    if (then_branch == NULL)
+    {
+        PrintSpaces(o, offset) << ";\n";
+        return;
+    }
     PrintSpaces(o, offset) << "if\n";
     condition->Print(o, offset + 1);
     PrintSpaces(o, offset) << "then\n";
@@ -583,30 +590,18 @@ void StmtIf::Print(ostream& o, int offset) const
 
 void StmtIf::Generate(AsmCode& asm_code)
 {
-    bool is_const = condition->IsConst();
-    bool is_true;
-    if (is_const) is_true = condition->ComputeIntConstExpr();
+    if (then_branch == NULL) return;
     AsmStrImmediate label_else(asm_code.GenLabel("else"));
     AsmStrImmediate label_fin(asm_code.GenLabel("fin"));
-    if (!is_const)
-    {
-        condition->GenerateValue(asm_code);
-        asm_code.AddCmd(ASM_POP, REG_EAX);
-        asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
-        asm_code.AddCmd(ASM_JZ, label_else, SIZE_NONE);
-    }
-    if (!is_const || is_true) then_branch->Generate(asm_code);
-    if (!is_const)
-    {
-        asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);
-        asm_code.AddLabel(label_else);
-    }
-    if (else_branch != NULL && (!is_const || !is_true)) else_branch->Generate(asm_code);
-    if (!is_const)
-    {
-        asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);
-        asm_code.AddLabel(label_fin);
-    }
+    condition->GenerateValue(asm_code);
+    asm_code.AddCmd(ASM_POP, REG_EAX);
+    asm_code.AddCmd(ASM_TEST, REG_EAX, REG_EAX);
+    asm_code.AddCmd(ASM_JZ, label_else, SIZE_NONE);
+    then_branch->Generate(asm_code);
+    asm_code.AddCmd(ASM_JMP, label_fin, SIZE_NONE);
+    asm_code.AddLabel(label_else);
+    if (else_branch != NULL) else_branch->Generate(asm_code);
+    asm_code.AddLabel(label_fin);
 }
 
 bool StmtIf::IsHaveSideEffect()
@@ -647,17 +642,18 @@ bool StmtIf::ContainJump()
         ((else_branch == NULL || else_branch->ContainJump()));    
 }
 
+void StmtIf::Optimize()
+{
+    if (then_branch != NULL) then_branch->Optimize();
+    if (else_branch != NULL) else_branch->Optimize();
+}
+
 //---StmtJump---
 
 StmtJump::StmtJump(Token tok, StmtLoop* loop_):
     loop(loop_),
     op(tok)
 {
-}
-
-void StmtJump::Print(ostream& o, int offset)
-{
-    PrintSpaces(o, offset) << op.GetName() << '\n';
 }
 
 void StmtJump::Print(ostream& o, int offset) const
@@ -690,11 +686,6 @@ bool StmtJump::ContainJump()
 StmtExit::StmtExit(AsmStrImmediate exit_label):
     label(exit_label)
 {
-}
-
-void StmtExit::Print(ostream& o, int offset)
-{
-    PrintSpaces(o, offset) << "exit\n";
 }
 
 void StmtExit::Print(ostream& o, int offset) const

@@ -1,0 +1,35 @@
+i: integer							i: integer
+procedure proc;							procedure proc;
+begin								begin
+  () write [untyped]						  () write [untyped]
+    5 [integer]							    5 [integer]
+end								end
+begin								begin
+  := 								  := 
+    i [integer]							    i [integer]
+    2 [integer]							    2 [integer]
+  while								  while
+    i [integer]							    i [integer]
+    begin							    begin
+      () write [untyped]					      () write [untyped]
+        5 [integer]						        5 [integer]
+      := 							      := 
+        i [integer]						        i [integer]
+        - [integer]						        - [integer]
+          i [integer]						          i [integer]
+          1 [integer]						          1 [integer]
+    end								    end
+  := 								  := 
+    i [integer]							    i [integer]
+    i [integer]							    i [integer]
+  while								  while
+    i [integer]							    i [integer]
+    begin							    begin
+      () proc [untyped]						      () proc [untyped]
+      := 							      := 
+        i [integer]						        i [integer]
+        - [integer]						        - [integer]
+          i [integer]						          i [integer]
+          1 [integer]						          1 [integer]
+    end								    end
+end								end

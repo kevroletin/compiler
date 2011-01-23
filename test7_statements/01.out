@@ -5,7 +5,9 @@ begin
     i [integer]
     1 [integer]
     4 [integer]
-  := 
-    c [integer]
-    0 [integer]
+  begin
+    := 
+      c [integer]
+      0 [integer]
+  end
 end

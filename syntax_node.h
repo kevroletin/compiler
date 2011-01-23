@@ -13,6 +13,7 @@ protected:
     void PrintArgs(ostream& o, int offset = 0) const;
 public:
     void AddArg(SyntaxNode* arg);
+    virtual void Optimize();
 };
 
 class NodeCall: public NodeCallBase{
@@ -23,7 +24,6 @@ public:
     const SymType* GetCurrentArgType() const;
     bool IsCurrentArfByRef() const;
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual bool IsHaveSideEffect();    
@@ -38,7 +38,6 @@ private:
 public:
     NodeWriteCall(bool new_line_ = false);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual const SymType* GetSymType() const;
     virtual bool IsHaveSideEffect();    
@@ -59,7 +58,6 @@ private:
 public:
     NodeBinaryOp(const Token& name, SyntaxNode* left_, SyntaxNode* right_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual bool IsConst() const;
@@ -69,6 +67,7 @@ public:
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
+    virtual void Optimize();
 };
 
 class NodeUnaryOp: public SyntaxNode{
@@ -80,7 +79,6 @@ protected:
 public:
     NodeUnaryOp(const Token& name, SyntaxNode* child_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;
     void GenerateValue(AsmCode& asm_code) const;
     virtual bool IsConst() const;
@@ -90,6 +88,7 @@ public:
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
+    virtual void Optimize();
 };
 
 class NodeIntToRealConv: public NodeUnaryOp{
@@ -98,7 +97,6 @@ private:
 public:
     NodeIntToRealConv(SyntaxNode* child_, SymType* real_type_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;
     virtual void GenerateValue(AsmCode& asm_code) const;
     virtual float ComputeRealConstExpr() const;
@@ -112,7 +110,6 @@ public:
     const SymVar* GetVar();
     virtual const SymType* GetSymType() const;
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual bool IsLValue() const;
     virtual SymVar* GetAffectedVar() const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
@@ -133,7 +130,6 @@ private:
 public:
     NodeArrayAccess(SyntaxNode* arr_, SyntaxNode* index_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;    
     virtual bool IsLValue() const;
     virtual SymVar* GetAffectedVar() const;
@@ -142,6 +138,7 @@ public:
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
+    virtual void Optimize();
 };
 
 class NodeRecordAccess: public SyntaxNode{
@@ -151,7 +148,6 @@ private:
 public:
     NodeRecordAccess(SyntaxNode* record_, Token field_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetSymType() const;    
     virtual bool IsLValue() const;
     virtual SymVar* GetAffectedVar() const;

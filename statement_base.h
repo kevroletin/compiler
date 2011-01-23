@@ -23,9 +23,6 @@ class NodeStatement: public SyntaxNodeBase{
 public:
     virtual StmtClassName GetClassName() const;
     virtual void Generate(AsmCode& asm_code);
-    virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset);
-    virtual void Optimize();
 };
 
 #endif

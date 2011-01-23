@@ -2,10 +2,6 @@
 
 //---NodeStatement---
 
-void NodeStatement::Optimize()
-{
-}
-
 StmtClassName NodeStatement::GetClassName() const
 {
     return STMT;
@@ -15,12 +11,12 @@ void NodeStatement::Generate(AsmCode& asm_code)
 {
 }
 
-void NodeStatement::Print(ostream& o, int offset) 
+/*void NodeStatement::Print(ostream& o, int offset) 
 {
-    PrintSpaces(o, offset) << ";\n";
-}
+    ((const NodeStatement*)this)->Print(o, offset);
+    }*/
 
-void NodeStatement::Print(ostream& o, int offset) const
+ /*void NodeStatement::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << ";\n";
-}
+    }*/

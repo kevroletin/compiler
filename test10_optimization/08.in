@@ -2,10 +2,13 @@
 var
   b: Integer;
 begin
-  while(1) do
+  b := 5;
+  while(b) do
   begin
-    if b < 1 then break;
+    Write(b);
+    if b < 5 then break;
+    b := b - 1;
     continue;
-    b := 40;
+    b := 0;
   end;
 end.

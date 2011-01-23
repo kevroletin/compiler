@@ -1,0 +1,52 @@
+.data
+    a: .space 4
+    arr: .space 40
+    b: .space 4
+    format_str_d: .string "%d"
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$20
+    pushl	$b
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	(a)
+    pushl	(b)
+    pushl	$4
+    popl	%ebx
+    popl	%eax
+    addl	%ebx, %eax
+    pushl	%eax
+    popl	%ebx
+    popl	%eax
+    cmpl	%ebx, %eax
+    sete	%al
+    movzbl	%al, %eax
+    pushl	%eax
+    addl	$4, %esp
+    pushl	$25
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+    pushl	$1084227584
+    pushl	$arr
+    pushl	$1
+    movl	$4, %ebx
+    popl	%eax
+    subl	$1, %eax
+    xorl	%edx, %edx
+    mull	%ebx
+    popl	%ebx
+    addl	%ebx, %eax
+    pushl	%eax
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

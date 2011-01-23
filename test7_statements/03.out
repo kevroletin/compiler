@@ -7,7 +7,9 @@ begin
     i [integer]
     f [integer]
     t [integer]
-  := 
-    a [integer]
-    0 [integer]
+  begin
+    := 
+      a [integer]
+      0 [integer]
+  end
 end

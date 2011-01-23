@@ -1,0 +1,28 @@
+begin								begin
+  if							      |	  () write [untyped]
+    1 [integer]						      |	    good [string]
+  then							      |	  () write [untyped]
+    () write [untyped]					      |	    good [string]
+      good [string]					      |	  () write [untyped]
+  else							      |	    good [string]
+    () write [untyped]					      <
+      bad [string]					      <
+  if							      <
+    0 [integer]						      <
+  then							      <
+    () write [untyped]					      <
+      bad [string]					      <
+  else							      <
+    () write [untyped]					      <
+      good [string]					      <
+  if							      <
+    1 [integer]						      <
+  then							      <
+    () write [untyped]					      <
+      good [string]					      <
+  if							      <
+    0 [integer]						      <
+  then							      <
+    () write [untyped]					      <
+      bad [string]					      <
+end								end

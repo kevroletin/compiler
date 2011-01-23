@@ -1,5 +1,6 @@
 begin
   while
     1 [integer]
-    ;
+    begin
+    end
 end

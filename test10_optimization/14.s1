@@ -1,0 +1,117 @@
+.data
+    a: .space 400
+    b: .space 400
+    c: .space 400
+    d: .space 400
+    i: .space 4
+    j: .space 4
+    k: .space 4
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$1
+    pushl	$i
+    popl	%eax
+    popl	%ebx
+    movl	%ebx, (%eax)
+    pushl	$10
+    jmp	continue_3
+  for_check_1:
+    pushl	$1
+    pushl	$j
+    popl	%eax
+    popl	%ebx
+    movl	%ebx, (%eax)
+    pushl	$10
+    jmp	continue_6
+  for_check_4:
+    pushl	$5
+    pushl	$d
+    pushl	(i)
+    movl	$40, %ebx
+    popl	%eax
+    subl	$1, %eax
+    xorl	%edx, %edx
+    mull	%ebx
+    popl	%ebx
+    addl	%ebx, %eax
+    pushl	%eax
+    pushl	$0
+    movl	$4, %ebx
+    popl	%eax
+    subl	$1, %eax
+    xorl	%edx, %edx
+    mull	%ebx
+    popl	%ebx
+    addl	%ebx, %eax
+    pushl	%eax
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	$d
+    pushl	(i)
+    movl	$40, %ebx
+    popl	%eax
+    subl	$1, %eax
+    xorl	%edx, %edx
+    mull	%ebx
+    popl	%ebx
+    addl	%ebx, %eax
+    pushl	%eax
+    pushl	(i)
+    movl	$4, %ebx
+    popl	%eax
+    subl	$1, %eax
+    xorl	%edx, %edx
+    mull	%ebx
+    popl	%ebx
+    addl	%ebx, %eax
+    pushl	(%eax)
+    pushl	$a
+    pushl	(i)
+    movl	$40, %ebx
+    popl	%eax
+    subl	$1, %eax
+    xorl	%edx, %edx
+    mull	%ebx
+    popl	%ebx
+    addl	%ebx, %eax
+    pushl	%eax
+    pushl	(i)
+    movl	$4, %ebx
+    popl	%eax
+    subl	$1, %eax
+    xorl	%edx, %edx
+    mull	%ebx
+    popl	%ebx
+    addl	%ebx, %eax
+    pushl	%eax
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	$j
+    popl	%eax
+    addl	$1, (%eax)
+  continue_6:
+    pushl	(j)
+    popl	%eax
+    cmpl	%eax, (%esp)
+    jnl	for_check_4
+  break_5:
+    addl	$4, %esp
+    pushl	$i
+    popl	%eax
+    addl	$1, (%eax)
+  continue_3:
+    pushl	(i)
+    popl	%eax
+    cmpl	%eax, (%esp)
+    jnl	for_check_1
+  break_2:
+    addl	$4, %esp
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

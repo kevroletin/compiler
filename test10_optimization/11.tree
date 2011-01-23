@@ -1,0 +1,56 @@
+a: array [1..10] of array [1..10] of integer			a: array [1..10] of array [1..10] of integer
+b: array [1..10] of array [1..10] of integer			b: array [1..10] of array [1..10] of integer
+c: array [1..10] of array [1..10] of integer			c: array [1..10] of array [1..10] of integer
+d: array [1..10] of array [1..10] of integer			d: array [1..10] of array [1..10] of integer
+i: integer							i: integer
+j: integer							j: integer
+k: integer							k: integer
+begin								begin
+							      >	  := 
+							      >	    [] [integer]
+							      >	      [] [array]
+							      >	        d [array]
+							      >	        0 [integer]
+							      >	      0 [integer]
+							      >	    4 [integer]
+  for to 							  for to 
+    i [integer]							    i [integer]
+    1 [integer]							    1 [integer]
+    10 [integer]						    10 [integer]
+  begin								  begin
+							      >	    := 
+							      >	      [] [integer]
+							      >	        [] [array]
+							      >	          d [array]
+							      >	          i [integer]
+							      >	        0 [integer]
+							      >	      k [integer]
+    for to 							    for to 
+      j [integer]						      j [integer]
+      1 [integer]						      1 [integer]
+      10 [integer]						      10 [integer]
+    begin							    begin
+      := 							      := 
+        [] [integer]						        [] [integer]
+          [] [array]						          [] [array]
+            d [array]						            d [array]
+            0 [integer]					      <
+          0 [integer]					      <
+        4 [integer]					      <
+      := 						      <
+        [] [integer]					      <
+          [] [array]					      <
+            d [array]					      <
+            j [integer]						            j [integer]
+          0 [integer]						          0 [integer]
+        5 [integer]						        5 [integer]
+      := 						      <
+        [] [integer]					      <
+          [] [array]					      <
+            d [array]					      <
+            i [integer]					      <
+          0 [integer]					      <
+        k [integer]					      <
+    end								    end
+  end								  end
+end								end

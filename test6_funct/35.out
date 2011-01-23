@@ -1,1 +1,1 @@
-procedure proc(c: integer; d: integer); forward;
+3:11 ERROR at 'Proc': function prototype differs from preveous declaration

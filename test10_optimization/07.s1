@@ -1,0 +1,75 @@
+.data
+    i: .space 4
+    format_str_d: .string "%d"
+.text
+  proc:
+    pushl	%ebp
+    movl	%esp, %ebp
+    pushl	$5
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+  exit_1:
+    movl	%ebp, %esp
+    popl	%ebp
+    retl	$0
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$2
+    pushl	$i
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+  continue_3:
+    pushl	(i)
+    popl	%eax
+    testl	%eax, %eax
+    jz	break_2
+    pushl	$5
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+    pushl	(i)
+    pushl	$1
+    popl	%ebx
+    popl	%eax
+    subl	%ebx, %eax
+    pushl	%eax
+    pushl	$i
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    jmp	continue_3
+  break_2:
+    pushl	(i)
+    pushl	$i
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+  continue_5:
+    pushl	(i)
+    popl	%eax
+    testl	%eax, %eax
+    jz	break_4
+    calll	(proc)
+    addl	$0, %esp
+    pushl	(i)
+    pushl	$1
+    popl	%ebx
+    popl	%eax
+    subl	%ebx, %eax
+    pushl	%eax
+    pushl	$i
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    jmp	continue_5
+  break_4:
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

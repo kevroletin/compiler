@@ -1,0 +1,35 @@
+.data
+    i: .space 4
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$10
+    pushl	$i
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	$5
+    addl	$4, %esp
+  continue_2:
+    pushl	(i)
+    popl	%eax
+    testl	%eax, %eax
+    jz	break_1
+    pushl	(i)
+    pushl	$1
+    popl	%ebx
+    popl	%eax
+    subl	%ebx, %eax
+    pushl	%eax
+    pushl	$i
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    jmp	continue_2
+  break_1:
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

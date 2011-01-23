@@ -1,0 +1,39 @@
+.data
+    b: .space 4
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$0
+    pushl	$b
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+  continue_2:
+    pushl	$1
+    popl	%eax
+    testl	%eax, %eax
+    jz	break_1
+    pushl	(b)
+    pushl	$1
+    popl	%ebx
+    popl	%eax
+    cmpl	%ebx, %eax
+    setl	%al
+    movzbl	%al, %eax
+    pushl	%eax
+    popl	%eax
+    testl	%eax, %eax
+    jz	else_3
+    jmp	break_1
+    jmp	fin_4
+  else_3:
+  fin_4:
+    jmp	continue_2
+    jmp	continue_2
+  break_1:
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

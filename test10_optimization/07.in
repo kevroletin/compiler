@@ -5,11 +5,18 @@ begin
   Write(5);
 end;
 
+var
+  i : Integer;
+
 begin
-  while (1) do begin
+  i := 2;
+  while (i) do begin
     Write(5);
+    i := i - 1;
   end;
-  while (1) do begin
+  i := i;
+  while (i) do begin
     Proc;
+    i := i - 1;
   end;
 end.

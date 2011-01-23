@@ -1,0 +1,11 @@
+begin								begin
+  while							      |	  5 [integer]
+    0 [integer]						      <
+    begin						      <
+    end							      <
+  until							      <
+    1 [integer]						      <
+    begin						      <
+      5 [integer]					      <
+    end							      <
+end								end

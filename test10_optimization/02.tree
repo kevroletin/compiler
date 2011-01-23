@@ -1,0 +1,19 @@
+i: integer							i: integer
+procedure proc;						      |	procedure proc; {won't be generated}
+var								var
+  i: integer							  i: integer
+begin								begin
+  := 								  := 
+    i [integer]							    i [integer]
+    10 [integer]						    10 [integer]
+end								end
+procedure seproc;						procedure seproc;
+begin								begin
+  := 								  := 
+    i [integer]							    i [integer]
+    10 [integer]						    10 [integer]
+end								end
+begin								begin
+  () seproc [untyped]						  () seproc [untyped]
+  () proc [untyped]						  () proc [untyped]
+end								end

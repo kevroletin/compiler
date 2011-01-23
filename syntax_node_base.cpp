@@ -2,6 +2,11 @@
 
 //---SyntaxNodeBase---
 
+void SyntaxNodeBase::Optimize()
+{
+}
+
+
 bool SyntaxNodeBase::IsDependOnVars(std::set<SymVar*>& vars)
 {
     std::set<SymVar*> t;
@@ -25,10 +30,6 @@ bool SyntaxNodeBase::IsAffectToVars()
     std::set<SymVar*> t;
     GetAllAffectedVars(t);
     return !t.empty();
-}
-
-void SyntaxNodeBase::Print(ostream& o, int offset) 
-{
 }
 
 void SyntaxNodeBase::Print(ostream& o, int offset) const

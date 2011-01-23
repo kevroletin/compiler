@@ -49,7 +49,6 @@ public:
     Token GetToken() const;
     virtual SymbolClass GetClassName() const;
     virtual void PrintVerbose(ostream& o, int offset) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void Print(ostream& o, int offset = 0) const;
 };
 
@@ -60,7 +59,6 @@ public:
     SymType(Token token);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual const SymType* GetActualType() const;
     virtual unsigned GetSize() const;
 };
@@ -70,6 +68,7 @@ protected:
     bool have_side_effect;
     bool known_side_effect;
     bool searching;
+    bool dummy_proc;
     vector<SymVarParam*> params;
     SymTable* sym_table;
     NodeStatement* body;
@@ -89,23 +88,23 @@ public:
     SymTable* GetSymTable() const;
     NodeStatement* GetBody() const;
     void AddBody(NodeStatement* body_);
-    virtual SymbolClass GetClassName() const;
-    virtual const SymType* GetResultType() const;
-    virtual void PrintVerbose(ostream& o, int offset) const;
-    virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     void GenerateDeclaration(AsmCode& asm_code);
     AsmStrImmediate GetLabel() const;
     AsmStrImmediate GetExitLabel() const;
     void ObtainLabels(AsmCode& asm_code);
     bool IsHaveBody() const;
     bool ValidateParams(SymProc* src);
-    virtual bool IsDummyProc();
     bool IsHaveSideEffect();
     bool IsAffectToVar(SymVar* var);
     bool IsDependOnVar(SymVar* var);
     void GetAllAffectedVars(VarsContainer& res_cont);
-    void GetAllDependences(VarsContainer& res_cont);    
+    void GetAllDependences(VarsContainer& res_cont);
+    void Optimize();
+    virtual bool IsDummyProc();
+    virtual SymbolClass GetClassName() const;
+    virtual const SymType* GetResultType() const;
+    virtual void PrintVerbose(ostream& o, int offset) const;
+    virtual void Print(ostream& o, int offset = 0) const;
     virtual bool CanBeReplaced();
 };
 
@@ -119,7 +118,6 @@ public:
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetResultType() const;
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual bool IsDummyProc();
 };
 
@@ -130,7 +128,6 @@ public:
     SymVar(Token token, const SymType* type_);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int ofefset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void PrintVerbose(ostream& o, int offset) const;
     const SymType* GetVarType() const;
     void PrintAsNode(ostream& o, int offset = 0) const;
@@ -190,7 +187,6 @@ public:
     const SymVarLocal* FindField(Token& field_name);
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual unsigned GetSize() const;
 };
@@ -201,7 +197,6 @@ private:
 public:
     SymTypeAlias(Token name, SymType* ratget_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void PrintVerbose(ostream& o, int offset) const;
     virtual SymbolClass GetClassName() const;
     virtual const SymType* GetActualType() const;
@@ -214,7 +209,6 @@ private:
 public:
     SymTypePointer(SymType* ref_type_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual SymbolClass GetClassName() const;
 };
 
@@ -228,7 +222,6 @@ public:
     Token GetValueTok() const;
     virtual SymbolClass GetClassName() const;
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void PrintVerbose(ostream& o, int offset = 0) const;
     virtual void GenerateLValue(AsmCode& asm_code) const;
     virtual void GenerateValue(AsmCode& asm_code) const;
@@ -275,8 +268,6 @@ public:
 };
 
 //---SymTable---
-
-#include <iostream>
 
 class SymTable{
 private:

@@ -1,0 +1,62 @@
+a: integer							a: integer
+procedure aa(i: integer);					procedure aa(i: integer);
+var								var
+  i: integer							  i: integer
+begin								begin
+  if								  if
+    < [integer]							    < [integer]
+      i [integer]						      i [integer]
+      1 [integer]						      1 [integer]
+  then								  then
+    exit							    exit
+  := 								  := 
+    a [integer]							    a [integer]
+    i [integer]							    i [integer]
+  () bb [untyped]						  () bb [untyped]
+    - [integer]							    - [integer]
+      i [integer]						      i [integer]
+      1 [integer]						      1 [integer]
+end								end
+b: integer							b: integer
+procedure bb(i: integer);					procedure bb(i: integer);
+var								var
+  i: integer							  i: integer
+begin								begin
+  if								  if
+    < [integer]							    < [integer]
+      i [integer]						      i [integer]
+      1 [integer]						      1 [integer]
+  then								  then
+    exit							    exit
+  := 								  := 
+    b [integer]							    b [integer]
+    i [integer]							    i [integer]
+  () aa [untyped]						  () aa [untyped]
+    - [integer]							    - [integer]
+      i [integer]						      i [integer]
+      1 [integer]						      1 [integer]
+end								end
+procedure seproc(i: integer);					procedure seproc(i: integer);
+var								var
+  i: integer							  i: integer
+begin								begin
+  () aa [untyped]						  () aa [untyped]
+    i [integer]							    i [integer]
+end								end
+begin								begin
+  () aa [untyped]						  () aa [untyped]
+    5 [integer]							    5 [integer]
+  () writeln [untyped]						  () writeln [untyped]
+    a [integer]							    a [integer]
+    b [integer]							    b [integer]
+  () bb [untyped]						  () bb [untyped]
+    5 [integer]							    5 [integer]
+  () writeln [untyped]						  () writeln [untyped]
+    a [integer]							    a [integer]
+    b [integer]							    b [integer]
+  () seproc [untyped]						  () seproc [untyped]
+    5 [integer]							    5 [integer]
+  () writeln [untyped]						  () writeln [untyped]
+    a [integer]							    a [integer]
+    b [integer]							    b [integer]
+end								end

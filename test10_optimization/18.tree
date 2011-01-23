@@ -1,0 +1,48 @@
+c: integer							c: integer
+i: integer							i: integer
+rec1: record							rec1: record
+  a: integer							  a: integer
+  b: integer							  b: integer
+end								end
+rec2: record							rec2: record
+  a: integer							  a: integer
+  b: integer							  b: integer
+end								end
+begin								begin
+  := 								  := 
+    . [integer]							    . [integer]
+      rec1 [record]						      rec1 [record]
+      b [integer]						      b [integer]
+    20 [integer]						    20 [integer]
+							      >	  := 
+							      >	    . [integer]
+							      >	      rec2 [record]
+							      >	      b [integer]
+							      >	    30 [integer]
+  for to 							  for to 
+    i [integer]							    i [integer]
+    1 [integer]							    1 [integer]
+    2 [integer]							    2 [integer]
+  begin								  begin
+    := 								    := 
+      . [integer]						      . [integer]
+        rec1 [record]						        rec1 [record]
+        a [integer]						        a [integer]
+      10 [integer]						      10 [integer]
+    := 								    := 
+      . [integer]					      <
+        rec2 [record]					      <
+        b [integer]					      <
+      30 [integer]					      <
+    := 							      <
+      c [integer]						      c [integer]
+      . [integer]						      . [integer]
+        rec1 [record]						        rec1 [record]
+        b [integer]						        b [integer]
+  end								  end
+  () writeln [untyped]						  () writeln [untyped]
+    . [integer]							    . [integer]
+      rec1 [record]						      rec1 [record]
+      a [integer]						      a [integer]
+    c [integer]							    c [integer]
+end								end

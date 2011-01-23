@@ -1,0 +1,139 @@
+.data
+    a: .space 4
+    b: .space 4
+    format_str_d: .string "%d"
+    format_str_new_line: .string "\n"
+.text
+  bb:
+    pushl	%ebp
+    movl	%esp, %ebp
+    pushl	8(%ebp)
+    pushl	$1
+    popl	%ebx
+    popl	%eax
+    cmpl	%ebx, %eax
+    setl	%al
+    movzbl	%al, %eax
+    pushl	%eax
+    popl	%eax
+    testl	%eax, %eax
+    jz	else_4
+    jmp	exit_2
+    jmp	fin_5
+  else_4:
+  fin_5:
+    pushl	8(%ebp)
+    pushl	$b
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	8(%ebp)
+    pushl	$1
+    popl	%ebx
+    popl	%eax
+    subl	%ebx, %eax
+    pushl	%eax
+    calll	(aa)
+    addl	$0, %esp
+  exit_2:
+    movl	%ebp, %esp
+    popl	%ebp
+    retl	$4
+  aa:
+    pushl	%ebp
+    movl	%esp, %ebp
+    pushl	8(%ebp)
+    pushl	$1
+    popl	%ebx
+    popl	%eax
+    cmpl	%ebx, %eax
+    setl	%al
+    movzbl	%al, %eax
+    pushl	%eax
+    popl	%eax
+    testl	%eax, %eax
+    jz	else_6
+    jmp	exit_1
+    jmp	fin_7
+  else_6:
+  fin_7:
+    pushl	8(%ebp)
+    pushl	$a
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    pushl	8(%ebp)
+    pushl	$1
+    popl	%ebx
+    popl	%eax
+    subl	%ebx, %eax
+    pushl	%eax
+    calll	(bb)
+    addl	$0, %esp
+  exit_1:
+    movl	%ebp, %esp
+    popl	%ebp
+    retl	$4
+  seproc:
+    pushl	%ebp
+    movl	%esp, %ebp
+    pushl	8(%ebp)
+    calll	(aa)
+    addl	$0, %esp
+  exit_3:
+    movl	%ebp, %esp
+    popl	%ebp
+    retl	$4
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$5
+    calll	(aa)
+    addl	$0, %esp
+    pushl	(a)
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    pushl	(b)
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    pushl	$format_str_new_line
+    calll	(printf)
+    addl	$4, %esp
+    addl	$0, %esp
+    pushl	$5
+    calll	(bb)
+    addl	$0, %esp
+    pushl	(a)
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    pushl	(b)
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    pushl	$format_str_new_line
+    calll	(printf)
+    addl	$4, %esp
+    addl	$0, %esp
+    pushl	$5
+    calll	(seproc)
+    addl	$0, %esp
+    pushl	(a)
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    pushl	(b)
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    pushl	$format_str_new_line
+    calll	(printf)
+    addl	$4, %esp
+    addl	$0, %esp
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

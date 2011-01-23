@@ -53,12 +53,13 @@ int main(int argc, char* argv[])
         else
             {
                 if (!argv[1][1] || argv[1][2]) throw CompilerException("invalid option");
-                switch (argv[1][1])
+                bool optimize = isupper(argv[1][1]);
+                switch (tolower(argv[1][1]))
                 {
                     case 'b':
                     {
                         Scanner scan(in);
-                        Parser parser(scan);
+                        Parser parser(scan, optimize);
                         parser.PrintSymTable(std::cout);
                         parser.PrintSyntaxTree(std::cout);
                     }
@@ -66,21 +67,21 @@ int main(int argc, char* argv[])
                     case 's':
                     {
                         Scanner scan(in);
-                        Parser parser(scan);
+                        Parser parser(scan, optimize);
                         parser.PrintSyntaxTree(std::cout);
                     }
                     break;
                     case 't':
                     {
                         Scanner scan(in);
-                        Parser parser(scan);
+                        Parser parser(scan, optimize);
                         parser.PrintSymTable(std::cout);
                     }
                     break;
                     case 'g':
                     {
                         Scanner scan(in);
-                        Parser parser(scan);
+                        Parser parser(scan, optimize);
                         parser.Generate(std::cout);
                     }
                     break;

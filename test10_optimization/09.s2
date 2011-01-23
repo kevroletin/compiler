@@ -1,0 +1,16 @@
+.data
+    b: .space 4
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$0
+    pushl	$b
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

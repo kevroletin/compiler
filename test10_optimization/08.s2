@@ -1,0 +1,60 @@
+.data
+    b: .space 4
+    format_str_d: .string "%d"
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$5
+    pushl	$b
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+  continue_2:
+    pushl	(b)
+    popl	%eax
+    testl	%eax, %eax
+    jz	break_1
+    pushl	(b)
+    pushl	$format_str_d
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+    pushl	(b)
+    pushl	$5
+    popl	%ebx
+    popl	%eax
+    cmpl	%ebx, %eax
+    setl	%al
+    movzbl	%al, %eax
+    pushl	%eax
+    popl	%eax
+    testl	%eax, %eax
+    jz	else_3
+    jmp	break_1
+    jmp	fin_4
+  else_3:
+  fin_4:
+    pushl	(b)
+    pushl	$1
+    popl	%ebx
+    popl	%eax
+    subl	%ebx, %eax
+    pushl	%eax
+    pushl	$b
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    jmp	continue_2
+    pushl	$0
+    pushl	$b
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+    jmp	continue_2
+  break_1:
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

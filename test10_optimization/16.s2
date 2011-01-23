@@ -1,0 +1,29 @@
+.data
+    str_1: .string "good"
+    format_str_s: .string "%s"
+    str_2: .string "good"
+    str_3: .string "good"
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$str_1
+    pushl	$format_str_s
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+    pushl	$str_2
+    pushl	$format_str_s
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+    pushl	$str_3
+    pushl	$format_str_s
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

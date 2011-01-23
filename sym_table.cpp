@@ -53,11 +53,6 @@ SymbolClass Symbol::GetClassName() const
     return SYM;
 }
 
-void Symbol::Print(ostream& o, int offset)
-{
-    PrintSpaces(o, offset) << token.GetName();
-}
-
 void Symbol::Print(ostream& o, int offset) const
 {
     PrintSpaces(o, offset) << token.GetName();
@@ -83,11 +78,6 @@ SymType::SymType(Token name):
 SymbolClass SymType::GetClassName() const
 {
     return SymbolClass(SYM | SYM_TYPE);
-}
-
-void SymType::Print(ostream& o, int offset)
-{
-    o << token.GetName();
 }
 
 void SymType::Print(ostream& o, int offset) const
@@ -139,7 +129,8 @@ SymProc::SymProc(Token name):
     have_side_effect(false),
     known_side_effect(false),
     searching(false),
-    sym_table(NULL)
+    sym_table(NULL),
+    dummy_proc(false)
 {
 }
 
@@ -207,7 +198,8 @@ void SymProc::PrintVerbose(ostream& o, int offset) const
     Print(o, offset);
     if (body != NULL)
     {
-        o << ";\n";
+        if (dummy_proc) o << "; {won't be generated}\n";
+        else o << ";\n";
         if (!sym_table->IsEmpty())
         {
             o << "var\n";
@@ -216,12 +208,6 @@ void SymProc::PrintVerbose(ostream& o, int offset) const
     }
     else o << "; forward;\n";
     if (body != NULL) body->Print(o, offset);
-}
-
-void SymProc::Print(ostream& o, int offset)
-{
-    o << "procedure ";
-    PrintPrototype(o, offset);
 }
 
 void SymProc::Print(ostream& o, int offset) const
@@ -277,10 +263,7 @@ bool SymProc::ValidateParams(SymProc* src)
 
 bool SymProc::IsDummyProc()
 {
-    if (IsHaveSideEffect()) return false;
-    for (int i = 0; i < params.size(); ++i)
-        if (IsAffectToParam(i)) return false;
-    return true;
+    return dummy_proc;
 }
 
 bool SymProc::IsHaveSideEffect()
@@ -325,6 +308,14 @@ void SymProc::GetAllDependences(VarsContainer& res_cont)
     searching = false;
 }
 
+void SymProc::Optimize()
+{
+    body->Optimize();
+    dummy_proc = !IsHaveSideEffect();
+    for (int i = 0; i < params.size() && dummy_proc; ++i)
+        dummy_proc &= !IsAffectToParam(i);
+}
+
 bool SymProc::CanBeReplaced()
 {
     if (searching) return true; 
@@ -366,14 +357,6 @@ const SymType* SymFunct::GetResultType() const
     return result_type->GetActualType();
 }
 
-void SymFunct::Print(ostream& o, int offset)
-{
-    o << "function ";
-    PrintPrototype(o, offset);
-    o << ": ";
-    result_type->Print(o, 0);
-}
-
 void SymFunct::Print(ostream& o, int offset) const
 {
     o << "function ";
@@ -398,12 +381,6 @@ SymVar::SymVar(Token token, const SymType* type_):
 SymbolClass SymVar::GetClassName() const
 {
     return SymbolClass(SYM | SYM_VAR);
-}
-
-void SymVar::Print(ostream& o, int offset)
-{
-    o << token.GetName() << ": ";
-    type->Print(o, 0);
 }
 
 void SymVar::Print(ostream& o, int offset) const
@@ -564,11 +541,6 @@ SymbolClass SymTypeRecord::GetClassName() const
     return SymbolClass(SYM | SYM_TYPE | SYM_TYPE_RECORD);
 }
 
-void SymTypeRecord::Print(ostream& o, int offset)
-{
-    o << "record";
-}
-
 void SymTypeRecord::Print(ostream& o, int offset) const
 {
     o << "record";
@@ -592,11 +564,6 @@ SymTypeAlias::SymTypeAlias(Token name, SymType* target_):
     SymType(name),
     target(target_)
 {
-}
-
-void SymTypeAlias::Print(ostream& o, int offset)
-{
-    o << token.GetName();
 }
 
 void SymTypeAlias::Print(ostream& o, int offset) const
@@ -633,12 +600,6 @@ SymTypePointer::SymTypePointer(SymType* ref_type_):
 {
 }
 
-void SymTypePointer::Print(ostream& o, int offset)
-{
-    o << '^';
-    ref_type->Print(o, offset);
-}
-
 void SymTypePointer::Print(ostream& o, int offset) const
 {
     o << '^';
@@ -669,11 +630,6 @@ SymbolClass SymVarConst::GetClassName() const
 }
 
 void SymVarConst::Print(ostream& o, int offset) const
-{
-    PrintSpaces(o, offset) << token.GetName() << " = " << value.GetName();
-}
-
-void SymVarConst::Print(ostream& o, int offset)
 {
     PrintSpaces(o, offset) << token.GetName() << " = " << value.GetName();
 }
@@ -926,6 +882,6 @@ void SymTable::GenerateDeclarations(AsmCode& asm_code) const
 void SymTable::Optimize()
 {
     for (std::vector<SymProc*>::const_iterator it = proc_decl_order.begin(); it != proc_decl_order.end(); ++it)
-        (*it)->GetBody()->Optimize();
+        (*it)->Optimize();
 }
 

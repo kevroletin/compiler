@@ -16,6 +16,7 @@
 
 class Parser{
 private:
+    bool optimization;
     StmtBlock* body;
     Scanner& scan;
     SymTable top_sym_table;
@@ -79,7 +80,7 @@ private:
     const Symbol* FindSymbol(const Token& tok);
     void Parse();
 public:
-    Parser(Scanner& scanner);
+    Parser(Scanner& scanner, bool optimize = false);
     void PrintSyntaxTree(ostream& o);
     void PrintSymTable(ostream& o);
     void Generate(ostream& o);

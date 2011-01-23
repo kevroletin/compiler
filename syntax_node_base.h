@@ -27,11 +27,11 @@ public:
     bool IsDependOnVar(SymVar* var);    
     virtual bool IsHaveSideEffect();    
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(std::ostream& o, int offset = 0);
     virtual void GetAllAffectedVars(VarsContainer&);
     virtual void GetAllDependences(VarsContainer&, bool with_self = true);
     virtual bool CanBeReplaced();
     virtual bool ContainJump();
+    virtual void Optimize();
 };
 
 class SyntaxNode: public SyntaxNodeBase{

@@ -1,0 +1,26 @@
+.data
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+  continue_2:
+    pushl	$0
+    popl	%eax
+    testl	%eax, %eax
+    jz	break_1
+    jmp	continue_2
+  break_1:
+  until_start_5:
+    pushl	$5
+    addl	$4, %esp
+  continue_4:
+    pushl	$1
+    popl	%eax
+    testl	%eax, %eax
+    jz	until_start_5
+  break_3:
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

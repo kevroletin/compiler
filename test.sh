@@ -3,7 +3,7 @@
 for dir in test*
 do
 	if [ -d $dir ]
-	then 
+	then
 		echo "---$dir---"
 		cd $dir
 		sh test.sh -n

@@ -2,28 +2,33 @@
 var
   a, b: Integer;
 
-procedure BB; forward;
+procedure BB(i: Integer); forward;
 
-procedure AA;
+procedure AA(i : Integer);
 begin
-  a := 10;
-  BB;
+  if (i < 1) then Exit;
+  a := i;
+  BB(i - 1);
 end;
 
-procedure BB;
+procedure BB(i : Integer);
 begin
-  b := 10;
-  AA;
+  if (i < 1) then Exit;
+  b := i;
+  AA(i - 1);
 end;
 
 //генерируется
-procedure SEProc;
+procedure SEProc(i : Integer);
 begin
-  AA;
+  AA(i);
 end;
 
 begin
-  AA;
-  BB;
-  SEProc;
+  AA(5);
+  Writeln(a, b);
+  BB(5);
+  Writeln(a, b);
+  SEProc(5);
+  Writeln(a, b);
 end.

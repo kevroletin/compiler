@@ -1,0 +1,39 @@
+.data
+    i: .space 4
+    j: .space 4
+.text
+  seproc:
+    pushl	%ebp
+    movl	%esp, %ebp
+    pushl	8(%ebp)
+    pushl	12(%ebp)
+    popl	%ebx
+    popl	%eax
+    movl	%eax, (%ebx)
+  exit_1:
+    movl	%ebp, %esp
+    popl	%ebp
+    retl	$8
+  proc:
+    pushl	%ebp
+    movl	%esp, %ebp
+  exit_2:
+    movl	%ebp, %esp
+    popl	%ebp
+    retl	$8
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$j
+    pushl	(i)
+    calll	(seproc)
+    addl	$0, %esp
+    pushl	$j
+    pushl	(i)
+    calll	(proc)
+    addl	$0, %esp
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

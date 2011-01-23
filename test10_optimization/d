@@ -1,0 +1,4 @@
+../debug -b $1.in > 1.tmp
+../debug -B $1.in > 2.tmp
+diff --side-by-side 1.tmp 2.tmp
+rm 1.tmp 2.tmp

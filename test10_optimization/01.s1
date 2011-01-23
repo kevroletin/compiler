@@ -1,0 +1,27 @@
+.data
+.text
+  proc:
+    pushl	%ebp
+    movl	%esp, %ebp
+    pushl	$1
+    pushl	$2
+    popl	%ebx
+    popl	%eax
+    addl	%ebx, %eax
+    pushl	%eax
+    addl	$4, %esp
+  exit_1:
+    movl	%ebp, %esp
+    popl	%ebp
+    retl	$4
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$5
+    calll	(proc)
+    addl	$0, %esp
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl

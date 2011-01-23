@@ -5,8 +5,9 @@
 var
   i: Integer;
 begin
-  while (1) do begin
-    i := i + 1;
+  i := 10;
+  while (i) do begin
+    i := i - 1;
     5;
   end;
 end.

@@ -14,11 +14,11 @@ private:
     SyntaxNode* left;
     SyntaxNode* right;
 public:
+    virtual void Optimize();
     StmtAssign(SyntaxNode* left_, SyntaxNode* right_);
     const SyntaxNode* GetLeft() const;
     const SyntaxNode* GetRight() const;
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
@@ -33,29 +33,28 @@ protected:
 public:
     virtual void Optimize();
     void OptimizeLoops();
-    void OptimizeConstants();
     NodeStatement* GetStmt(unsigned i);
     bool IsEmpty() const;
     unsigned GetSize() const;
     void AddStatement(NodeStatement* new_stmt);
     void CopyContent(StmtBlock* src);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
     virtual StmtClassName GetClassName() const;
     virtual bool CanBeReplaced();
+//debug    virtual void Print(ostream& o, int offset = 0);
 };
 
 class StmtExpression: public NodeStatement{
 private:
     SyntaxNode* expr;
 public:
+    virtual void Optimize();
     StmtExpression(SyntaxNode* expression);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
     virtual bool IsHaveSideEffect();    
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
@@ -94,13 +93,13 @@ public:
     StmtFor(SymVar* index_, SyntaxNode* init_value, SyntaxNode* last_value,
             bool is_inc, NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
     virtual bool IsConditionAffectToVars();
     virtual bool CanBeReplaced();
+    virtual void Optimize();
 };
 
 class StmtWhile: public StmtLoop{
@@ -110,13 +109,13 @@ protected:
 public:
     StmtWhile(SyntaxNode* condition_ = NULL , NodeStatement* body_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual void GetAllDependences(VarsContainer& res_cont, bool with_self = true);
     virtual bool IsConditionAffectToVars();
     virtual bool CanBeReplaced();
+    virtual void Optimize();
 };
 
 class StmtUntil: public StmtWhile{
@@ -124,7 +123,6 @@ public:
     StmtUntil(SyntaxNode* condition_, NodeStatement* body = NULL);
     void AddCondition(SyntaxNode* condition);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
 };
 
@@ -134,9 +132,9 @@ private:
     NodeStatement* then_branch;
     NodeStatement* else_branch;
 public:
+    bool OptimizeIf(NodeStatement*& res);
     StmtIf(SyntaxNode* condition_, NodeStatement* then_branch_, NodeStatement* else_branch_ = NULL);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
     virtual bool IsHaveSideEffect();
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
@@ -144,6 +142,7 @@ public:
     virtual StmtClassName GetClassName() const;
     virtual bool CanBeReplaced();
     virtual bool ContainJump();
+    virtual void Optimize();
 };
 
 class StmtJump: public NodeStatement{
@@ -153,7 +152,6 @@ private:
 public:
     StmtJump(Token tok, StmtLoop* loop_);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual StmtClassName GetClassName() const;
@@ -166,7 +164,6 @@ private:
 public:
     StmtExit(AsmStrImmediate exit_label);
     virtual void Print(ostream& o, int offset = 0) const;
-    virtual void Print(ostream& o, int offset = 0);
     virtual void Generate(AsmCode& asm_code);
     virtual void GetAllAffectedVars(VarsContainer& res_cont);
     virtual StmtClassName GetClassName() const;

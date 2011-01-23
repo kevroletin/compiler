@@ -1,0 +1,25 @@
+i: integer							i: integer
+j: integer							j: integer
+procedure proc(a: integer; var b: integer);		      |	procedure proc(a: integer; var b: integer); {won't be generat
+var								var
+  a: integer							  a: integer
+  b: integer							  b: integer
+begin								begin
+end								end
+procedure seproc(a: integer; var b: integer);			procedure seproc(a: integer; var b: integer);
+var								var
+  a: integer							  a: integer
+  b: integer							  b: integer
+begin								begin
+  := 								  := 
+    b [integer]							    b [integer]
+    a [integer]							    a [integer]
+end								end
+begin								begin
+  () seproc [untyped]						  () seproc [untyped]
+    i [integer]							    i [integer]
+    j [integer]							    j [integer]
+  () proc [untyped]						  () proc [untyped]
+    i [integer]							    i [integer]
+    j [integer]							    j [integer]
+end								end

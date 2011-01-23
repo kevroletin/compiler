@@ -1,0 +1,75 @@
+.data
+    str_3: .string "good"
+    format_str_s: .string "%s"
+    str_4: .string "bad"
+    str_7: .string "bad"
+    str_8: .string "good"
+    str_11: .string "good"
+    str_14: .string "bad"
+.text
+.globl main
+main:
+
+    movl	%esp, %ebp
+    pushl	$1
+    popl	%eax
+    testl	%eax, %eax
+    jz	else_1
+    pushl	$str_3
+    pushl	$format_str_s
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+    jmp	fin_2
+  else_1:
+    pushl	$str_4
+    pushl	$format_str_s
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+  fin_2:
+    pushl	$0
+    popl	%eax
+    testl	%eax, %eax
+    jz	else_5
+    pushl	$str_7
+    pushl	$format_str_s
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+    jmp	fin_6
+  else_5:
+    pushl	$str_8
+    pushl	$format_str_s
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+  fin_6:
+    pushl	$1
+    popl	%eax
+    testl	%eax, %eax
+    jz	else_9
+    pushl	$str_11
+    pushl	$format_str_s
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+    jmp	fin_10
+  else_9:
+  fin_10:
+    pushl	$0
+    popl	%eax
+    testl	%eax, %eax
+    jz	else_12
+    pushl	$str_14
+    pushl	$format_str_s
+    calll	(printf)
+    addl	$8, %esp
+    addl	$0, %esp
+    jmp	fin_13
+  else_12:
+  fin_13:
+  exit_0:
+    movl	%ebp, %esp
+    movl	$0, %eax
+    retl
